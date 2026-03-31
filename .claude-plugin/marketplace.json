@@ -1,0 +1,27 @@
+{
+  "name": "airay-skills",
+  "owner": {
+    "name": "airay"
+  },
+  "metadata": {
+    "description": "Claude Code skills by airay for daily productivity",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "airay-skills",
+      "description": "File management, GitHub workflow, insights translation, and productivity tools",
+      "source": "./",
+      "strict": true,
+      "skills": [
+        "./skills/airay-agent-review",
+        "./skills/airay-file-organizer",
+        "./skills/airay-github-smart-commit",
+        "./skills/airay-idea-to-post",
+        "./skills/airay-insights-zh",
+        "./skills/airay-skill-backup",
+        "./skills/airay-skill-usage"
+      ]
+    }
+  ]
+}

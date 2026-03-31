@@ -1,0 +1,177 @@
+{
+  "skill_name": "insights-zh",
+  "description": "insights-zh 技能测试用例，验证翻译功能的正确性",
+  "evals": [
+    {
+      "id": 1,
+      "name": "basic-translation",
+      "description": "基本翻译功能测试",
+      "prompt": "翻译我的 insights 报告",
+      "expected_behavior": "自动检测 report.html，执行翻译流程，生成中文 HTML 文件",
+      "expected_output": "成功生成 report-zh.html 文件，所有可见文本已翻译为中文",
+      "preconditions": [
+        "存在 ~/.claude/usage-data/report.html 文件"
+      ],
+      "files": [
+        "~/.claude/usage-data/report.html"
+      ],
+      "assertions": [
+        {
+          "name": "输出文件存在",
+          "check": "file_exists('./report-zh.html')",
+          "description": "验证生成了中文 HTML 文件"
+        },
+        {
+          "name": "包含中文内容",
+          "check": "contains_chinese_text('./report-zh.html')",
+          "description": "验证文件包含中文字符"
+        },
+        {
+          "name": "HTML 结构完整",
+          "check": "html_structure_valid('./report-zh.html')",
+          "description": "验证 HTML 标签和结构完整"
+        },
+        {
+          "name": "保留原始样式",
+          "check": "styles_preserved('./report-zh.html')",
+          "description": "验证 CSS 样式和类名保留"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "command-trigger",
+      "description": "命令触发测试",
+      "prompt": "/insights-zh",
+      "expected_behavior": "通过斜杠命令直接触发技能",
+      "expected_output": "自动触发技能，完成翻译流程",
+      "preconditions": [
+        "存在 ~/.claude/usage-data/report.html 文件"
+      ],
+      "files": [
+        "~/.claude/usage-data/report.html"
+      ],
+      "assertions": [
+        {
+          "name": "技能被触发",
+          "check": "skill_triggered('insights-zh')",
+          "description": "验证技能被正确触发"
+        },
+        {
+          "name": "翻译完成",
+          "check": "file_exists('./report-zh.html')",
+          "description": "验证翻译完成"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "variant-phrasing",
+      "description": "不同表达方式触发测试",
+      "prompt": "生成中文版的 insights HTML 报告",
+      "expected_behavior": "理解用户意图，执行翻译流程",
+      "expected_output": "识别意图并执行翻译，生成 report-zh.html",
+      "preconditions": [
+        "存在 ~/.claude/usage-data/report.html 文件"
+      ],
+      "files": [
+        "~/.claude/usage-data/report.html"
+      ],
+      "assertions": [
+        {
+          "name": "正确理解意图",
+          "check": "intent_recognized('translate')",
+          "description": "验证识别了翻译意图"
+        },
+        {
+          "name": "翻译完成",
+          "check": "file_exists('./report-zh.html')",
+          "description": "验证翻译完成"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "error-handling-missing-file",
+      "description": "错误处理测试 - 文件不存在",
+      "prompt": "翻译 insights 报告",
+      "expected_behavior": "检测到文件不存在，显示友好的错误提示",
+      "expected_output": "显示错误提示，建议用户先运行 /insights 命令",
+      "preconditions": [
+        "不存在 ~/.claude/usage-data/report.html 文件"
+      ],
+      "files": [],
+      "assertions": [
+        {
+          "name": "显示错误提示",
+          "check": "error_message_shown()",
+          "description": "验证显示了友好的错误提示"
+        },
+        {
+          "name": "提供解决方案",
+          "check": "solution_provided()",
+          "description": "验证提供了解决方案建议"
+        },
+        {
+          "name": "未生成输出文件",
+          "check": "not file_exists('./report-zh.html')",
+          "description": "验证没有生成错误的输出文件"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "html-preservation",
+      "description": "HTML 结构保留测试",
+      "prompt": "翻译我的 insights 报告",
+      "expected_behavior": "翻译文本内容，但保留所有 HTML 结构、样式和脚本",
+      "expected_output": "生成 report-zh.html，HTML 标签和属性完整保留，只有文本内容被翻译",
+      "preconditions": [
+        "存在包含复杂 HTML 结构的 report.html 文件"
+      ],
+      "files": [
+        "~/.claude/usage-data/report.html"
+      ],
+      "assertions": [
+        {
+          "name": "HTML 标签完整",
+          "check": "html_tags_preserved('./report-zh.html')",
+          "description": "验证所有 HTML 标签保留"
+        },
+        {
+          "name": "CSS 样式保留",
+          "check": "css_preserved('./report-zh.html')",
+          "description": "验证 CSS 样式保留"
+        },
+        {
+          "name": "JavaScript 保留",
+          "check": "javascript_preserved('./report-zh.html')",
+          "description": "验证 JavaScript 代码保留"
+        },
+        {
+          "name": "HTML 属性保留",
+          "check": "html_attributes_preserved('./report-zh.html')",
+          "description": "验证 HTML 属性值保留"
+        }
+      ]
+    }
+  ],
+  "assertions_library": {
+    "file_exists": "检查文件是否存在",
+    "contains_chinese_text": "检查文件是否包含中文字符（Unicode 范围 U+4E00-U+9FFF）",
+    "html_structure_valid": "验证 HTML 结构是否完整（标签匹配、语法正确）",
+    "styles_preserved": "验证 CSS 样式和类名是否保留",
+    "skill_triggered": "验证技能是否被触发",
+    "intent_recognized": "验证是否识别了正确的意图",
+    "error_message_shown": "验证是否显示了错误消息",
+    "solution_provided": "验证是否提供了解决方案",
+    "html_tags_preserved": "验证 HTML 标签是否完整保留",
+    "css_preserved": "验证 CSS 样式是否保留",
+    "javascript_preserved": "验证 JavaScript 代码是否保留",
+    "html_attributes_preserved": "验证 HTML 属性值是否保留"
+  },
+  "test_data": {
+    "sample_html": "<div class=\"container\"><h1>Weekly Insights</h1><p>You wrote 5000 lines of code.</p></div>",
+    "expected_translation": "<div class=\"container\"><h1>每周洞察</h1><p>您编写了 5000 行代码。</p></div>"
+  }
+}
