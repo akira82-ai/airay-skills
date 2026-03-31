@@ -1,0 +1,12 @@
+{
+  "name": "airay-skills",
+  "description": "Claude Code skills by airay for daily productivity",
+  "version": "1.0.0",
+  "author": {
+    "name": "airay"
+  },
+  "homepage": "https://github.com/akira82-ai/airay-skills",
+  "repository": "https://github.com/akira82-ai/airay-skills",
+  "license": "MIT",
+  "keywords": ["skills", "productivity", "file-organizer", "github", "insights"]
+}
