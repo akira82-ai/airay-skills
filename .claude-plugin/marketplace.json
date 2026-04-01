@@ -7,6 +7,15 @@
     "description": "Claude Code skills by airay for daily productivity",
     "version": "1.0.0"
   },
+  "commands": [
+    "./commands/airay-agent-review.md",
+    "./commands/airay-file-organizer.md",
+    "./commands/airay-github-smart-commit.md",
+    "./commands/airay-idea-to-post.md",
+    "./commands/airay-insights-zh.md",
+    "./commands/airay-skill-backup.md",
+    "./commands/airay-skill-usage.md"
+  ],
   "plugins": [
     {
       "name": "airay-skills",
