@@ -5,7 +5,14 @@ Claude Code skills by airay for daily productivity.
 ## Installation
 
 ```bash
+# 1. 安装插件
 /plugin marketplace add akira82-ai/airay-skills
+
+# 2. 启用插件
+/plugin enable airay-skills
+
+# 3. 重新加载
+/reload-plugins
 ```
 
 ## Skills
