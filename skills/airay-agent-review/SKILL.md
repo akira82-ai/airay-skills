@@ -73,13 +73,31 @@ def to_ms(ts):
 
 ### 第 3 步：从项目 JSONL 文件中提取详细内容
 
-对每个 session，读取 ~/.claude/projects/<编码后的项目路径>/<sessionId>.jsonl（项目路径中的 / 替换为 -），用 `to_ms()` 将每条记录的 timestamp 转为毫秒后过滤指定日期范围，提取：
-- user 类型的消息：用户说了什么
-- assistant 类型消息中的 tool_use：工具名 + 关键参数（文件路径、命令内容）
-- user 类型消息中的 tool_result：is_error 标记
-统计每种工具的调用次数和失败次数。
-统计 Edit 和 Write 操作涉及的文件。
-多天范围时，按天分别统计。
+使用技能自带的 `extract.py` 脚本提取数据，确保时间戳处理稳定可靠。
+
+**调用脚本**：
+```bash
+python ~/.claude/plugins/marketplaces/airay-skills/skills/airay-agent-review/scripts/extract.py --start_ms <start_ms> --end_ms <end_ms>
+```
+
+**脚本返回的数据结构**：
+```json
+{
+  "sessions": [...],
+  "total_messages": N,
+  "tool_calls": {"Bash": 36, "Read": 2, "Write": 2, ...},
+  "tool_errors": {...},
+  "files_touched": ["path/to/file1", "path/to/file2", ...],
+  "projects": ["/path/to/project1", "/path/to/project2"],
+  "user_messages": [...]
+}
+```
+
+脚本内部会自动处理：
+- 时间戳格式转换（int 毫秒 / ISO 8601 字符串统一处理）
+- content 数组遍历（检查 tool_use 和 server_tool_use）
+- 路径编码（项目路径中的 / 替换为 -）
+- 错误统计（is_error 标记）
 
 ### 第 4 步：获取 Git 提交记录
 
