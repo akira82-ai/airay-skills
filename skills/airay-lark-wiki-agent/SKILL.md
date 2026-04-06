@@ -56,23 +56,76 @@ metadata:
 - **删除**: 删除wiki节点
 - **高级**: 批量操作、成员管理、空间设置
 
+## 命令选择原则
+
+| 操作类型 | 推荐命令 | 说明 |
+|----------|----------|------|
+| 创建文档 | `docs +create` | 支持直接填充 Markdown 内容 |
+| 更新文档 | `docs +update` | 支持多种更新模式 |
+| 读取文档 | `docs +fetch` | 获取文档内容 |
+| 搜索文档 | `docs +search` | 搜索 Wiki 中的文档 |
+| 插入文件 | `docs +media-insert` | 插入图片或文件到文档 |
+| 创建文件夹 | `api POST` | 无 Shortcut，必须用 API |
+| 移动/复制/删除 | `api POST/DELETE` | 无 Shortcut，必须用 API |
+
+**核心原则**：能用 Shortcut 就用 Shortcut，API POST 仅用于无 Shortcut 的操作。
+
 ---
 
 ## CRUD 操作
 
 ### Create - 创建节点
 
+#### 创建文档（推荐）
+
+使用 `docs +create` 创建包含内容的 Wiki 文档：
+
 ```bash
-# 创建新节点（文档类型: doc/docx/sheet/mindnote/bitable/file/slides）
+lark-cli docs +create \
+  --title "文档标题" \
+  --wiki-node "<父节点token，空字符串表示顶级>" \
+  --markdown "# Markdown 内容"
+```
+
+**优点**：
+- 一步完成：创建节点 + 填充内容
+- 支持直接传入 Markdown
+- 错误信息友好
+- 自动处理权限
+
+#### 创建文件夹/其他类型节点
+
+创建非文档类型节点（文件夹、表格等）：
+
+```bash
+# 创建文件夹
 lark-cli api POST "/open-apis/wiki/v2/spaces/7472294423981064194/nodes" \
   --data '{
-    "parent_node_token": "<父节点token，空字符串表示顶级>",
+    "parent_node_token": "<父节点token>",
+    "obj_type": "wiki",
+    "title": "文件夹名称"
+  }'
+
+# 创建其他类型节点（需要先创建，再填充内容）
+lark-cli api POST "/open-apis/wiki/v2/spaces/7472294423981064194/nodes" \
+  --data '{
+    "parent_node_token": "<父节点token>",
     "obj_type": "docx",
     "title": "节点标题"
   }'
 ```
 
-**返回字段**:
+**节点类型**：
+- `wiki`: 文件夹
+- `docx`: 新版文档（推荐使用 `docs +create`）
+- `doc`: 旧版文档
+- `sheet`: 电子表格（推荐使用 `sheets +create`）
+- `bitable`: 多维表格（推荐使用 `base +base-create`）
+- `mindnote`: 思维导图
+- `slides`: 演示文稿
+- `file`: 文件
+
+**返回字段**：
 - `node_token`: 新创建节点的 token
 - `space_id`: 知识空间 ID
 - `obj_token`: 实际文档的 token
@@ -90,21 +143,93 @@ lark-cli api GET "/open-apis/wiki/v2/spaces/7472294423981064194/nodes" \
 # 获取单个节点详情
 lark-cli api GET "/open-apis/wiki/v2/spaces/7472294423981064194/nodes/<node_token>"
 
+# 获取文档内容（推荐）
+
+使用 `docs +fetch` 获取文档的 Markdown 内容：
+
+```bash
+lark-cli docs +fetch --doc "<文档URL或token>"
+
+# 输出为表格格式
+lark-cli docs +fetch --doc "<文档URL或token>" --format table
+```
+
 # 搜索内容
-lark-cli api GET "/open-apis/wiki/v2/search_wiki" \
-  --params '{
-    "query": "<搜索关键词>",
-    "space_id": "7472294423981064194"
-  }'
+
+使用 `docs +search` 搜索 Wiki 中的文档：
+
+```bash
+lark-cli docs +search --query "搜索关键词" --page-size 10
+```
+
+**支持的过滤选项**：
+```bash
+# 按文档类型过滤
+lark-cli docs +search --query "关键词" --filter '{"doc_type": "docx"}'
+
+# 按时间过滤
+lark-cli docs +search --query "关键词" --filter '{"create_time": ">=2024-01-01"}'
+```
 ```
 
 ### Update - 更新节点
 
+#### 方式一：仅更新节点标题
+
 ```bash
-# 更新节点标题
 lark-cli api POST "/open-apis/wiki/v2/spaces/7472294423981064194/nodes/<node_token>/title" \
   --data '{"title": "新标题"}'
+```
 
+#### 方式二：更新文档内容（推荐）
+
+使用 `docs +update` 更新文档内容和标题：
+
+```bash
+# 覆盖整个文档
+lark-cli docs +update \
+  --doc "<文档URL或token>" \
+  --new-title "新标题" \
+  --markdown "新的 Markdown 内容"
+
+# 追加内容
+lark-cli docs +update \
+  --doc "<文档URL或token>" \
+  --mode append \
+  --markdown "追加的内容"
+```
+
+**支持的模式**：
+- `overwrite`: 覆盖整个文档（默认）
+- `append`: 追加到文档末尾
+- `insert_before`: 在指定位置前插入
+- `insert_after`: 在指定位置后插入
+- `replace_range`: 替换指定范围
+
+#### 方式三：插入文件到文档
+
+使用 `docs +media-insert` 将本地文件插入到文档中：
+
+```bash
+# 插入图片
+lark-cli docs +media-insert \
+  --file "/path/to/image.png" \
+  --doc "<文档URL或token>" \
+  --type image \
+  --caption "图片说明"
+
+# 插入文件
+lark-cli docs +media-insert \
+  --file "/path/to/file.pdf" \
+  --doc "<文档URL或token>" \
+  --type file
+```
+
+**支持的文件类型**：
+- 图片：PNG, JPG, GIF, WebP 等（最大 20MB）
+- 文件：PDF, Word, Excel, PPT 等（最大 20MB）
+
+```bash
 # 移动节点（同空间内）
 lark-cli api POST "/open-apis/wiki/v2/spaces/7472294423981064194/nodes/<node_token>/move" \
   --data '{"target_parent_token": "<目标父节点token>"}'

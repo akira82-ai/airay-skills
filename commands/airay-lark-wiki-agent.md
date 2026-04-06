@@ -42,6 +42,20 @@ allowed-tools: Bash, AskUserQuestion
 - **删除**: 删除wiki节点
 - **高级**: 批量操作、成员管理、空间设置
 
+## 命令选择原则
+
+| 操作类型 | 推荐命令 | 说明 |
+|----------|----------|------|
+| 创建文档 | `docs +create` | 支持直接填充 Markdown 内容 |
+| 更新文档 | `docs +update` | 支持多种更新模式 |
+| 读取文档 | `docs +fetch` | 获取文档内容 |
+| 搜索文档 | `docs +search` | 搜索 Wiki 中的文档 |
+| 插入文件 | `docs +media-insert` | 插入图片或文件到文档 |
+| 创建文件夹 | `api POST` | 无 Shortcut，必须用 API |
+| 移动/复制/删除 | `api POST/DELETE` | 无 Shortcut，必须用 API |
+
+**核心原则**：能用 Shortcut 就用 Shortcut，API POST 仅用于无 Shortcut 的操作。
+
 ## 默认配置
 
 - **知识空间 ID**: `7472294423981064194`
@@ -55,10 +69,13 @@ lark-cli api GET "/open-apis/wiki/v2/spaces/7472294423981064194/nodes" \
   --params '{"parent_node_token": "", "page_size": 50}'
 ```
 
-### 创建新文档
+### 创建新文档（推荐）
+
 ```bash
-lark-cli api POST "/open-apis/wiki/v2/spaces/7472294423981064194/nodes" \
-  --data '{"parent_node_token": "", "obj_type": "docx", "title": "新文档标题"}'
+lark-cli docs +create \
+  --title "文档标题" \
+  --wiki-node "<父节点token，空字符串表示顶级>" \
+  --markdown "# Markdown 内容"
 ```
 
 ### 更新节点标题
@@ -84,7 +101,12 @@ lark-cli api DELETE "/open-apis/wiki/v2/spaces/7472294423981064194/nodes/<node_t
 ```
 
 ### 搜索内容
+
 ```bash
+# 使用 docs +search 搜索 Wiki 中的文档
+lark-cli docs +search --query "搜索关键词" --page-size 10
+
+# 或使用脚本
 {baseDir}/scripts/search_wiki.sh "<搜索关键词>"
 ```
 
