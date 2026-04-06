@@ -48,6 +48,36 @@ metadata:
 - **知识空间 ID**: `7472294423981064194`
 - **知识库 URL**: `https://my.feishu.cn/wiki/QWQHwA9uYibmtzkZLJBccaEhnNd`
 
+## 中文 JSON 数据处理最佳实践
+
+**问题**：lark-cli 在处理包含中文字符的 JSON 数据时存在编码问题。直接在 Bash 中调用容易失败。
+
+**解决方案**：使用 Python subprocess 包装调用
+
+```python
+import subprocess
+import json
+
+data = {
+    "obj_type": "docx",
+    "parent_node_token": "xxx",
+    "title": "每日复盘 - 2026-04-06"  # 中文内容
+}
+
+result = subprocess.run([
+    "lark-cli", "api", "POST",
+    "/open-apis/wiki/v2/spaces/7472294423981064194/nodes",
+    "--data", json.dumps(data, ensure_ascii=False)  # 关键
+], capture_output=True, text=True, encoding='utf-8')
+```
+
+**关键点**：
+- `ensure_ascii=False` 确保中文正确编码
+- `encoding='utf-8'` 确保正确的编码处理
+- 通过 subprocess 传递参数列表，避免 Shell 解析问题
+
+**辅助脚本**：使用 `{baseDir}/scripts/lark_api_helper.py` 提供的 `lark_api()` 函数简化调用。
+
 ## 触发关键词
 
 - **创建**: 创建wiki节点、新建文档、添加wiki页面、新建知识库页面
