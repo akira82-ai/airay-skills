@@ -177,7 +177,7 @@ def main():
 
         if not output_json:
             mode = "模拟删除" if dry_run else "已删除"
-            print(f"\n🗑️  {mode_result}:")
+            print(f"\n🗑️  {mode}:")
             print(f"  文件数: {delete_result['deleted']}")
             print(f"  释放空间: {delete_result['freed_space']:,} 字节")
         else:

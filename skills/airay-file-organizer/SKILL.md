@@ -89,17 +89,14 @@ author: Claude Code
 02-02_消费零售        # 商业领域
 ```
 
+## 脚本目录
+
+**Agent 执行指令：**
+1. 确定本 SKILL.md 文件所在目录路径为 `{baseDir}`
+2. 脚本路径 = `{baseDir}/scripts/{脚本名}`
+3. 在运行任何脚本之前，先解析 `{baseDir}`
+
 ## 执行流程
-
-### 0. 定位脚本目录
-在执行任何脚本之前，先定位 skill 安装目录并保存路径变量。
-
-```bash
-SKILL_DIR=$(find ~/.claude/plugins/marketplaces -name "manage_history.py" -path "*airay-file-organizer*" 2>/dev/null | head -1 | xargs dirname)
-echo "$SKILL_DIR"
-```
-- 保存结果到变量 `SKILL_DIR`
-- 后续所有脚本调用使用 `$SKILL_DIR/脚本名` 代替相对路径
 
 ### 1. 解析参数
 检查用户是否提供了源目录和目标目录参数。
@@ -108,7 +105,7 @@ echo "$SKILL_DIR"
 
 #### 2.1. 读取源目录历史记录
 ```bash
-python3 "$SKILL_DIR/manage_history.py" read --type source
+python3 {baseDir}/scripts/manage_history.py read --type source
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `source_history`
@@ -133,7 +130,7 @@ python3 "$SKILL_DIR/manage_history.py" read --type source
 
 #### 3.1. 读取目标目录历史记录
 ```bash
-python3 "$SKILL_DIR/manage_history.py" read --type target
+python3 {baseDir}/scripts/manage_history.py read --type target
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `target_history`
@@ -287,10 +284,10 @@ total_files=$(ls -1 "$source" | wc -l | tr -d ' ')
 
 ```bash
 # 保存源目录
-python3 "$SKILL_DIR/manage_history.py" add --type source --path "$source"
+python3 {baseDir}/scripts/manage_history.py add --type source --path "$source"
 
 # 保存目标目录
-python3 "$SKILL_DIR/manage_history.py" add --type target --path "$target"
+python3 {baseDir}/scripts/manage_history.py add --type target --path "$target"
 ```
 
 ### 9. 创建目录结构
@@ -321,7 +318,7 @@ mkdir -p "$target/01-03_代码项目"
 
 ```bash
 # 调用 Python 脚本检查重复文件
-python3 "$SKILL_DIR/check_duplicates.py" "$target"
+python3 {baseDir}/scripts/check_duplicates.py "$target"
 ```
 
 **脚本输出示例：**
@@ -354,7 +351,7 @@ MD5: a1b2c3d4e5f6...
 
 **如果选择自动删除：**
 ```bash
-python3 "$SKILL_DIR/check_duplicates.py" "$target" --delete
+python3 {baseDir}/scripts/check_duplicates.py "$target" --delete
 ```
 
 **删除策略：**
