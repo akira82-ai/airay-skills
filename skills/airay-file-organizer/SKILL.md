@@ -155,10 +155,12 @@ python3 "$SKILL_DIR/manage_history.py" read --type target
 
 ### 4. 扫描目标目录
 ```bash
-ls -la "$target"
+find "$target" -maxdepth 3 -type d ! -path '*/\.*' | sort
 ```
-- 检查是否已有分类目录
-- 如有，记录现有分类列表供后续匹配
+- 递归扫描目标目录（最多 3 层深度），发现所有子分类
+- 跳过隐藏目录（`.` 开头）
+- 记录完整目录树结构，包括嵌套的子分类（如 `01 AI Agent 平台/03 OpenClaw`）
+- 如有现有分类，后续 AI 分析文件时必须匹配到最精确的子分类，而非仅匹配父级目录
 
 ### 5. 扫描源文件
 ```bash
