@@ -1,6 +1,24 @@
 ---
-description: 基于 AI 语义分析的智能文件整理技能，根据文件内容动态创建 Johnny Decimal 分类。
+name: airay-file-organizer
+description: |
+  基于 AI 语义分析的智能文件整理技能，根据文件内容动态创建 Johnny Decimal 分类。
+
+  当用户提到以下内容时触发：
+  - "整理文件"、"分类文件"、"组织下载"、"文件归档"
+  - "文件太多了"、"下载文件夹很乱"、"文件乱七八糟"
+  - "把文件按类别整理"、"自动分类文件"
+  - "清理下载文件夹"、"整理文档"
+  - "文件管理"、"文件分类整理"
+  - 提到需要将文件从一个目录移动到另一个目录进行分类
+
+  核心功能：
+  - AI 分析文件名语义，动态生成分类
+  - 使用 Johnny Decimal 编号系统（XX.YY 格式）
+  - 自动检测重复文件（MD5 算法）
+  - 用户确认分类计划后再执行
+version: 1.0.0
 allowed-tools: Bash, AskUserQuestion, Task
+author: Claude Code
 ---
 
 # File Organizer Skill
@@ -71,7 +89,28 @@ allowed-tools: Bash, AskUserQuestion, Task
 02-02_消费零售        # 商业领域
 ```
 
+## 脚本目录
+
+**Agent 执行指令（必须在所有脚本调用之前执行一次）：**
+
+```bash
+SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1)
+```
+
+- 将上述命令的输出保存为变量 `SKILL_DIR`
+- 后续所有脚本调用使用 `python3 "$SKILL_DIR"/scripts/{脚本名}` 格式
+
 ## 执行流程
+
+### 0. 初始化脚本目录
+
+首先定位技能安装目录，供后续所有脚本调用使用：
+
+```bash
+SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1)
+```
+
+确认 `$SKILL_DIR` 非空，否则报错并终止。
 
 ### 1. 解析参数
 检查用户是否提供了源目录和目标目录参数。
@@ -80,7 +119,7 @@ allowed-tools: Bash, AskUserQuestion, Task
 
 #### 2.1. 读取源目录历史记录
 ```bash
-python3 scripts/manage_history.py read --type source
+python3 "$SKILL_DIR"/scripts/manage_history.py read --type source
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `source_history`
@@ -105,7 +144,7 @@ python3 scripts/manage_history.py read --type source
 
 #### 3.1. 读取目标目录历史记录
 ```bash
-python3 scripts/manage_history.py read --type target
+python3 "$SKILL_DIR"/scripts/manage_history.py read --type target
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `target_history`
@@ -127,10 +166,12 @@ python3 scripts/manage_history.py read --type target
 
 ### 4. 扫描目标目录
 ```bash
-ls -la "$target"
+find "$target" -maxdepth 3 -type d ! -path '*/\.*' | sort
 ```
-- 检查是否已有分类目录
-- 如有，记录现有分类列表供后续匹配
+- 递归扫描目标目录（最多 3 层深度），发现所有子分类
+- 跳过隐藏目录（`.` 开头）
+- 记录完整目录树结构，包括嵌套的子分类（如 `01 AI Agent 平台/03 OpenClaw`）
+- 如有现有分类，后续 AI 分析文件时必须匹配到最精确的子分类，而非仅匹配父级目录
 
 ### 5. 扫描源文件
 ```bash
@@ -257,10 +298,10 @@ total_files=$(ls -1 "$source" | wc -l | tr -d ' ')
 
 ```bash
 # 保存源目录
-python3 scripts/manage_history.py add --type source --path "$source"
+python3 "$SKILL_DIR"/scripts/manage_history.py add --type source --path "$source"
 
 # 保存目标目录
-python3 scripts/manage_history.py add --type target --path "$target"
+python3 "$SKILL_DIR"/scripts/manage_history.py add --type target --path "$target"
 ```
 
 ### 9. 创建目录结构
@@ -291,7 +332,7 @@ mkdir -p "$target/01-03_代码项目"
 
 ```bash
 # 调用 Python 脚本检查重复文件
-python3 scripts/check_duplicates.py "$target"
+python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target"
 ```
 
 **脚本输出示例：**
@@ -324,7 +365,7 @@ MD5: a1b2c3d4e5f6...
 
 **如果选择自动删除：**
 ```bash
-python3 scripts/check_duplicates.py "$target" --delete
+python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target" --delete
 ```
 
 **删除策略：**

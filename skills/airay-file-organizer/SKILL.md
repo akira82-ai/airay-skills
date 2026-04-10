@@ -91,12 +91,26 @@ author: Claude Code
 
 ## 脚本目录
 
-**Agent 执行指令：**
-1. 确定本 SKILL.md 文件所在目录路径为 `{baseDir}`
-2. 脚本路径 = `{baseDir}/scripts/{脚本名}`
-3. 在运行任何脚本之前，先解析 `{baseDir}`
+**Agent 执行指令（必须在所有脚本调用之前执行一次）：**
+
+```bash
+SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1)
+```
+
+- 将上述命令的输出保存为变量 `SKILL_DIR`
+- 后续所有脚本调用使用 `python3 "$SKILL_DIR"/scripts/{脚本名}` 格式
 
 ## 执行流程
+
+### 0. 初始化脚本目录
+
+首先定位技能安装目录，供后续所有脚本调用使用：
+
+```bash
+SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1)
+```
+
+确认 `$SKILL_DIR` 非空，否则报错并终止。
 
 ### 1. 解析参数
 检查用户是否提供了源目录和目标目录参数。
@@ -105,7 +119,7 @@ author: Claude Code
 
 #### 2.1. 读取源目录历史记录
 ```bash
-python3 {baseDir}/scripts/manage_history.py read --type source
+python3 "$SKILL_DIR"/scripts/manage_history.py read --type source
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `source_history`
@@ -130,7 +144,7 @@ python3 {baseDir}/scripts/manage_history.py read --type source
 
 #### 3.1. 读取目标目录历史记录
 ```bash
-python3 {baseDir}/scripts/manage_history.py read --type target
+python3 "$SKILL_DIR"/scripts/manage_history.py read --type target
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `target_history`
@@ -284,10 +298,10 @@ total_files=$(ls -1 "$source" | wc -l | tr -d ' ')
 
 ```bash
 # 保存源目录
-python3 {baseDir}/scripts/manage_history.py add --type source --path "$source"
+python3 "$SKILL_DIR"/scripts/manage_history.py add --type source --path "$source"
 
 # 保存目标目录
-python3 {baseDir}/scripts/manage_history.py add --type target --path "$target"
+python3 "$SKILL_DIR"/scripts/manage_history.py add --type target --path "$target"
 ```
 
 ### 9. 创建目录结构
@@ -318,7 +332,7 @@ mkdir -p "$target/01-03_代码项目"
 
 ```bash
 # 调用 Python 脚本检查重复文件
-python3 {baseDir}/scripts/check_duplicates.py "$target"
+python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target"
 ```
 
 **脚本输出示例：**
@@ -351,7 +365,7 @@ MD5: a1b2c3d4e5f6...
 
 **如果选择自动删除：**
 ```bash
-python3 {baseDir}/scripts/check_duplicates.py "$target" --delete
+python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target" --delete
 ```
 
 **删除策略：**
