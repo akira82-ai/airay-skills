@@ -1,24 +1,6 @@
 ---
-name: airay-file-organizer
-description: |
-  基于 AI 语义分析的智能文件整理技能，根据文件内容动态创建 Johnny Decimal 分类。
-
-  当用户提到以下内容时触发：
-  - "整理文件"、"分类文件"、"组织下载"、"文件归档"
-  - "文件太多了"、"下载文件夹很乱"、"文件乱七八糟"
-  - "把文件按类别整理"、"自动分类文件"
-  - "清理下载文件夹"、"整理文档"
-  - "文件管理"、"文件分类整理"
-  - 提到需要将文件从一个目录移动到另一个目录进行分类
-
-  核心功能：
-  - AI 分析文件名语义，动态生成分类
-  - 使用 Johnny Decimal 编号系统（XX.YY 格式）
-  - 自动检测重复文件（MD5 算法）
-  - 用户确认分类计划后再执行
-version: 1.0.0
+description: 基于 AI 语义分析的智能文件整理技能，根据文件内容动态创建 Johnny Decimal 分类
 allowed-tools: Bash, AskUserQuestion, Task
-author: Claude Code
 ---
 
 # File Organizer Skill
