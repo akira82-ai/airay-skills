@@ -4,6 +4,7 @@
 import json
 import locale
 import re
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -99,14 +100,33 @@ def collect_stats(period: str) -> Dict[str, int]:
     return skill_counts
 
 
+def get_skill_last_modified() -> str:
+    """获取技能目录的最后修改日期（YYYYMMDD 格式）"""
+    skill_dir = Path(__file__).parent.parent
+    try:
+        result = subprocess.run(
+            ["git", "log", "--format=%ct", "-1", str(skill_dir)],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        timestamp = int(result.stdout.strip())
+        return datetime.fromtimestamp(timestamp).strftime("%Y%m%d")
+    except (subprocess.CalledProcessError, ValueError, FileNotFoundError):
+        return datetime.now().strftime("%Y%m%d")
+
+
 def get_banner() -> str:
     """获取技能 Banner"""
-    return """
+    last_modified = get_skill_last_modified()
+    return f"""
 ═══════════════════════════════════════════════════════════════
 ▌ 技能使用统计 ▐
 统计已安装技能在指定时间段内的使用次数，以美观的 TUI 格式展示结果
 ═══════════════════════════════════════════════════════════════
 磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
+────────────────────────────────────────────────────────────
+最后修改：{last_modified}
 ────────────────────────────────────────────────────────────
 • 每个技能的调用次数统计
 • 使用频率排名展示
