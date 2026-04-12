@@ -5,14 +5,11 @@ Claude Code skills by airay for daily productivity.
 ## Installation
 
 ```bash
-# 1. 安装插件
-/plugin marketplace add akira82-ai/airay-skills
+# Clone to your Claude skills directory
+git clone https://github.com/akira82-ai/airay-skills.git ~/.claude/skills/airay-skills
 
-# 2. 启用插件
-/plugin enable airay-skills
-
-# 3. 重新加载
-/reload-plugins
+# Update later
+cd ~/.claude/skills/airay-skills && git pull
 ```
 
 ## Skills
@@ -27,6 +24,13 @@ Claude Code skills by airay for daily productivity.
 | airay-lark-wiki-agent | 飞书知识库 CRUD 操作工具 |
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计分析 skill 使用情况 |
+
+## Requirements
+
+- Python 3.7+
+- Git 2.0+
+- beautifulsoup4 (for insights-zh): `pip3 install beautifulsoup4`
+- lark-cli (for airay-lark-wiki-agent): 需单独安装飞书 CLI 工具
 
 ## License
 
