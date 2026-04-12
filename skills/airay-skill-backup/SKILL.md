@@ -15,7 +15,14 @@ description: |
 3. Before running any script, resolve `{baseDir}` first
 
 
-**重要**：技能加载后，必须先将下方 banner 以纯文本形式输出给用户，然后再执行任何操作。
+**重要**：技能加载后，**先获取最后更新日期**，然后将下方 banner 以纯文本形式输出给用户，然后再执行任何操作。
+
+```bash
+# 获取该技能目录的最后更新日期
+last_update=$(git log -1 --format="%ad" --date=short {baseDir})
+```
+
+然后用实际日期替换下方的 `{LAST_UPDATE}` 占位符后输出：
 
 ```
 ═══════════════════════════════════════════════════════════════
@@ -28,7 +35,7 @@ description: |
   恢复    从备份文件还原技能到 ~/.claude/skills/
   列表    查看备份文件中包含的技能清单
 ═══════════════════════════════════════════════════════════════
-最后更新：{git log -1 --format="%ad" --date=short {baseDir}}
+最后更新：{LAST_UPDATE}
 
 ## 子命令
 

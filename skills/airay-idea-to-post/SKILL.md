@@ -17,7 +17,9 @@ AI 驱动的内容写作助理
 📝 90+ 分内容标准，案例+情感+独特性
 ✨ 多平台适配输出（微信/小红书/Twitter/LinkedIn）
 ═══════════════════════════════════════════════════════════════
-最后更新：{git log -1 --format="%ad" --date=short {baseDir}}
+最后更新：{LAST_UPDATE}
+
+**显示前先执行**：`last_update=$(git log -1 --format="%ad" --date=short {baseDir})` 替换 `{LAST_UPDATE}`
 
 技能已启动...
 
