@@ -1,7 +1,7 @@
 ---
 name: airay-idea-to-post
 description: Expand scattered ideas into in-depth posts. Use this skill when users need to "expand ideas," "generate posts," "brainstorm content," "writing assistance," "enrich thoughts," "deepen thinking," or provide scattered ideas that need systematic expression.
-version: 1.5.0
+version: 1.6.0
 allowed-tools: AskUserQuestion, WebSearch, mcp__web_reader__webReader
 model: claude-sonnet-4-20250514
 ---
@@ -14,6 +14,7 @@ AI 驱动的内容写作助理
 ────────────────────────────────────────────────────────────
 💡 7-10 轮渐进式追问，深挖核心观点
 🔍 双阶段智能搜索，补充高质素材
+🔧 十轮深度打磨（审稿→打磨→评估）
 📝 90+ 分内容标准，案例+情感+独特性
 ✨ 多平台适配输出（微信/小红书/Twitter/LinkedIn）
 ═══════════════════════════════════════════════════════════════
@@ -189,24 +190,47 @@ Follow-up: Any specific examples? (Case supplement)
                  │
                  ▼
 ┌─────────────────────────────────────────────────┐
-│  First draft generation                         │
-│  (standard Markdown format)                      │
-│  - Integrate all information                     │
-│  - Use heading levels, bold, quote blocks, etc.  │
-│  - Generate structured content                   │
+│  First draft generation (Master Draft)         │
+│  - Integrate all information                   │
+│  - Standard Markdown format                    │
+│  - This is the "母稿" to be polished            │
 └────────────────┬────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────┐
-│  Reflection and optimization (optional)         │
-│  - What's not good enough?                       │
-│  - What needs supplementing?                     │
-│  - Iterate and optimize                          │
+│  [Stage 1] 四维审稿 + 评分                      │
+│  - 逻辑(30%)/表达(25%)/数据(25%)/结构(20%)      │
+│  - 评分：90-100 优秀 / 80-89 良好 / 70-79 合格  │
+│  → 📌 用户交互点1：展示评分+扣分项，确认方向     │
+│  - 若 <70 分：根据用户反馈补充后重写            │
+│  - 若 ≥70 分：进入打磨                          │
 └────────────────┬────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────┐
-│  Final output (standard Markdown format)        │
+│  [Stage 2] 十轮深度打磨                         │
+│  1.清晰度 2.语气 3.So What 4.证据 5.具体性      │
+│  6.情感共鸣 7.零风险 8.节奏排版 9.标题首尾       │
+│  10.峰终定律                                    │
+│  - 详见 references/post-polish.md               │
+│  → 📌 用户交互点2：展示关键修改对比，确认打磨    │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  [Stage 3] 诚实评估                             │
+│  - 优点(2-3点) / 不足 / 能否发表                │
+│  → 📌 用户交互点3：确认终稿                      │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  平台适配输出                                   │
+│  母稿打磨到 90+ 后，按平台特点适配               │
+│  - 公众号：完整版                                │
+│  - 小红书：精简+emoji+步骤清单                  │
+│  - X/Twitter：Thread（280字符/条）               │
+│  - LinkedIn：专业+个人经历角度                   │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -551,4 +575,5 @@ See `examples/` directory for complete usage examples:
 - `references/questioning-modes.md` - **Questioning mode selection guide (new)**
 - `references/question-templates.md` - Question template library
 - `references/post-structures.md` - Post structure guide
+- `references/post-polish.md` - **Post-generation polish system (审稿→打磨→评估)**
 - `references/data-sources.md` - High-quality data source list

@@ -237,7 +237,7 @@ After using: xxx
 
 ---
 
-## Weibo/Twitter
+## Weibo (Single Post)
 
 ### Platform Characteristics
 
@@ -245,6 +245,7 @@ After using: xxx
 - **Reading scenario**: Quick scroll, extremely short attention
 - **Reader expectations**: Quick information, one-sentence essence
 - **Distribution method**: Retweets, likes, topic aggregation
+- **Note**: For multi-tweet threads, see "X/Twitter Thread Format" section below
 
 ### Structure Template
 
@@ -442,28 +443,35 @@ Summarize points, invite discussion
 
 ## Cross-Platform Adaptation Strategy
 
-### Same Content, Multi-Platform Publishing
+### Master Draft First, Then Adapt
+
+**策略：先打磨母稿到 90+ 分，再按平台特点适配输出。**
+
+母稿是完整版的 Markdown 文章，包含所有论点、案例、数据。适配时不是重写，而是：
 
 ```
-WeChat OA (Long article)
-      ↓ Condense
-   Xiaohongshu (Practical version)
-      ↓ Extract
-   Weibo (Golden sentence version)
-      ↓ Adapt
- LinkedIn (Professional version)
+打磨后的母稿（90+ 分，完整 Markdown）
+    ↓
+[公众号] 保留完整版，微调排版和标题
+    ↓
+[小红书] 精简提取 + emoji + 步骤清单化
+    ↓
+[X/Twitter] 拆分为 Thread，每条 280 字符
+    ↓
+[LinkedIn] 调整为专业语气 + 个人经历角度
 ```
 
 ### Adaptation Principles
 
-| Original Content | WeChat OA | Xiaohongshu | Weibo | LinkedIn |
-|-----------------|-----------|-------------|-------|----------|
-| Deep analysis | ✓Complete | ✓Condensed | ✗Delete | ✓Keep |
-| Case stories | ✓Complete | ✓Brief | ✗Delete | ✓Keep |
-| Data citations | ✓Detailed | ✓Brief | ✓One sentence | ✓Cite |
+| Original Content | WeChat OA | Xiaohongshu | X/Twitter | LinkedIn |
+|-----------------|-----------|-------------|-----------|----------|
+| Deep analysis | ✓Complete | ✓Condensed | ✓Core point | ✓Keep |
+| Case stories | ✓Complete | ✓Brief | ✓Micro-story | ✓Personal |
+| Data citations | ✓Detailed | ✓Brief | ✓One stat | ✓Cite |
 | Operation steps | ✓Detailed | ✓Complete | ✗Delete | ✓Keep |
 | Personal views | ✓Complete | ✓Keep | ✓Core | ✓Professional |
 | Golden sentences | ✓Keep | ✓Keep | ✓Main focus | ✓Keep |
+| Emotional parts | ✓Keep | ✓Keep | ✓Hook | ✓Tasteful |
 
 ### Content Layering
 
@@ -475,6 +483,144 @@ Second layer: Supporting reasons (WeChat OA, LinkedIn, Xiaohongshu)
 Third layer: Detailed cases (WeChat OA, LinkedIn)
     ↓
 Fourth layer: Operation methods (WeChat OA, Xiaohongshu)
+```
+
+---
+
+## X/Twitter Thread Format (Enhanced)
+
+### Thread Rules
+
+- **每条 280 字符**（中文约 140 字），严格控制在限制内
+- **编号格式**：1/🧵 2/🧵 …… N/🧵
+- **每条不超过 2 个 hashtag**
+- **每条既可独立阅读，又与 thread 连贯**
+- **总条数建议 5-15 条**
+
+### Thread Structure
+
+```
+[1/🧵] Hook — 一句话抓住注意力，说明 thread 主题
+[2/🧵] 核心观点 — 你的主要论断
+[3-8/🧵] 支撑点 — 每条一个分论点，附数据/案例
+[9/🧵] 案例/证据 — 最有力的一个具体例子
+[10/🧵] 结论 + CTA — 总结 + 引导互动
+```
+
+### Thread Example
+
+```
+1/🧵 大多数人用 AI 写文章的方式都是错的。
+
+他们把 AI 当打字机——输入"帮我写一篇关于 XX 的文章"，然后拿到一篇毫无灵魂的文字。
+
+正确的方式是把 AI 当思考伙伴。让我展示区别👇
+
+2/🧵 错误用法：让 AI 直接写
+→ 拿到一篇结构完整但千篇一律的文章
+→ 读起来像教科书，没有个人观点
+→ 发出去没人转发
+
+3/🧵 正确用法：让 AI 帮你思考
+先花 5 分钟把脑子里的碎片想法说出来
+比如："我觉得远程办公有个被忽视的问题"
+让 AI 追问你：什么问题？具体什么场景？你怎么发现的？
+
+4/🧵 经过 7-10 轮追问后
+你的碎片想法变成了一个清晰的论点
+加上真实案例和情感细节
+AI 帮你搜索数据做外部验证
+
+最终产出的文章，是你自己的想法，AI 只是帮你梳理。
+
+5/🧵 我用这种方式写了 20+ 篇文章
+平均从想法到成稿 30 分钟
+阅读量比以前提高了 3 倍
+
+因为读者要的不是完美的文字，而是真实的思考。
+
+6/🧵 如果你也想让 AI 真正帮你深度思考
+试试这个方法：
+1. 先说碎片想法，不急着让 AI 写
+2. 让 AI 追问你具体细节和案例
+3. 有了完整素材后再生成初稿
+
+你平时怎么用 AI 写作的？评论聊聊👇
+
+#AI写作 #内容创作
+```
+
+---
+
+## LinkedIn Format (Enhanced)
+
+### LinkedIn Rules
+
+- **1,300 字符可见**（前 210 字符决定是否被展开）
+- **专业但不呆板**：用 "I" 分享个人经历，而非空泛建议
+- **开头用场景或数据冲击**：让读者在前 210 字符就想点开
+- **结尾用讨论问题**引导评论互动
+
+### LinkedIn Structure
+
+```
+[前 210 字符 — 关键！] 个人场景 + 核心洞察 + 悬念
+    ↓
+[展开内容] 2-3 个支撑论点，每个附简短案例
+    ↓
+[结尾] 总结 + 讨论问题 + 可选 CTA
+```
+
+### LinkedIn Example
+
+```
+I spent 3 months trying to make AI write better content.
+
+I tried every prompt framework. Every "secret" technique.
+Nothing worked consistently.
+
+Then I realized the problem wasn't the prompts. It was me.
+
+---
+
+Here's what changed:
+
+**1. I stopped asking AI to write. Started asking it to think.**
+
+Instead of "write an article about X," I'd say:
+"I have this vague idea about X. Ask me questions to help me clarify."
+
+The difference was night and day.
+
+**2. Real cases > Perfect structure.**
+
+AI can give you perfect structure. But readers don't share perfect structure.
+They share "last month I discovered..." and "the turning point was when..."
+
+**3. 30 minutes, not 3 hours.**
+
+My writing process went from:
+- Brainstorm: 60 min
+- Write: 90 min
+- Edit: 30 min
+
+To:
+- Brainstorm with AI: 15 min
+- Generate draft: 10 min
+- Polish: 5 min
+
+---
+
+The irony? The "faster" content gets more engagement.
+
+Because it's more personal, more specific, more real.
+
+---
+
+How do you use AI in your content process?
+I'd love to hear what's working (or not) for you.
+
+#ContentCreation #AIAssistant #ProfessionalWriting
 ```
 
 ---
