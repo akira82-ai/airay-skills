@@ -39,7 +39,7 @@ author: Claude Code
   🔍 内置重复文件检测（MD5）
   ✨ 执行前预览确认，安全可靠
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-04-10
+最后更新：2026-04-14
 ```
 
 技能已启动...
@@ -96,7 +96,7 @@ author: Claude Code
 
 所有脚本调用使用以下格式（find 与脚本执行写在同一条命令中）：
 ```bash
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/{脚本名} [参数]
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/{脚本名} [参数]
 ```
 
 ## 执行流程
@@ -108,7 +108,7 @@ SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer
 
 #### 2.1. 读取源目录历史记录
 ```bash
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py read --type source
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py read --type source
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `source_history`
@@ -133,7 +133,7 @@ SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer
 
 #### 3.1. 读取目标目录历史记录
 ```bash
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py read --type target
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py read --type target
 ```
 - 解析 JSON 输出，获取历史记录
 - 保存到变量 `target_history`
@@ -287,10 +287,10 @@ total_files=$(ls -1 "$source" | wc -l | tr -d ' ')
 
 ```bash
 # 保存源目录
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py add --type source --path "$source"
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py add --type source --path "$source"
 
 # 保存目标目录
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py add --type target --path "$target"
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/manage_history.py add --type target --path "$target"
 ```
 
 ### 9. 创建目录结构
@@ -321,7 +321,7 @@ mkdir -p "$target/01-03_代码项目"
 
 ```bash
 # 调用 Python 脚本检查重复文件
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target"
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target"
 ```
 
 **脚本输出示例：**
@@ -354,7 +354,7 @@ MD5: a1b2c3d4e5f6...
 
 **如果选择自动删除：**
 ```bash
-SKILL_DIR=$(find ~/.claude/plugins -name "SKILL.md" -path "*airay-file-organizer*" -exec dirname {} \; | head -1) && python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target" --delete
+SKILL_DIR=$(find ~/.claude -name "airay-file-organizer" 2>/dev/null | head -1) && python3 "$SKILL_DIR"/scripts/check_duplicates.py "$target" --delete
 ```
 
 **删除策略：**
