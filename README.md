@@ -17,6 +17,7 @@ cd ~/.claude/skills/airay-skills && git pull
 | Skill | Description |
 |-------|-------------|
 | airay-agent-review | 每日工作复盘报告生成器 |
+| airay-chat-export | 对话导出工具，完整保存 Claude Code 对话 session 记录到本地 JSON 文件 |
 | airay-file-organizer | AI 语义分析智能文件分类工具，Johnny Decimal 编号系统 |
 | airay-github-smart-commit | 智能 GitHub 提交助手，自动分析变更生成 Conventional Commits |
 | airay-idea-to-post | 通过多轮对话将灵感转化为高质量文章 |
