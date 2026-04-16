@@ -1,9 +1,8 @@
 ---
 name: airay-idea-to-post
-description: Expand scattered ideas into in-depth posts. Use this skill when users need to "expand ideas," "generate posts," "brainstorm content," "writing assistance," "enrich thoughts," "deepen thinking," or provide scattered ideas that need systematic expression.
+description: 将零散灵感扩展为深度文章。当用户需要"扩展灵感"、"生成文章"、"头脑风暴内容"、"写作辅助"、"丰富思路"、"深化思考"或提供需要系统表达的零散想法时使用此技能。
 version: 1.6.0
 allowed-tools: AskUserQuestion, WebSearch, mcp__web_reader__webReader
-model: claude-sonnet-4-20250514
 ---
 
 ═══════════════════════════════════════════════════════════════
@@ -15,565 +14,217 @@ AI 驱动的内容写作助理
 💡 7-10 轮渐进式追问，深挖核心观点
 🔍 双阶段智能搜索，补充高质素材
 🔧 十轮深度打磨（审稿→打磨→评估）
-📝 90+ 分内容标准，案例+情感+独特性
-✨ 多平台适配输出（微信/小红书/Twitter/LinkedIn）
+📝 优秀文章内容标准，案例+情感+独特性
+✨ 优质内容输出，统一微信公众号格式
 ═══════════════════════════════════════════════════════════════
 最后更新：2026-04-13
 
 技能已启动...
 
-# Idea-to-Post Expansion Skill
+# Idea-to-Post 灵感扩展技能
 
-## Skill Overview
+## 写作核心原则（必读）
 
-This skill helps you expand scattered ideas (a sentence, a few words, a vague thought) into **90+ point** social media posts.
+**本技能的核心目标是：降低 AI 味，提升"活人感"，创作有深度和故事性的优质内容。**
 
-**Target Positioning: Quality social media content, not technical documentation**
+### 1. 降低 AI 味，提升"活人感"
 
-It works through the following ways:
-1. **Framework Internalization** - Use thinking frameworks to design questions, but don't mechanically apply them
-2. **Information Search & Integration** - Automatically search for high-quality materials, supplement relevant data and cases
-3. **Progressive Deep Questioning** - Multiple-choice to set direction + open questions to enrich content, **7-10 rounds of dialogue** until complete
-4. **Iterative Polishing & Optimization** - Reflect and optimize after generation, pursuing 90+ point quality
-5. **Multi-Platform Output** - Generate post versions adapted to different platforms
+- **提供真实细节** - 时间、地点、人物、数字，越具体越真实
+- **分享失败经历** - 挫折、困惑、走弯路比成功更打动人
+- **记录情绪波动** - 愤怒、惊讶、失望、兴奋，不只是理性分析
+- **口语化表达** - 日常对话中的语言，避免过于正式、官方
+- **提供原始素材** - 文档、截图、聊天记录等，让内容有据可查
 
-**Expected dialogue rounds: 7-10 rounds**
-- 3-4 rounds: Get direction and core viewpoints (technical documentation level)
-- 5-7 rounds: Add cases, emotions, uniqueness (social media level)
-- 7-10 rounds: Deep mining, repeated polishing (quality social media level)
+### 2. 提升深度和故事性
 
-## Core Mechanism: Progressive Questioning + Framework Internalization
+- **多问"为什么"** - 不只说"是什么"，更要说"为什么"、"背后的逻辑是什么"
+- **对比前后变化** - 用"之前 vs 之后"的场景对比，让改变更直观
+- **提供反直觉观点** - 与大众认知不同的观点往往更有价值
+- **直接引用原话** - 如果有文档、对话，直接引用关键句子，增加可信度
 
-### Three Core Principles
+### 3. 内容完整性要求
 
-**1. Internalize Frameworks, Don't Expose Them**
-
-Use thinking framework logic to design questions, but don't say "I'm using [Framework Name]":
-
-```
-Wrong: "I recommend using the PREP framework. Now for Point: What's your viewpoint?"
-Correct: "What's the core viewpoint you want to express?"
-
-Questions have framework thinking, but the dialogue is natural.
-```
-
-**2. Combine Multiple Choice + Open Questions**
-
-```
-Multiple Choice (AskUserQuestion)  Quickly lock direction
-Open Questions (direct dialogue)    Deeply mine content
-
-Multiple Choice = Skeleton | Open Questions = Flesh and blood
-```
-
-**3. Progressive Deepening, Dynamic Adjustment**
-
-Each round of questions is based on the previous answer, naturally transitioning to the next dimension:
-
-```
-User: "todo is an underrated command"
-    ↓
-Follow-up: What does "underrated" specifically mean? (Concept deepening)
-    ↓
-User: "People don't know it's a conversation memory mechanism"
-    ↓
-Follow-up: What pain point does it solve? (Value inquiry)
-    ↓
-Follow-up: Any specific examples? (Case supplement)
-```
+**必须完整（缺失则继续追问，不能跳过）：**
+- 核心观点
+- 真实案例
+- 情感共鸣
+- 独特观点
+- 原始素材引用
+- 故事闭环（全篇及每个章节）
 
 ---
 
-### Questioning Flow (7-10 Rounds of Dialogue + Multi-Stage Search)
+## 技能概述
+
+本技能帮助你将零散的灵感（一句话、几个词、模糊的想法）扩展为**优质文章**。
+
+**目标定位：优质社交媒体内容，而非技术文档**
+
+工作方式：
+1. **框架内化** - 用思维框架设计问题，但不机械套用
+2. **信息搜索与整合** - 自动搜索优质素材，补充相关数据和案例
+3. **渐进式深度追问** - 多选题锁定方向 + 开放题丰富内容，**7-10 轮对话**直至完整
+4. **迭代打磨优化** - 生成后反思优化，追求优质内容标准
+5. **内容输出** - 生成优质文章内容，达到资深 KOL 的写作级别
+
+## 核心执行流程
+
+### 核心原则
+
+1. **内化框架** - 用框架思维设计问题，但不暴露框架名称
+2. **多选+开放** - 多选题锁定方向，开放题深挖内容
+3. **渐进深化** - 基于上轮回答，自然过渡到下一维度
+
+→ 详见 `references/core-principles.md`
+
+### 追问流程（7-10 轮对话）
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  User inputs idea                                │
+│  用户输入灵感，及提供参考内容（提示用户）      │
 └────────────────┬────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────┐
-│  [Initial Search] Background information        │
-│  collection                                     │
-│  - Identify core concepts                        │
-│  - Multi-angle search queries                    │
-│  - Get background materials                      │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Rounds 1-2: Direction locking                  │
-│  (mainly multiple choice)                        │
-│  - Goal? Audience? Platform?                     │
-│  - Quickly position article type                 │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Rounds 3-4: Core deep dive                     │
-│  (open questions)                                │
-│  - What's the core viewpoint?                    │
-│  - What does "underrated" specifically mean?     │
-│  - What pain point does it solve?                │
-│  - Why do you think so?                          │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Rounds 5-6: Real cases                         │
-│  (open questions, required)                      │
-│  - When was the most recent time?                │
-│  - What feature? What specifically was said?     │
-│  - How did you feel at that moment?              │
-│  - Any comparison cases? (with vs without)       │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Round 7: Emotional resonance                   │
-│  (open questions, required)                      │
-│  - Most frustrated/surprised moment?             │
-│  - Physical reaction? Slap thigh? Long sigh?     │
-│  - Turning point from "useless" to "amazing"?    │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Round 8: Uniqueness                            │
-│  (open questions)                                │
-│  - Any undiscovered tips?                        │
-│  - Any unique usage methods?                     │
-│  - Any counter-intuitive understanding?          │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  [Precision Search] Based on user's unique      │
-│  viewpoints                                      │
-│  - Extract unique insights/counter-intuitive     │
-│    viewpoints                                    │
-│  - Reverse search for supporting evidence        │
-│  - Multi-angle validation                        │
-│    (industry/competitors/data)                   │
-│  - Try different keywords if search fails        │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Round 9: Structure confirmation                │
-│  (multiple choice)                               │
-│  - Article structure?                            │
-│  - Style preference?                             │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Round 10: Final touches                        │
-│  (mixed)                                         │
-│  - Core golden sentence?                         │
-│  - Call to action?                               │
-│  - Anything else to add?                         │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Information completeness assessment            │
-│  (90+ point standard)                            │
-│  Core viewpoint                                  │
-│  Real cases (required)                           │
-│  Emotional resonance (required)                  │
-│  Unique viewpoints (required)                    │
-│  External validation (search results)            │
-│  → Complete, generate content                    │
-│  → Incomplete, continue questioning              │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  First draft generation (Master Draft)         │
-│  - Integrate all information                   │
-│  - Standard Markdown format                    │
-│  - This is the "母稿" to be polished            │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  [Stage 1] 四维审稿 + 评分                      │
-│  - 逻辑(30%)/表达(25%)/数据(25%)/结构(20%)      │
-│  - 评分：90-100 优秀 / 80-89 良好 / 70-79 合格  │
-│  → 📌 用户交互点1：展示评分+扣分项，确认方向     │
-│  - 若 <70 分：根据用户反馈补充后重写            │
-│  - 若 ≥70 分：进入打磨                          │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  [Stage 2] 十轮深度打磨                         │
-│  1.清晰度 2.语气 3.So What 4.证据 5.具体性      │
-│  6.情感共鸣 7.零风险 8.节奏排版 9.标题首尾       │
-│  10.峰终定律                                    │
-│  - 详见 references/post-polish.md               │
-│  → 📌 用户交互点2：展示关键修改对比，确认打磨    │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  [Stage 3] 诚实评估                             │
-│  - 优点(2-3点) / 不足 / 能否发表                │
-│  → 📌 用户交互点3：确认终稿                      │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  平台适配输出                                   │
-│  母稿打磨到 90+ 后，按平台特点适配               │
-│  - 公众号：完整版                                │
-│  - 小红书：精简+emoji+步骤清单                  │
-│  - X/Twitter：Thread（280字符/条）               │
-│  - LinkedIn：专业+个人经历角度                   │
-└─────────────────────────────────────────────────┘
-```
-
-**Note: Cases, emotions, and uniqueness are required and cannot be skipped. The second round of precision search is a key环节.**
-
----
-
-### Integrating Framework Thinking into Questions
-
-| Framework Thinking | Questioning Approach | Example |
-|-------------------|---------------------|---------|
-| Point | What's the core viewpoint? | "What's the core viewpoint you want to express?" |
-| Reason | Why do you think so? | "Why do you think so? What's the reason?" |
-| What | What specifically? | "What does this specifically refer to?" |
-| Why | Why is it important? | "What pain point does it solve?" |
-| How | How is it done? | "How is it implemented?" |
-| Example | Any examples? | "Any specific cases?" |
-| Situation | Initial state? | "What was the initial state?" |
-| Complication | What conflict? | "What challenge appeared?" |
-
-**Frameworks are thinking tools, not questioning templates.**
-
----
-
-## Quick Framework Selection Guide
-
-### Automatic Recommendation Rules
-
-Based on keywords in your input, the system will automatically recommend frameworks:
-
-| Keywords | Recommended Framework |
-|----------|----------------------|
-| Why, essence, original intention, mission, value | Golden Circle |
-| Problem, challenge, dilemma, turning point, story | SCQA |
-| Promotion, publicity, conversion, sales, marketing | AIDA |
-| Viewpoint, opinion, think, should, suggest | PREP |
-| Deep dive, root cause, trace back, underlying | 5-Why |
-| Innovation, breakthrough, disrupt, reconstruct, essence | First Principles |
-| Product, feature, advantage, selling point, characteristic | FBA |
-| Other or unclear | 5W1H (default) |
-
-### Framework Introduction
-
-For detailed framework explanations, refer to `references/thinking-frameworks.md`
-
----
-
-## Usage Flow
-
-### Core Flow: Keep Questioning Until Complete
-
-```
-┌─────────────────────────────────────────────────┐
-│  User inputs idea                                │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  First round: Direction questions                │
-│  - Keyword analysis based on topic               │
-│  - Recommend thinking framework                  │
-│  - Confirm target platform and audience          │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  User answers                                    │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Second round: Framework deep dive               │
-│  - Ask core elements based on selected framework │
-│  - Focus on 1-2 key questions per round          │
-│  - Dynamically adjust subsequent questions       │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Third round: Detail supplement                  │
-│  - Ask missing details based on available info   │
-│  - Cases, data, emotional points, etc.           │
-│  - Interactive design and call to action         │
-└────────────────┬────────────────────────────────┘
-                 │
-                 ▼
-            ...Loop...
-                 │
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  Skill judges: Information completeness          │
-│  assessment                                      │
-│  - Is core viewpoint clear?                      │
-│  - Is supporting material sufficient?            │
-│  - Are emotional resonance points clear?         │
-│  - Is interactive design specific?               │
+│  [初始搜索] 背景信息收集                        │
+│  - 优先：读取并理解用户提供的参考内容            │
+│  - 识别核心概念                                  │
+│  - 多角度搜索查询                                │
+│  - 获取背景素材                                  │
 │                                                 │
-│  → Incomplete: Continue questioning              │
-│  → Complete: Enter generation phase              │
+│  📚 参考：references/rounds-guide.md（初始搜索）  │
 └────────────────┬────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────┐
-│  Integrate information to generate post          │
-│  - Original idea                                 │
-│  - Search materials                              │
-│  - User answers                                  │
-│  - Framework structure                           │
+│  第 1-2 轮：方向锁定（0-20分）                  │
+│  - 具体场景？什么时候？                          │
+│  - 核心观点是什么？                              │
+│  - 为谁而写？                                    │
+│  - 有参考素材吗？                                │
+│  - 想要什么风格？                                │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第1-2轮）   │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 3 轮：确定组织方式（20-40分）               │
+│  - 时间顺序 / SCQA / 总分总 / 对比               │
+│  - 选择最适合的结构                             │
+│                                                 │
+│  📚 参考：references/determining-frameworks.md  │
+│  📚 参考：references/rounds-guide.md（第3轮）    │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 4 轮：确定框架（20-40分）                   │
+│  - 想分几个部分？（3-5个）                        │
+│  - 每部分的标题是什么？                          │
+│  - 每部分大致讲什么？                            │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第4轮）    │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  [精准搜索] 基于框架验证观点                    │
+│  - 优先：在用户参考内容中搜索                    │
+│  - 基于框架观点反向搜索                          │
+│  - 验证/反驳证据                                 │
+│                                                 │
+│  📚 参考：references/data-sources.md            │
+│  📚 参考：references/rounds-guide.md（精准搜索）  │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 5-6 轮：按框架收集素材（40-60分）           │
+│  - 第1-2部分：具体案例、对比、数据               │
+│  - 第3-5部分：需要的素材                         │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第5-6轮）  │
+│  📚 参考：references/questioning-modes.md（可选）│
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 7 轮：情感共鸣（60-80分）                   │
+│  - 最挫败/惊讶的时刻？                           │
+│  - 身体反应？                                    │
+│  - 转折点？                                      │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第7轮）    │
+│  📚 参考：references/questioning-modes.md（可选）│
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 8 轮：独特观点（60-80分）                   │
+│  - 未发现的技巧？                                │
+│  - 独特用法？                                    │
+│  - 反直觉理解？                                  │
+│  - 可引用的原话？                                │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第8轮）    │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 9 轮：初稿生成 + 四维审稿（80-100分）        │
+│  - 整合所有信息生成初稿                          │
+│  - 四维评分：逻辑/表达/数据/结构                 │
+│  - 展示扣分项                                    │
+│  - 用户反馈                                      │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第9轮）    │
+│  📚 参考：references/post-polish.md              │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  第 10 轮：深度打磨 + 确认（80-100分）           │
+│  - 根据反馈补充                                  │
+│  - 十步深度打磨                                  │
+│  - 诚实评估                                      │
+│  - 确认终稿                                      │
+│                                                 │
+│  📚 参考：references/rounds-guide.md（第10轮）   │
+│  📚 参考：references/post-polish.md              │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  最终输出                                        │
+│  - 统一微信公众号格式                            │
+│  - 深度长文，章节清晰                            │
+│                                                 │
+│  📚 参考：references/output-format.md            │
 └─────────────────────────────────────────────────┘
 ```
 
-### Information Search (Multi-Stage Execution, Required)
-
-Search must be performed in **multiple stages** to ensure precise external validation is collected:
-
-#### Stage 1: Initial Background Search (Before questioning begins)
-
-Execute initial information search before questioning starts:
-1. Identify core concepts in the topic
-2. Build multi-angle search queries
-3. Use WebSearch to get relevant materials
-4. Use WebFetch to read key pages in depth
-5. Organize search results for later use
-
-#### Stage 2: Precision Deep Search (After collecting core viewpoints)
-
-**This is the most critical step** - after collecting the user's core viewpoints and unique insights, you must perform a **second round of precision search**:
-
-1. **Build search terms based on user's unique viewpoints**
-   - Extract unique insights/counter-intuitive viewpoints proposed by user
-   - Use these viewpoints as keywords for reverse search
-   - Look for supporting or refuting evidence
-
-2. **Multi-angle validation search**
-   - Search industry reports, news media
-   - Search competitors/international cases
-   - Search data support
-
-3. **Handling search failures**
-   - If one search fails/is limited, try different keyword combinations
-   - Use more generic or more specific search terms
-   - Try English search terms for international perspective
-   - Record search status, inform user (e.g., if search was restricted)
-
-#### Search Keyword Strategy
-
-| Stage | Search Focus | Example Keywords |
-|-------|-------------|------------------|
-| Initial search | Background info, basic facts | "Qianwen 3 release", "AI e-commerce assistant" |
-| Precision search | User unique viewpoint validation | "AI vs e-commerce conflict", "traffic distribution AI impact" |
-| Comparison search | International cases, competitor analysis | "ChatGPT e-commerce", "foreign AI shopping assistant" |
-
-**Search results must be integrated into final content as external validation.**
-
-**Even if search is limited, try multiple different keywords and inform user of search status.**
-
-### Question Design Principles
-
-**1. Question Based on Topic**
-
-Questions must be closely tied to the core topic of user input, don't ask irrelevant questions.
-
-**2. Framework-Based Design**
-
-Use framework thinking to design questions, but don't say "I'm using [Framework Name]".
-
-**3. Mix Multiple Choice + Open Questions**
-
-- **Multiple Choice**: When there are clear options, need quick classification
-- **Open Questions**: When need stories/experiences/emotions/details
-- **Mixed**: After AskUserQuestion "Other" option, continue follow-up questions
-
-**4. Progressive Deepening, Dynamic Adjustment**
-
-Each round is based on the previous answer, naturally transitioning to the next dimension. Not mechanically following a template.
-
-**5. Focus on 1-2 Questions Per Round**
-
-Avoid information overload, give user thinking space.
-
-**6. Complete Information Before Stopping**
-
-Check core dimensions, question what's missing, only generate when complete.
-
-### Completeness Judgment Standards (90+ Point Target)
-
-When judging whether information is complete, the skill checks the following dimensions:
-
-#### Must Be Complete (Continue questioning if missing, cannot skip)
-
-| Dimension | Check Item | Description |
-|-----------|-----------|-------------|
-| **Core Viewpoint** | Is the core viewpoint to be expressed clear? | The soul of the article |
-| **Target Audience** | Is it clear who it's written for? | Determines expression style |
-| **Publishing Platform** | Is it clear where to publish? | Determines content format |
-| **Real Cases** | Are there specific examples/experiences? | **Social media required** |
-| **Emotional Resonance** | Are there resonance points/emotional hooks? | **Social media required** |
-| **Unique Viewpoints** | Are there insights others haven't mentioned? | **90+ point required** |
-
-#### Should Be Complete (Try to question)
-
-| Dimension | Check Item | Description |
-|-----------|-----------|-------------|
-| **External Validation** | Is there search material to support? | Adds persuasiveness |
-
-#### Nice to Have (Better if present)
-
-| Dimension | Check Item | Description |
-|-----------|-----------|-------------|
-| **Interactive Design** | Is there a clear call to action? | Guide reader participation |
-| **Style Preference** | What style? | Professional/humorous/story-based |
+**注意：案例、情感、独特性、原始素材引用、故事闭环是必填项，不能跳过。精准搜索在框架搭建后进行，用于验证框架观点。**
 
 ---
 
-### 90+ Point Content Standards
+## 参考文档
 
-| Score | Characteristics | What's Missing |
-|-------|----------------|----------------|
-| **60-70 points** | Clear structure, clear viewpoints | Lacks real cases, emotional resonance |
-| **80-85 points** | + Real cases, emotional resonance | Lacks uniqueness, external validation |
-| **90+ points** | + Unique viewpoints, external validation | Nothing missing, polished |
+### 核心文档（必读）
 
-**Only enter generation phase when all "must complete" dimensions are present.**
+- `references/core-principles.md` - 核心原则详解（内化框架/多选开放/渐进深化/5-Why/PREP/第一性原理/段落节奏）
+- `references/rounds-guide.md` - 所有轮次详解（每个轮次的目的/任务/评估标准）
+- `references/output-format.md` - 最终输出格式规范（Markdown规范/检查清单/模板）
 
-**Real cases, emotional resonance, and unique viewpoints are the three pillars of social media content - all are essential.**
+### 追问流程引用
 
----
+- `references/determining-frameworks.md` - 第3轮：组织方式选择参考（5W1H/SCQA/黄金圈/AIDA/FBA）
+- `references/questioning-modes.md` - 第5-7轮：追问模式参考（可选）
+- `references/data-sources.md` - [精准搜索]：优质数据来源列表（Tier 1-5 优先级）
+- `references/post-polish.md` - 第9-10轮：审稿与打磨系统（四维审稿→十步打磨→诚实评估）
 
-## Output Format
+### 补充参考（按需查阅）
 
-### Markdown Format Specifications (Required)
-
-**All post content must be output in standard Markdown format**, including:
-
-| Format Element | Use Case | Example |
-|----------------|----------|---------|
-| **Heading Levels** | Main title H1, sections H2-H4 | `# Title` `## Section` |
-| **Bold Emphasis** | Core viewpoints, keywords | `**Core viewpoint**` |
-| **Quote Blocks** | Golden sentences, key assertions | `> Quote content` |
-| **Lists** | Parallel points, step descriptions | `- Item 1` |
-| **Horizontal Rules** | Separate different parts | `---` |
-| **Code Blocks** | Technical content, data | ` ```code``` ` |
-
-**Pre-output checklist:**
-- [ ] Clear heading levels (H1 main title, H2 sections, H3 subsections)
-- [ ] Bold emphasis on core viewpoints
-- [ ] Quote blocks for golden sentences/key assertions
-- [ ] Long content in bullet points
-- [ ] Horizontal rules between sections
-- [ ] Overall format follows standard Markdown syntax
-
-### Universal Structure
-
-```markdown
-# [Main Title] Engaging title based on core viewpoint
-
-## [Hook] Attention-grabbing opening
-
-Body content...
-
----
-
-## [Body Part 1] Expand based on framework structure
-
-- Framework-guided hierarchical content
-- Search data-supported viewpoints
-- Specific cases and stories
-
-> Core golden sentence in quote block
-
----
-
-## [Body Part 2] Continue expansion
-
-More content...
-
----
-
-## [Conclusion] Call to action or summary reinforcement
-
-Concluding content...
-
----
-
-**[Tags]** #topic1 #topic2 #topic3
-
-**[Reference Materials]** Data sources cited (if search was used)
-```
-
-### Platform-Adapted Versions
-
-| Platform | Word Count | Characteristics |
-|----------|-----------|-----------------|
-| WeChat Official Account | 2000+ | In-depth long articles, clear sections, image suggestions |
-| Xiaohongshu | 500-1000 | Practical content, emoji embellishment, list-style |
-| Twitter/Weibo | 140-280 | Concise and powerful, one-sentence core, golden sentence style |
-| LinkedIn/Maimai | 1000-1500 | Professional workplace, industry insights, case support |
-
-For detailed structure explanations, refer to `references/post-structures.md`
-
----
-
-## High-Quality Information Sources
-
-The system prioritizes the following types of high-quality sources when searching:
-
-| Source Type | Examples |
-|-------------|----------|
-| Academic Resources | arXiv, Google Scholar, CNKI |
-| Industry Reports | McKinsey, Gartner, iResearch |
-| Professional Technical | Official docs, tech blogs, GitHub |
-| News Media | Caixin, 36Kr, TechCrunch |
-| Knowledge Platforms | Wikipedia, Zhihu high-voted, Medium |
-
-For detailed data source lists, refer to `references/data-sources.md`
-
----
-
-## Best Practices
-
-1. **Provide sufficient context** - Even for scattered ideas, try to include key points you care about
-2. **Answer questions honestly** - Your answers during interactive questioning directly affect post quality
-3. **Define target platform** - Knowing which platform you're posting to can generate more suitable content
-4. **Leverage search results** - Materials searched by the system can greatly enrich your content
-5. **Compare multiple versions** - Compare outputs from different versions, choose the most suitable
-6. **Iterate and optimize** - Continue questioning and optimizing based on generated results
-
----
-
-## Examples
-
-See `examples/` directory for complete usage examples:
-- `basic-usage.md` - Basic usage examples
-- `advanced-usage.md` - Advanced scenario examples
-
----
-
-## Reference Documents
-
-- `references/thinking-frameworks.md` - Detailed framework explanations
-- `references/questioning-strategy.md` - **Continuous progressive questioning strategy (core)**
-- `references/questioning-modes.md` - **Questioning mode selection guide (new)**
-- `references/question-templates.md` - Question template library
-- `references/post-structures.md` - Post structure guide
-- `references/post-polish.md` - **Post-generation polish system (审稿→打磨→评估)**
-- `references/data-sources.md` - High-quality data source list
+- `references/questioning-strategy.md` - 持续渐进式追问策略
+- `references/question-templates.md` - 问题模板库
+- `references/post-structures.md` - 文章结构指南（各平台格式特点）
