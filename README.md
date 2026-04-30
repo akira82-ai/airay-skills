@@ -1,113 +1,166 @@
-# Magazine Web PPT · 电子杂志风网页 PPT Skill
+# Magazine Web PPT · 你的 AI 演示稿生产力工具
 
 > 🌏 **English version: [README.en.md](./README.en.md)**
 
-一个适配 Claude Code / Codex 等 Agent 环境的网页 PPT 技能,用于生成**单文件 HTML 横向翻页 PPT**,视觉基调是"**电子杂志 × 电子墨水**"——像 *Monocle* 贴上了代码的样子。
+你不是来“学模板”的。  
+你是来**更快做出一份能讲、能看、能交付的演示稿**。
 
-> 由 [歸藏](https://x.com/op7418) 在"一人公司:被 AI 折叠的组织"、"一种新的工作方式"等线下分享中沉淀而成,踩过的每一个坑都写进了 `checklist.md`。
+这个 Skill 帮你把 PPT 这件事变成一条清晰流程：  
+**输入需求 → 自动成稿 → 浏览器预览 → 一键导出 PDF**。
 
 ![Magazine Web PPT 效果展示](https://github.com/user-attachments/assets/5dc316a2-401c-4e37-9123-ea081b6ae470)
 
-## 效果
+## 你能得到什么
 
-- 🖋 **衬线大标题 + 非衬线正文 + 等宽元数据**的三级字体分工
-- 🌊 **WebGL 流体/色散背景**,hero 页可见,正文页克制
-- 📐 **横向左右翻页**:键盘 ← → / 滚轮 / 触屏滑动 / 底部圆点 / ESC 索引
-- 🎨 **5 套主题色预设**:墨水经典 / 靛蓝瓷 / 森林墨 / 牛皮纸 / 沙丘
-- 🧩 **10 种页面布局**:开场封面、章节幕封、数据大字报、左文右图、图片网格、Pipeline、悬念问题、大引用、Before/After 对比、图文混排
-- 🖼 **Codex 可选配图流程**:可用 GPT-M 2.0 生成纪实照片、信息图、流程图、系统关系图、UI 情景图,并按模板比例插入
-- 📄 **单文件 HTML**:不需要构建、不需要服务器,浏览器直接打开
+- 更快起稿：给出 0-5 输入项，直接进入结构化产出
+- 更稳呈现：杂志风视觉、节奏清晰、信息层级明确
+- 更少返工：内置验收逻辑，先把可读性和可交付做对
+- 更强复用：单文件 HTML，适合演讲、评审、分享的重复生产
 
-## 适合 / 不适合
+## 新增能力（本项目增强）
 
-**✅ 合适**:线下分享 / 行业内部讲话 / 私享会 / AI 产品发布 / demo day / 带强烈个人风格的演讲
+- ✅ **24 页能力导览 Demo**：不只看效果，还能边看边学怎么用
+- ✅ **启动即引导**：首屏给你 0-5 输入模板，降低沟通成本
+- ✅ **ESC 索引可读性修复**：缩略图显示为可读态，不再关键内容空白
+- ✅ **图片全屏预览**：任意 `<img>` 点击可全屏查看
+- ✅ **当前页内循环切图**：全屏态支持左右切换，仅在当前 slide 图片集合内循环
+- ✅ **键盘翻页收敛**：仅 `Space / ArrowLeft / ArrowRight` 翻页，滚轮不触发翻页
+- ✅ **导出文件名优化**：PDF 默认取第一页标题（如：`杂志风 Web PPT.pdf`）
+- ✅ **HTTP 预览强制规则**：查看 demo 与预览成稿都要求本地 HTTP 访问
 
-**❌ 不合适**:大段表格数据 / 培训课件(信息密度不够)/ 需要多人协作编辑(静态 HTML)
+## 快速开始（3 步）
 
-## 安装
-
-### 方式一:一行命令安装(推荐)
+### 1）安装
 
 ```bash
 npx skills add https://github.com/akira82-ai/airay-html-ppt-skill --skill airay-html-ppt-skill
 ```
 
-### 方式二:把下面这段话直接发给 AI
+### 2）首次输入（照这个填）
 
-> 帮我安装 `airay-html-ppt-skill` 这个 Claude Code skill。请按下面步骤做:
+```text
+0）查看demo
+1）主题
+2）受众
+3）时长
+4）目的
+5）页数要求
+```
+
+### 3）预览（必须走 HTTP）
+
+```bash
+python3 -m http.server 4173
+```
+
+打开 `http://localhost:4173/assets/demo.html` 查看 Demo，或打开你的成稿 HTML 进行预览与验收。
+
+## 交互与导出
+
+- 翻页：`Space` / `←` / `→`
+- 索引：`ESC` 打开/关闭
+- 图片：点击全屏，`ESC` 关闭，左右键仅在当前页内切图
+- 导出：右下角 `导出 PDF` 按钮
+- 文件名：默认取第一页标题
+
+## 适合 / 不适合
+
+**✅ 合适**
+
+- 线下分享 / 行业演讲 / 私享会
+- AI 产品发布 / demo day / 方案汇报
+- 希望兼顾审美、效率与交付稳定性的个人或团队
+
+**❌ 不合适**
+
+- 复杂财务建模页
+- 超大表格培训课件
+- 多人实时协作编辑型文档
+
+## 安装（完整方式）
+
+### 方式一：一行命令安装（推荐）
+
+```bash
+npx skills add https://github.com/akira82-ai/airay-html-ppt-skill --skill airay-html-ppt-skill
+```
+
+### 方式二：把下面这段话直接发给 AI
+
+> 帮我安装 `airay-html-ppt-skill` 这个 Claude Code skill。请按下面步骤做：
 >
-> 1. 确保 `~/.claude/skills/` 目录存在(不存在就创建)
+> 1. 确保 `~/.claude/skills/` 目录存在（不存在就创建）
 > 2. 执行 `git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill`
-> 3. 验证:`ls ~/.claude/skills/airay-html-ppt-skill/` 应该看到 `SKILL.md`、`assets/`、`references/` 三项
-> 4. 告诉我安装好了,之后我说"做一份杂志风 PPT"之类的话就会触发这个 skill
+> 3. 验证：`ls ~/.claude/skills/airay-html-ppt-skill/` 应该看到 `SKILL.md`、`assets/`、`references/` 三项
+> 4. 告诉我安装好了，之后我说“做一份杂志风 PPT”之类的话就会触发这个 skill
 
-把这段话复制粘贴给 Claude Code / Cursor / 任何有 shell 权限的 AI Agent,它会自动完成安装。
+把这段话复制粘贴给 Claude Code / Cursor / 任何有 shell 权限的 AI Agent，它会自动完成安装。
 
-### 方式三:手动命令行
+### 方式三：手动命令行
 
 ```bash
 git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill
 ```
 
-### 触发方式
+## 触发方式
 
-装好后,Claude Code 会在对话里自动发现并调用这个 skill。触发关键词:
+装好后，Claude Code 会在对话里自动发现并调用这个 skill。触发关键词：
 
-- "帮我做一份杂志风 PPT"
-- "生成一个 horizontal swipe deck"
-- "editorial magazine style presentation"
-- "electronic ink 风格演讲 slides"
+- “帮我做一份杂志风 PPT”
+- “生成一个 horizontal swipe deck”
+- “editorial magazine style presentation”
+- “electronic ink 风格演讲 slides”
 
 ## 使用流程
 
-Skill 本身是结构化工作流,Agent 会逐步引导:
+Skill 本身是结构化工作流，Agent 会逐步引导：
 
-1. **查看 Demo（可选）** — 打开 `assets/demo.html`，快速体验 15 页能力样例
-2. **需求澄清** — 6 问清单:受众、时长、素材、图片、主题色、硬约束
-3. **拷贝模板** — `assets/template.html` → 项目目录,改 `<title>`,换主题色
-4. **填充内容** — 从 10 种 layout 骨架里挑、粘、改文案(先做类名预检 + 主题节奏规划)
-5. **可选配图** — 在 Codex 中可询问是否用 GPT-M 2.0 生成配图,再按页面比例插入
-6. **自检** — 对照 `references/checklist.md`,P0 级问题必须全过
-7. **预览** — 浏览器直接打开
+1. **查看 Demo（可选）** — 打开 `assets/demo.html`，快速体验 24 页能力样例
+2. **需求澄清** — 输入 0-5：主题、受众、时长、目的、页数（或先查看 demo）
+3. **拷贝模板** — `assets/template.html` → 项目目录，改 `<title>`，换主题色
+4. **填充内容** — 从布局骨架里挑、粘、改文案（先做类名预检 + 主题节奏规划）
+5. **可选配图** — 可询问是否生成配图，再按页面比例插入
+6. **自检** — 对照 `references/checklist.md`，P0 级问题必须全过
+7. **预览** — 启动本地 HTTP 后在浏览器查看
 8. **迭代** — inline style 改字号/高度/间距
 
 详细说明见 [`SKILL.md`](./SKILL.md)。
 
 ## Codex 配图能力
 
-在 Codex 环境中,完成 deck 初稿后可以主动询问用户是否需要生成配图。用户确认后,再选择图片类型或风格,常用类型包括:
+在 Codex 环境中，完成 deck 初稿后可以主动询问用户是否需要生成配图。用户确认后，再选择图片类型或风格，常用类型包括：
 
-- 人文纪实照片:富士 / 徕卡感的真实场景,增加人文表现力
-- 信息图 / 流程图 / 对比图 / 系统关系图:用于解释无法用实拍照片说明的概念
-- 截图再设计 / UI 情景图:把原始截图统一成适合 PPT 的比例和视觉密度
+- 人文纪实照片：富士 / 徕卡感的真实场景，增加人文表现力
+- 信息图 / 流程图 / 对比图 / 系统关系图：用于解释无法用实拍照片说明的概念
+- 截图再设计 / UI 情景图：把原始截图统一成适合 PPT 的比例和视觉密度
 
-生成图片时要遵守两个关键规则:
+生成图片时要遵守两个关键规则：
 
-- 图片是 PPT 中的嵌入素材,不要自带页脚、页底、标题、角标、页码或装饰边框
-- 图片比例必须先匹配落位:主图常用 16:9 / 16:10,截图再设计常用 16:10,多图网格统一高度
+- 图片是 PPT 中的嵌入素材，不要自带页脚、页底、标题、角标、页码或装饰边框
+- 图片比例必须先匹配落位：主图常用 16:9 / 16:10，截图再设计常用 16:10，多图网格统一高度
 
 ## 目录结构
 
-```
+```text
 airay-html-ppt-skill/
 ├── package.json          ← 项目配置
-├── SKILL.md              ← Skill 主文件:工作流、原则、常见错误
+├── SKILL.md              ← Skill 主文件：工作流、原则、常见错误
 ├── README.md             ← 本文件
 ├── assets/
-│   ├── template.html     ← 完整可运行的种子 HTML(CSS + WebGL + 翻页 JS 全配好)
-│   ├── demo.html         ← 官方 15 页 Demo Deck（默认示例/回归基线）
+│   ├── template.html     ← 完整可运行的种子 HTML（CSS + WebGL + 翻页 JS 全配好）
+│   ├── demo.html         ← 官方 24 页 Demo Deck（能力导览/回归基线）
 │   └── demo-images/      ← Demo 使用的本地占位图（离线可用）
 └── references/
-    ├── components.md     ← 组件手册(字体、色、网格、图标、callout、stat、pipeline)
-    ├── layouts.md        ← 10 种页面布局骨架(可直接粘贴)
-    ├── themes.md         ← 5 套主题色预设(只能选不能自定义)
-    ├── image-prompts.md  ← GPT-M 2.0 配图类型、比例和基础提示词
-    └── checklist.md      ← 质量检查清单(P0 / P1 / P2 / P3 分级)
+    ├── components.md     ← 组件手册（字体、色、网格、图标、callout、stat、pipeline）
+    ├── layouts.md        ← 页面布局骨架（可直接粘贴）
+    ├── themes.md         ← 主题色预设
+    ├── image-prompts.md  ← 配图类型、比例和基础提示词
+    └── checklist.md      ← 质量检查清单（P0 / P1 / P2 / P3 分级）
 ```
 
 ## 快速查看 Demo
 
-打开 `assets/demo.html` 即可看到官方 15 页示例，覆盖分栏、长文本、统计卡、流程、网格图、图文混排、对比页等能力。
+打开 `assets/demo.html` 即可看到 24 页能力导览示例，覆盖输入模板、结构布局、配图规则、交互能力、导出与验收、边界说明。
 
 ## 导出图片 PDF
 
@@ -119,12 +172,13 @@ airay-html-ppt-skill/
 - 输出页尺寸：16:9（`160mm x 90mm`）
 
 说明：
+
 - 这是纯前端导出，不需要本地 Node 服务
 - 建议在本地 HTTP 页面中使用（避免 `file://` 造成资源限制）
 
 ## 主题色预设
 
-从 `references/themes.md` 里选一套——**不允许自定义 hex 值**,保护美学比给自由更重要。
+从 `references/themes.md` 里选一套。保持主题系统统一，能显著降低返工成本。
 
 | 主题 | 适合场景 |
 |------|---------|
@@ -134,30 +188,29 @@ airay-html-ppt-skill/
 | 🍂 牛皮纸 | 怀旧 / 人文 / 文学 / 独立杂志 |
 | 🌙 沙丘 | 艺术 / 设计 / 创意 / 画廊 |
 
-切换主题只需替换 `template.html` 开头 `:root{}` 里的 6 行变量,其他 CSS 全走 `var(--...)`。
+切换主题只需替换 `template.html` 开头 `:root{}` 里的变量。
 
 ## 核心设计原则
 
 1. **克制优于炫技** — WebGL 背景只在 hero 页透出
-2. **结构优于装饰** — 信息靠字号 + 字体对比 + 网格留白,不用阴影和浮动卡片
-3. **图片是第一公民** — 图片要对齐正文内容区,比例稳定,只裁底部,顶部和左右完整
-4. **配图只做素材** — 生成图只保留核心照片 / 图表 / UI,不要把 PPT 页脚、标题和角标画进图片里
-5. **节奏靠 hero 页** — hero / non-hero 交替,才不累眼睛
-6. **术语统一** — Skills 就是 Skills,不中英混译
+2. **结构优于装饰** — 信息靠字号 + 字体对比 + 网格留白
+3. **图片是第一公民** — 比例稳定，裁切可控
+4. **配图只做素材** — 不把页脚、标题、角标画进图片
+5. **节奏靠 hero 页** — hero / non-hero 交替，阅读更轻松
+6. **术语统一** — 输入、预览、导出、验收口径一致
 
-## 视觉参考
+## 致谢（Acknowledgement）
 
-- [*Monocle*](https://monocle.com) 杂志的版式
-- YC Garry Tan "Thin Harness, Fat Skills"
-- 歸藏线下分享 PPT 系列
+本项目核心能力与方法论 **fork 自 [guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill)**。  
+感谢 [歸藏（op7418）](https://github.com/op7418) 在真实线下分享中的长期沉淀：模板体系、流程经验与质量清单，都为这个方向打下了高质量基础。
 
 ## 贡献
 
-Bug、排版问题、新布局需求——欢迎开 Issue 或 PR。改动请优先:
+Bug、排版问题、新布局需求——欢迎开 Issue 或 PR。改动请优先：
 
-- 在 `template.html` 里补类,不要让 layouts.md 使用未定义的类
-- 把踩过的坑写到 `checklist.md` 对应的 P0 / P1 / P2 / P3 级别
-- 新主题色进 `themes.md` 并给出适合的场景
+- 在 `template.html` 里补类，不要让 layouts 使用未定义类
+- 把踩过的坑写到 `checklist.md` 对应级别
+- 新主题色进入 `themes.md` 并给出适用场景
 
 ## License
 
