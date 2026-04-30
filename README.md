@@ -62,13 +62,14 @@ git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guiza
 
 Skill 本身是结构化工作流,Agent 会逐步引导:
 
-1. **需求澄清** — 6 问清单:受众、时长、素材、图片、主题色、硬约束
-2. **拷贝模板** — `assets/template.html` → 项目目录,改 `<title>`,换主题色
-3. **填充内容** — 从 10 种 layout 骨架里挑、粘、改文案(先做类名预检 + 主题节奏规划)
-4. **可选配图** — 在 Codex 中可询问是否用 GPT-M 2.0 生成配图,再按页面比例插入
-5. **自检** — 对照 `references/checklist.md`,P0 级问题必须全过
-6. **预览** — 浏览器直接打开
-7. **迭代** — inline style 改字号/高度/间距
+1. **查看 Demo（可选）** — 打开 `assets/demo.html`，快速体验 15 页能力样例
+2. **需求澄清** — 6 问清单:受众、时长、素材、图片、主题色、硬约束
+3. **拷贝模板** — `assets/template.html` → 项目目录,改 `<title>`,换主题色
+4. **填充内容** — 从 10 种 layout 骨架里挑、粘、改文案(先做类名预检 + 主题节奏规划)
+5. **可选配图** — 在 Codex 中可询问是否用 GPT-M 2.0 生成配图,再按页面比例插入
+6. **自检** — 对照 `references/checklist.md`,P0 级问题必须全过
+7. **预览** — 浏览器直接打开
+8. **迭代** — inline style 改字号/高度/间距
 
 详细说明见 [`SKILL.md`](./SKILL.md)。
 
@@ -89,10 +90,13 @@ Skill 本身是结构化工作流,Agent 会逐步引导:
 
 ```
 guizang-ppt-skill/
+├── package.json          ← 项目配置
 ├── SKILL.md              ← Skill 主文件:工作流、原则、常见错误
 ├── README.md             ← 本文件
 ├── assets/
-│   └── template.html     ← 完整可运行的种子 HTML(CSS + WebGL + 翻页 JS 全配好)
+│   ├── template.html     ← 完整可运行的种子 HTML(CSS + WebGL + 翻页 JS 全配好)
+│   ├── demo.html         ← 官方 15 页 Demo Deck（默认示例/回归基线）
+│   └── demo-images/      ← Demo 使用的本地占位图（离线可用）
 └── references/
     ├── components.md     ← 组件手册(字体、色、网格、图标、callout、stat、pipeline)
     ├── layouts.md        ← 10 种页面布局骨架(可直接粘贴)
@@ -100,6 +104,23 @@ guizang-ppt-skill/
     ├── image-prompts.md  ← GPT-M 2.0 配图类型、比例和基础提示词
     └── checklist.md      ← 质量检查清单(P0 / P1 / P2 / P3 分级)
 ```
+
+## 快速查看 Demo
+
+打开 `assets/demo.html` 即可看到官方 15 页示例，覆盖分栏、长文本、统计卡、流程、网格图、图文混排、对比页等能力。
+
+## 导出图片 PDF
+
+页面右下角「导出 PDF」按钮会执行前端图片导出（`html2canvas + jsPDF`）：
+
+- 导出前自动冻结动画、显示全部内容，并临时隐藏导航与提示区
+- 逐页截图后合成为 PDF（图片版，非文字版）
+- 默认文件名：`<html文件名>-image.pdf`
+- 输出页尺寸：16:9（`160mm x 90mm`）
+
+说明：
+- 这是纯前端导出，不需要本地 Node 服务
+- 建议在本地 HTTP 页面中使用（避免 `file://` 造成资源限制）
 
 ## 主题色预设
 

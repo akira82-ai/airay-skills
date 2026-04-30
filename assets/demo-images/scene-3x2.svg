@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1500 1000'>
+<rect width='1500' height='1000' fill='#d9d1c2'/>
+<path d='M0 820 C220 740 420 900 680 820 C920 748 1120 890 1500 760 L1500 1000 L0 1000 Z' fill='#8e8172' fill-opacity='.55'/>
+<text x='120' y='180' font-size='58' fill='#111' fill-opacity='.7' font-family='Georgia,serif'>DEMO 3:2</text>
+</svg>
