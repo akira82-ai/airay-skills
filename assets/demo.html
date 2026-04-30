@@ -856,28 +856,15 @@ addEventListener('keydown',e=>{
   if(previewOn && e.key==='ArrowRight'){ e.preventDefault(); showNextInSlide(); return; }
   if(previewOn)return;
   if(overviewOn)return;
-  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+  if(e.key==='ArrowRight'||e.key===' '){
     if(window.__pipeAdvance && window.__pipeAdvance()) return;
     go(idx+1);
     return;
   }
-  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='ArrowLeft')go(idx-1);
   if(e.key==='Home')go(0);
   if(e.key==='End')go(total-1);
 });
-
-let wheelTO=null,wheelAcc=0;
-addEventListener('wheel',e=>{
-  wheelAcc+=e.deltaY+e.deltaX;
-  if(Math.abs(wheelAcc)>50){
-    if(wheelAcc>0 && window.__pipeAdvance && window.__pipeAdvance()){
-      wheelAcc=0;
-    }else{
-      go(idx+(wheelAcc>0?1:-1));wheelAcc=0;
-    }
-  }
-  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
-},{passive:true});
 
 let tx=0,ty=0;
 addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});

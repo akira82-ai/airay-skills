@@ -5,6 +5,26 @@ description: 生成"电子杂志 × 电子墨水"风格的横向翻页网页 PPT
 
 # Magazine Web Ppt
 
+## 启动横幅
+
+技能启动时，输出以下横幅：
+
+```
+═══════════════════════════════════════════════════════════════
+▌ Magazine Web PPT / airay-html-ppt-skill ▐
+单文件 HTML 杂志风演示稿：横向翻页、电子墨水美学、稳定导出
+═══════════════════════════════════════════════════════════════
+核心能力 fork 自 guizang-ppt-skill
+AIRay │ github.com/akira82-ai
+───────────────────────────────────────────────────────────────
+- 主题预设：5 套主题色，统一视觉节奏
+- 布局模板：封面、幕封、图文、网格、流程、数据卡等
+- 导出能力：前端一键导出图片版 PDF
+- 交互能力：左右翻页、ESC 索引、入场动效
+═══════════════════════════════════════════════════════════════
+最后更新：2026-04-30
+```
+
 ## 这个 Skill 做什么
 
 生成一份**单文件 HTML**的横向翻页 PPT，视觉基调是：
@@ -13,7 +33,7 @@ description: 生成"电子杂志 × 电子墨水"风格的横向翻页网页 PPT
 - **WebGL 流体 / 等高线 / 色散背景**（hero 页可见）
 - **衬线标题（Noto Serif SC + Playfair Display）+ 非衬线正文（Noto Sans SC + Inter）+ 等宽元数据（IBM Plex Mono）**
 - **Lucide 线性图标**（不用 emoji）
-- **横向左右翻页**（键盘 ← →、滚轮、触屏滑动、底部圆点、ESC 索引）
+- **横向左右翻页**（仅键盘 Space / ← / →，以及底部圆点、ESC 索引）
 - **主题平滑插值**：翻到 hero 页时颜色和 shader 柔顺过渡
 - **翻页入场动效**（Motion One 驱动,5 种 recipe 自动匹配布局,本地 + CDN 双保险,离线可用）
 
@@ -34,11 +54,13 @@ description: 生成"电子杂志 × 电子墨水"风格的横向翻页网页 PPT
 
 ## 工作流
 
+技能触发后，必须先输出“启动横幅”，再进入 Step 0 / Step 1。
+
 ### Step 0 · Demo 模式（快速预览）
 
 当用户说“查看 demo/示例”时，先走 Demo 模式，再决定是否进入定制生成：
 
-- 直接打开 `assets/demo.html` 进行预览
+- 必须先启动本地 HTTP server，再通过 `http://localhost:端口/...` 预览 `assets/demo.html`
 - 告知可立刻测试：翻页、ESC 索引
 - 如果用户确认“开始做我的 PPT”，再进入 Step 1 需求澄清
 
@@ -239,13 +261,20 @@ cp "<SKILL_ROOT>/assets/template.html" "项目/XXX/ppt/index.html"
 
 ### Step 5 · 本地预览
 
-直接在浏览器打开 `index.html` 就行。macOS 下：
+预览做好的 PPT 时，**必须先启动本地 HTTP server**，再通过 `http://localhost:端口/...` 打开。禁止使用 `file://` 或直接 `open index.html` 预览。
 
 ```bash
-open "项目/XXX/ppt/index.html"
+cd "项目/XXX/ppt"
+python3 -m http.server 4173
 ```
 
-不需要本地服务器。图片走相对路径 `images/xxx.png`。
+然后在浏览器访问：
+
+```text
+http://localhost:4173/index.html
+```
+
+Demo 预览同样执行这条规则（例如 `http://localhost:4173/assets/demo.html`），不要直接打开本地文件。
 
 页面右下角「导出 PDF」按钮会执行前端图片导出（`html2canvas + jsPDF`）：
 - 导出前自动冻结动画并隐藏导航提示
