@@ -866,8 +866,12 @@ async function exportImagePdf(){
       pdf.addImage(img, 'PNG', 0, 0, 160, 90, undefined, 'FAST');
     }
 
-    const base = (location.pathname.split('/').pop() || 'slides').replace(/\.html?$/i, '');
-    pdf.save(`${base}-image.pdf`);
+    const firstSlide = slides[0];
+    const titleEl = firstSlide?.querySelector('h1, h2, h3');
+    const title = (titleEl?.textContent || '').trim();
+    const safeTitle = title.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+    const base = safeTitle || (location.pathname.split('/').pop() || 'slides').replace(/\.html?$/i, '');
+    pdf.save(`${base}.pdf`);
   }catch(err){
     alert(`图片 PDF 导出失败。\n可能原因：内存不足、跨域图片限制或浏览器兼容问题。\n\n${err?.message || err}`);
   }finally{

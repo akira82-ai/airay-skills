@@ -250,7 +250,7 @@ open "项目/XXX/ppt/index.html"
 页面右下角「导出 PDF」按钮会执行前端图片导出（`html2canvas + jsPDF`）：
 - 导出前自动冻结动画并隐藏导航提示
 - 逐页截图后合成为图片版 PDF（非文字版）
-- 默认文件名：`<html文件名>-image.pdf`
+- 默认文件名：`<第一页标题>.pdf`
 
 ### Step 6 · 迭代
 
