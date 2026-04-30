@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900'>
+<rect width='1200' height='900' fill='#d7e0d8'/>
+<circle cx='260' cy='250' r='140' fill='#94a894'/>
+<rect x='420' y='180' width='620' height='460' fill='#f1efe8' stroke='#222' stroke-opacity='.25' stroke-width='4'/>
+<text x='460' y='260' font-size='56' fill='#111' fill-opacity='.7' font-family='Georgia,serif'>DEMO 4:3</text>
+</svg>
