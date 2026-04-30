@@ -1,16 +1,12 @@
 # airay-skills
 
-airay 维护的 Claude Code 多技能仓库（monorepo）。
+AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
 - 技能数量：10
 - 最近更新：2026-04-30
 - 详细变更记录见 `CHANGELOG.md`
-
-## 迁移说明
-
-`airay-html-ppt-skill` 已在本仓统一维护，路径：`skills/airay-html-ppt-skill/`。
 
 ## 安装
 
@@ -22,7 +18,7 @@ git clone https://github.com/akira82-ai/airay-skills.git ~/.claude/skills/airay-
 cd ~/.claude/skills/airay-skills && git pull
 ```
 
-### 仅安装单个技能（`airay-html-ppt-skill`）
+### 仅安装单个技能（以`airay-html-ppt-skill`为例）
 
 ```bash
 # 1) 克隆统一仓库
