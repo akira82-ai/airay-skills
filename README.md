@@ -1,42 +1,41 @@
 # airay-skills
 
 airay 维护的 Claude Code 多技能仓库（monorepo）。
-A unified monorepo of Claude Code skills maintained by airay.
 
-## Project Status
+## 项目状态
 
-- Skills: 10
-- Last updated: 2026-04-30
-- See detailed history in `CHANGELOG.md`
+- 技能数量：10
+- 最近更新：2026-04-30
+- 详细变更记录见 `CHANGELOG.md`
 
-## Migration Notice
+## 迁移说明
 
 `airay-html-ppt-skill` 已在本仓统一维护，路径：`skills/airay-html-ppt-skill/`。
 
-## Installation
+## 安装
 
 ```bash
-# Install full repository into Claude skills directory
+# 将整仓安装到 Claude skills 目录
 git clone https://github.com/akira82-ai/airay-skills.git ~/.claude/skills/airay-skills
 
-# Update later
+# 后续更新
 cd ~/.claude/skills/airay-skills && git pull
 ```
 
-### Install one skill only (`airay-html-ppt-skill`)
+### 仅安装单个技能（`airay-html-ppt-skill`）
 
 ```bash
-# 1) Clone unified repository
+# 1) 克隆统一仓库
 git clone https://github.com/akira82-ai/airay-skills.git ~/.claude/skills/airay-skills
 
-# 2) Expose only this skill as a direct skill path
+# 2) 仅暴露该技能为直接技能路径
 ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skills/airay-html-ppt-skill
 ```
 
-## Skills
+## 技能列表
 
-| Skill | Description |
-|-------|-------------|
+| 技能 | 说明 |
+|------|------|
 | airay-agent-review | 基于本地对话与工具记录生成每日工作复盘 |
 | airay-chat-export | 导出 Claude Code 对话 session 到本地 JSON |
 | airay-file-organizer | 基于语义分析进行文件分类整理（Johnny Decimal） |
@@ -48,7 +47,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计指定时间段内的技能使用情况 |
 
-## Requirements
+## 运行依赖
 
 按技能按需安装：
 
@@ -58,6 +57,6 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 - beautifulsoup4（用于 `airay-insights-zh`）：`pip3 install beautifulsoup4`
 - lark-cli（用于 `airay-lark-wiki-agent`）：需单独安装并完成认证
 
-## License
+## 许可证
 
 MIT
