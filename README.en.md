@@ -27,16 +27,16 @@ An agent skill for Claude Code, Codex, and similar coding-agent environments. It
 ### Option 1: One-line install (recommended)
 
 ```bash
-npx skills add https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-skill
+npx skills add https://github.com/akira82-ai/airay-html-ppt-skill --skill airay-html-ppt-skill
 ```
 
 ### Option 2: Paste this to an AI
 
-> Install the `guizang-ppt-skill` Claude Code skill for me. Steps:
+> Install the `airay-html-ppt-skill` Claude Code skill for me. Steps:
 >
 > 1. Make sure `~/.claude/skills/` exists (create if not)
-> 2. Run `git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guizang-ppt-skill`
-> 3. Verify: `ls ~/.claude/skills/guizang-ppt-skill/` should show `SKILL.md`, `assets/`, `references/`
+> 2. Run `git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill`
+> 3. Verify: `ls ~/.claude/skills/airay-html-ppt-skill/` should show `SKILL.md`, `assets/`, `references/`
 > 4. Tell me when done. Later, saying things like "make me a magazine-style deck" will trigger this skill.
 
 Paste the block above into Claude Code / Cursor / any AI agent with shell access and it handles the install.
@@ -44,7 +44,7 @@ Paste the block above into Claude Code / Cursor / any AI agent with shell access
 ### Option 3: Manual CLI
 
 ```bash
-git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guizang-ppt-skill
+git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill
 ```
 
 ### How to trigger it
@@ -86,7 +86,7 @@ Generated images must follow two core rules:
 ## Directory
 
 ```
-guizang-ppt-skill/
+airay-html-ppt-skill/
 ├── SKILL.md              ← main skill file: workflow, principles, common mistakes
 ├── README.md             ← Chinese README
 ├── README.en.md          ← this file
@@ -127,7 +127,7 @@ Switching themes only requires replacing the 6 variables at the top of `template
 
 - [*Monocle*](https://monocle.com) magazine layouts
 - YC Garry Tan — "Thin Harness, Fat Skills"
-- Guizang's offline talk deck series
+- Offline talk deck series
 
 ## Contributing
 

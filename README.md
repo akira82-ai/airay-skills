@@ -29,16 +29,16 @@
 ### 方式一:一行命令安装(推荐)
 
 ```bash
-npx skills add https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-skill
+npx skills add https://github.com/akira82-ai/airay-html-ppt-skill --skill airay-html-ppt-skill
 ```
 
 ### 方式二:把下面这段话直接发给 AI
 
-> 帮我安装 `guizang-ppt-skill` 这个 Claude Code skill。请按下面步骤做:
+> 帮我安装 `airay-html-ppt-skill` 这个 Claude Code skill。请按下面步骤做:
 >
 > 1. 确保 `~/.claude/skills/` 目录存在(不存在就创建)
-> 2. 执行 `git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guizang-ppt-skill`
-> 3. 验证:`ls ~/.claude/skills/guizang-ppt-skill/` 应该看到 `SKILL.md`、`assets/`、`references/` 三项
+> 2. 执行 `git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill`
+> 3. 验证:`ls ~/.claude/skills/airay-html-ppt-skill/` 应该看到 `SKILL.md`、`assets/`、`references/` 三项
 > 4. 告诉我安装好了,之后我说"做一份杂志风 PPT"之类的话就会触发这个 skill
 
 把这段话复制粘贴给 Claude Code / Cursor / 任何有 shell 权限的 AI Agent,它会自动完成安装。
@@ -46,7 +46,7 @@ npx skills add https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-s
 ### 方式三:手动命令行
 
 ```bash
-git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guizang-ppt-skill
+git clone https://github.com/akira82-ai/airay-html-ppt-skill.git ~/.claude/skills/airay-html-ppt-skill
 ```
 
 ### 触发方式
@@ -89,7 +89,7 @@ Skill 本身是结构化工作流,Agent 会逐步引导:
 ## 目录结构
 
 ```
-guizang-ppt-skill/
+airay-html-ppt-skill/
 ├── package.json          ← 项目配置
 ├── SKILL.md              ← Skill 主文件:工作流、原则、常见错误
 ├── README.md             ← 本文件
