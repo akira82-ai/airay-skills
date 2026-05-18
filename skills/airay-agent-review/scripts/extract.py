@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""从 Claude Code 对话记录中提取数据，用于生成每日复盘报告"""
+"""从 Claude Code / Codex 对话记录中提取数据，用于生成每日复盘报告"""
 
 import argparse
 import json
 import datetime
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
 
 
 def to_ms(ts) -> int:
@@ -176,6 +176,132 @@ def analyze_session_data(project_path: str, session_id: str, start_ms: int, end_
     return result
 
 
+def extract_codex_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return ''
+    parts = []
+    for item in content:
+        if isinstance(item, str):
+            parts.append(item)
+        elif isinstance(item, dict):
+            text = item.get('text')
+            if isinstance(text, str):
+                parts.append(text)
+    return '\n'.join(parts).strip()
+
+
+def collect_paths(value, paths: set):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in ('file_path', 'path') and isinstance(item, str):
+                paths.add(item)
+            collect_paths(item, paths)
+    elif isinstance(value, list):
+        for item in value:
+            collect_paths(item, paths)
+    elif isinstance(value, str):
+        for line in value.splitlines():
+            if line.startswith('*** Update File: ') or line.startswith('*** Add File: '):
+                paths.add(line.split(': ', 1)[1])
+
+
+def codex_output_is_error(output) -> bool:
+    text = output if isinstance(output, str) else json.dumps(output, ensure_ascii=False)
+    try:
+        data = json.loads(text)
+        exit_code = data.get('metadata', {}).get('exit_code')
+        if isinstance(exit_code, int):
+            return exit_code != 0
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    marker = 'exited with code '
+    if marker in text:
+        tail = text.split(marker, 1)[1].split()[0]
+        return tail.lstrip('-').isdigit() and int(tail) != 0
+    return False
+
+
+def analyze_codex_session(session_file: Path, start_ms: int, end_ms: int) -> Dict[str, Any]:
+    result = {
+        'sessionId': session_file.stem,
+        'project_path': '',
+        'message_count': 0,
+        'user_messages': [],
+        'tool_calls': defaultdict(int),
+        'tool_errors': defaultdict(int),
+        'files_touched': set()
+    }
+
+    with open(session_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            try:
+                entry = json.loads(line.strip())
+                ts_ms = to_ms(entry.get('timestamp'))
+                payload = entry.get('payload') or {}
+
+                if entry.get('type') in ('session_meta', 'turn_context'):
+                    result['sessionId'] = payload.get('id') or payload.get('turn_id') or result['sessionId']
+                    result['project_path'] = payload.get('cwd') or result['project_path']
+
+                if not (start_ms <= ts_ms < end_ms):
+                    continue
+
+                if entry.get('type') != 'response_item':
+                    continue
+
+                item_type = payload.get('type')
+                if item_type == 'message' and payload.get('role') == 'user':
+                    text = extract_codex_text(payload.get('content'))
+                    if text:
+                        result['user_messages'].append(text)
+                    result['message_count'] += 1
+                elif item_type in ('function_call', 'custom_tool_call'):
+                    tool_name = payload.get('name', 'unknown')
+                    result['tool_calls'][tool_name] += 1
+                    arguments = payload.get('arguments', payload.get('input', {}))
+                    if isinstance(arguments, str):
+                        try:
+                            arguments = json.loads(arguments)
+                        except json.JSONDecodeError:
+                            pass
+                    collect_paths(arguments, result['files_touched'])
+                elif item_type in ('function_call_output', 'custom_tool_call_output'):
+                    if codex_output_is_error(payload.get('output')):
+                        call_id = payload.get('call_id', 'unknown')
+                        result['tool_errors'][call_id] += 1
+            except (json.JSONDecodeError, TypeError, ValueError):
+                continue
+
+    result['tool_calls'] = dict(result['tool_calls'])
+    result['tool_errors'] = dict(result['tool_errors'])
+    result['files_touched'] = sorted(result['files_touched'])
+    return result
+
+
+def get_codex_sessions(start_ms: int, end_ms: int) -> List[Dict[str, Any]]:
+    codex_dir = Path.home() / '.codex'
+    session_files = []
+    sessions_dir = codex_dir / 'sessions'
+    if sessions_dir.exists():
+        session_files.extend(sessions_dir.glob('*/*/*/*.jsonl'))
+    archived_dir = codex_dir / 'archived_sessions'
+    if archived_dir.exists():
+        session_files.extend(archived_dir.glob('*.jsonl'))
+
+    sessions = []
+    seen = set()
+    for session_file in sorted(session_files):
+        if session_file in seen:
+            continue
+        seen.add(session_file)
+        session = analyze_codex_session(session_file, start_ms, end_ms)
+        if session['message_count'] or session['tool_calls']:
+            sessions.append(session)
+    return sessions
+
+
 def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     """
     提取指定时间范围内的所有数据
@@ -191,6 +317,7 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
 
     # 获取 session 列表
     sessions = get_history_sessions(history_file, start_ms, end_ms)
+    codex_sessions = get_codex_sessions(start_ms, end_ms)
 
     # 聚合所有数据
     all_data = {
@@ -218,7 +345,8 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
             'message_count': session['message_count'],
             'tool_calls': session_data['tool_calls'],
             'tool_errors': session_data['tool_errors'],
-            'files_touched': session_data['files_touched']
+            'files_touched': session_data['files_touched'],
+            'source': 'claude'
         })
 
         # 聚合统计
@@ -233,6 +361,26 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
 
         all_data['files_touched'].update(session_data['files_touched'])
         all_data['projects'].add(session['project_path'])
+
+    for session in codex_sessions:
+        all_data['sessions'].append({
+            'sessionId': session['sessionId'],
+            'project_path': session['project_path'],
+            'message_count': session['message_count'],
+            'tool_calls': session['tool_calls'],
+            'tool_errors': session['tool_errors'],
+            'files_touched': session['files_touched'],
+            'source': 'codex'
+        })
+        all_data['total_messages'] += session['message_count']
+        all_data['user_messages'].extend(session['user_messages'])
+        for tool, count in session['tool_calls'].items():
+            all_data['tool_calls'][tool] += count
+        for tool, count in session['tool_errors'].items():
+            all_data['tool_errors'][tool] += count
+        all_data['files_touched'].update(session['files_touched'])
+        if session['project_path']:
+            all_data['projects'].add(session['project_path'])
 
     # 转换为可 JSON 序列化的格式
     all_data['tool_calls'] = dict(sorted(

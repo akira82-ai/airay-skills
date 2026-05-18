@@ -1,8 +1,8 @@
 ---
 name: airay-agent-review
-version: 1.0.0
+version: 1.1.0
 description: |
-  每日复盘。根据 Claude Code 本地对话记录，生成结构化的每日工作复盘报告。支持当天、昨天、近 3 天、近 7 天。
+  每日复盘。根据 Claude Code / Codex 本地对话记录，生成结构化的每日工作复盘报告。支持当天、昨天、近 3 天、近 7 天。
 
   当用户说"复盘"、"agent review"、"/agent-review"、"/复盘"时触发。
 ---
@@ -16,7 +16,7 @@ description: |
 ```
 ═══════════════════════════════════════════════════════════════
 ▌ 每日复盘 ▐
-根据 Claude Code 本地对话记录，生成结构化的每日工作复盘报告
+根据 Claude Code / Codex 本地对话记录，生成结构化的每日工作复盘报告
 ═══════════════════════════════════════════════════════════════
 磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
 ───────────────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ description: |
 - 生成结构化报告：概要 / 工作量统计 / 成功与进展 / 困难与卡点 / AI 自评
 - 报告自动保存至当前工作目录
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-04-06
+最后更新：2026-05-18
 ```
 
 ## 参数处理
@@ -40,20 +40,21 @@ description: |
 
 ## 数据提取步骤
 
-### 第 1 步：从 history.jsonl 获取消息列表
+### 第 1 步：从本地记录获取消息列表
 
-用 Bash 执行 Python 脚本，读取 ~/.claude/history.jsonl，按时间戳筛选指定日期范围内的所有记录。
-每条记录包含：display（用户输入内容）、timestamp（Unix 毫秒）、project（项目路径）、sessionId。
+用 Bash 执行 Python 脚本，读取 Claude Code 与 Codex 本地记录，按时间戳筛选指定日期范围内的所有记录。
+Claude Code 数据来自 `~/.claude/history.jsonl` 与 `~/.claude/projects/*/*.jsonl`。
+Codex 数据来自 `~/.codex/sessions/**/*.jsonl` 与 `~/.codex/archived_sessions/*.jsonl`。
 统计精确的消息条数。
 如果选择了多天（近 3 天、近 7 天），按天分别统计。
 
 ### 第 2 步：获取涉及的 session 列表
 
-从第 1 步中提取不重复的 sessionId 和对应的项目路径。
+从第 1 步中提取不重复的 sessionId、source（claude/codex）和对应的项目路径。
 
 ### 时间戳格式说明（重要）
 
-两个数据源的时间戳格式不同，脚本中**必须**统一处理：
+不同数据源的时间戳格式不同，脚本中**必须**统一处理：
 
 1. `history.jsonl` 的 timestamp 字段是 **int**（Unix 毫秒），如 `1770288337219`
 2. 项目 JSONL 文件的 timestamp 字段是 **ISO 8601 字符串**，如 `"2026-03-31T04:24:20.514Z"`
@@ -72,19 +73,19 @@ def to_ms(ts):
 
 后续所有时间戳比较和过滤都使用 `to_ms()` 转换后再比较。
 
-### 第 3 步：从项目 JSONL 文件中提取详细内容
+### 第 3 步：从会话 JSONL 文件中提取详细内容
 
 使用技能自带的 `extract.py` 脚本提取数据，确保时间戳处理稳定可靠。
 
 **调用脚本**：
 ```bash
-python ~/.claude/plugins/marketplaces/airay-skills/skills/airay-agent-review/scripts/extract.py --start_ms <start_ms> --end_ms <end_ms>
+python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms> --end_ms <end_ms>
 ```
 
 **脚本返回的数据结构**：
 ```json
 {
-  "sessions": [...],
+  "sessions": [{"source": "claude/codex", ...}],
   "total_messages": N,
   "tool_calls": {"Bash": 36, "Read": 2, "Write": 2, ...},
   "tool_errors": {...},
@@ -96,9 +97,10 @@ python ~/.claude/plugins/marketplaces/airay-skills/skills/airay-agent-review/scr
 
 脚本内部会自动处理：
 - 时间戳格式转换（int 毫秒 / ISO 8601 字符串统一处理）
-- content 数组遍历（检查 tool_use 和 server_tool_use）
-- 路径编码（项目路径中的 / 替换为 -）
-- 错误统计（is_error 标记）
+- Claude content 数组遍历（检查 tool_use 和 server_tool_use）
+- Codex response_item 解析（message / function_call / custom_tool_call / tool output）
+- Claude 路径编码（项目路径中的 / 替换为 -）
+- 错误统计（Claude 的 is_error 标记 / Codex 工具输出 exit_code）
 
 ### 第 4 步：获取 Git 提交记录
 
