@@ -445,12 +445,12 @@ Summarize points, invite discussion
 
 ### Master Draft First, Then Adapt
 
-**策略：先打磨母稿到 90+ 分，再按平台特点适配输出。**
+**策略：先完成自然可读的母稿，再按平台特点适配输出。**
 
 母稿是完整版的 Markdown 文章，包含所有论点、案例、数据。适配时不是重写，而是：
 
 ```
-打磨后的母稿（90+ 分，完整 Markdown）
+母稿（完整 Markdown）
     ↓
 [公众号] 保留完整版，微调排版和标题
     ↓

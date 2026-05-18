@@ -611,11 +611,11 @@ If user doesn't want to provide:
 
 ---
 
-## Iterative Optimization Flow (90+ Point Essential)
+## Iterative Optimization Flow
 
 ### Why Need Iterative Optimization?
 
-**First draft is often only 70-80 points, needs polishing to reach 90+ points.**
+**First draft often needs one more pass to become natural, specific, and easy to read.**
 
 ```
 After first draft generated:
@@ -787,22 +787,22 @@ Final version
 8. **Specific follow-ups** - Prevent user skipping, ask specific time/scenario/reaction
 9. **Handle search failures** - Seek alternatives, don't give up on external validation
 10. **Pursue uniqueness** - Mine tips, pits, viewpoints others don't have
-11. **90+ point goal** - Need 7-10 rounds of dialogue, pursue quality social media content
+11. **Strong content goal** - Need 7-10 rounds of dialogue, pursue quality social media content
 12. **Iterative optimization** - After first draft, proactively reflect and optimize, don't settle for "can generate"
 
 ---
 
-## Path to 90+ Point Content
+## Path to Strong Content
 
 ### Dialogue Rounds vs Content Quality
 
 | Rounds | Content Obtained | Quality Improvement |
 |--------|-----------------|---------------------|
-| 1-2 rounds | Direction, platform, audience | Technical documentation level (60 points) |
-| 3-4 rounds | Core viewpoints, value analysis | Clear structure (70 points) |
-| 5-6 rounds | Real cases, emotional resonance | Fleshed out (80 points) |
-| 7-8 rounds | Unique viewpoints, external validation | Persuasive (85 points) |
-| 9-10 rounds | Deep polishing, iterative optimization | Quality content (90+ points) |
+| 1-2 rounds | Direction, platform, audience | Know what to write |
+| 3-4 rounds | Core viewpoints, value analysis | Clear structure |
+| 5-6 rounds | Real cases, emotional resonance | Fleshed out |
+| 7-8 rounds | Unique viewpoints, external validation | Persuasive |
+| 9-10 rounds | Draft, naturalize, confirm | Ready to publish |
 
 ### Three Pillars That Cannot Be Skipped
 
@@ -810,6 +810,6 @@ Final version
 2. **Emotional Resonance** - "How did you feel then? Physical reaction?"
 3. **Unique Viewpoints** - "Tips others haven't found? Counter-intuitive understanding?"
 
-### Iterative Optimization Is Key to Final 10 Points
+### Iterative Optimization Is Key to Final Quality
 
-First draft 80 points → Reflect and optimize → 90+ points
+First draft → Naturalize and improve layout → Final version
