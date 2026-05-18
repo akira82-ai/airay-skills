@@ -13,6 +13,7 @@
 ### Content Creation
 - airay-idea-to-post - 灵感转文章
 - airay-insights-zh - insights 中文翻译
+- airay-knowledge-curse-slicer - 专业内容转短视频切片脚本
 
 ## Runtime Requirements
 
