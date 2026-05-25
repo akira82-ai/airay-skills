@@ -1,9 +1,33 @@
 ---
 name: airay-knowledge-curse-slicer
+version: 1.0.0
 description: Use this skill whenever the user wants to turn professional content, AI/technology topics, industry articles, reports, URLs, notes, or expert long-form writing into 3-5 short-video slices for a general audience. This skill is for finding knowledge-curse blind spots, translating expert concepts into everyday curiosity, and producing one-minute Chinese popular-science scripts that non-specialists can understand and want to watch.
 ---
 
 # Knowledge Curse Slicer
+
+## 启动横幅
+
+技能启动时，输出以下横幅：
+
+```text
+═══════════════════════════════════════════════════════════════
+▌ Knowledge Curse Slicer ▐
+把专业内容切成普通人听得懂、愿意看的短视频切片
+═══════════════════════════════════════════════════════════════
+磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
+───────────────────────────────────────────────────────────────
+- 找出专家默认跳过的知识盲区
+- 将专业概念翻译成日常好奇心
+- 默认生成 3-5 个一分钟中文科普脚本
+- 每个切片只讲清楚一个小观点
+═══════════════════════════════════════════════════════════════
+最后更新：2026-05-25
+
+技能已启动...
+```
+
+**显示时机**：在技能开始执行任何操作之前，首先输出此横幅。
 
 Use this skill to convert professional information sources into short-video scripts for general audiences.
 

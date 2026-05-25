@@ -1,5 +1,6 @@
 ---
 name: airay-prompt-optimizer
+version: 1.0.0
 description: 提示词诊断与优化。当用户说“优化提示词”“改写 prompt”“诊断提示词”“这个提示词怎么写更好”“基于 lesson2/lesson3 优化提示词”，或贴出原始提示词希望提升稳定性、结构、可执行性、边界、验收标准时使用此技能。
 allowed-tools: Bash
 ---
