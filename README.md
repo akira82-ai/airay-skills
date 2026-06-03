@@ -4,8 +4,8 @@ AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
-- 技能数量：12
-- 最近更新：2026-05-27
+- 技能数量：13
+- 最近更新：2026-06-03
 
 ## 安装
 
@@ -43,6 +43,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-prompt-optimizer | 诊断并优化提示词，输出可直接复制的改写版本 |
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计指定时间段内的技能使用情况 |
+| airay-style-rewrite | 个人语气风格迁移与去 AI 味改写 |
 
 ## 运行依赖
 
@@ -53,6 +54,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 - jq（用于 `airay-skill-backup` 与部分 `airay-lark-wiki-agent` 脚本）
 - beautifulsoup4（用于 `airay-insights-zh`）：`pip3 install beautifulsoup4`
 - lark-cli（用于 `airay-lark-wiki-agent`）：需单独安装并完成认证
+- `airay-style-rewrite` 使用 Python 3 脚本，无额外第三方依赖
 
 ## 许可证
 

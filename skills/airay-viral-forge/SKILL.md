@@ -18,6 +18,7 @@ description: Use when turning AI, technology, tools, products, GitHub projects, 
 磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
 ───────────────────────────────────────────────────────────────
 - 先做选题准入：通过 / 谨慎通过 / 阻断
+- 默认 5 阶段推进，每阶段先给结果，确认后再继续
 - 优先资源入口、工具发现、实操教程、清单推荐、经验避坑
 - 从用户场景出发，讲清工具能帮观众省什么、避开什么
 - 支持 40-50 秒成片，也支持 45 秒分段切片节奏
@@ -38,7 +39,9 @@ The core job is topic admission and script translation. First decide whether the
 ## Default Behavior
 
 - Reply in Chinese unless the user asks for another language.
-- Default output is script-oriented: admission judgment, viral type, strongest angle, titles, 3-second opening, 40-50 second script, action path, save/share reason, and connection hook.
+- Default output is checkpoint-oriented, not one-shot. Run only the current checkpoint, report its result, and wait for the user's confirmation or revision request before continuing.
+- Use one-shot full script output only when the user explicitly says "一次性输出", "直接成片", "不用等我确认", "完整脚本", or similar.
+- First decide whether the material is worth doing. Do not discuss how to write the script before judging viral potential and topic admission.
 - Do not generate a script when the material is weak, missing a required entry point, or cannot be turned into a concrete action. Explain why and stop.
 - For tool, product, project, or resource material without a URL, search for the official or GitHub entry first when tools allow. If only uncertain candidates appear, ask the user to confirm.
 - Prefer resource entry, tool discovery, tool tutorial, checklist, method steps, and incident lesson content.
@@ -98,95 +101,112 @@ If the input is only a broad topic, expand cautiously from generally known conce
 
 ## Workflow
 
-Follow this sequence:
+Follow this sequence as an interactive checkpoint workflow:
 
-1. 素材识别。
+1. 素材识别与爆款潜力初判。
    - Identify whether the input is a tool, resource, tutorial, checklist, method, incident lesson, experience post, opinion, framework, trend, or abstract concept.
    - Name the likely audience and what they can take away.
+   - Judge viral potential as 高, 中, or 低 before discussing script direction.
+   - Use the Viral Potential Rules in this order: user benefit, viewer pain, action path, and surprise value.
+   - Checkpoint output: 原始类型, 目标用户, 爆款潜力, 传播底座, 最大问题, 初步建议. Then wait for confirmation or edits.
 
-2. 补全入口。
+2. 入口确认与选题准入。
    - If a tool, product, project, or resource is named without a URL, search for the official/GitHub entry when tools allow.
    - If the entry is missing or ambiguous, stop and ask for confirmation instead of writing a script.
-
-3. 选题准入。
    - Mark as 通过, 谨慎通过, or 阻断.
-   - 通过: tool/resource/tutorial/checklist/method/incident material with a clear scene and action path.
-   - 谨慎通过: opinion/framework/trend material that can be converted into steps, checklist, example, or incident lesson.
-   - 阻断: abstract material with no entry, scene, action path, save/share reason, or credible source.
+   - If 阻断, explain the missing source, scene, action path, save/share reason, or credible entry, then stop.
+   - Checkpoint output: 入口状态, 准入结果, 判断理由, 风险/缺口. Then wait for confirmation or edits.
 
-4. 爆款类型归类。
+3. 爆款类型与传播角度。
    - Choose one primary type: 资源入口型, 工具发现型, 工具教程型, 清单推荐型, 方法步骤型, 经验避坑型, or 观点转译型.
    - If several apply, choose the type with the strongest save/share reason.
-
-5. 转译策略。
    - Turn the material into one useful thing, one clear scene, and a path within three steps.
-   - Knowledge-curse checks happen here only as a support: explain jargon, reduce concept density, and make the action path obvious.
-   - For tool and resource scripts, convert features into benefits: what the tool supports -> what the viewer saves, avoids, controls, or completes faster.
-   - Compress 1-3 pain points into a 5-second spoken block when possible. Prefer "pain-point triplet + emotional conclusion", such as "图标低一点，按钮挤一点，卡片廉价一点。这些细节，用嘴说不准。"
-   - Find one memorable image for abstract capabilities, such as "指哪打哪", "精确制导", or "瞄准镜". Use only one primary image per script so it does not feel overworked.
-   - Add a non-misleading boundary for tools that can be misunderstood: say what it is not, or what it should not be used for.
-   - Check the IP memory point: after watching, will viewers remember only the tool, or also the creator's judgment, taste, and use-case framing?
+   - Convert features into benefits: what the viewer saves, avoids, controls, completes faster, or explains more easily.
+   - Compress 1-3 pain points into a 5-second spoken block when possible.
+   - Find one memorable image for abstract capabilities, such as "指哪打哪", "精确制导", or "瞄准镜". Use only one primary image per script.
+   - Checkpoint output: 爆款类型, 最强传播角度, 典型场景, 用户收益, 痛点压缩, 记忆点. Then wait for confirmation or edits.
 
-6. 生成成片。
-   - Write titles, 3-second opening, 40-50 second script, action path, save/share reason, and connection hook.
-   - Keep the script practical and concrete. Do not expand into a lecture.
-   - If 45-second slice mode is requested, write the script in 5-second slices and keep each slice to one job.
+4. 脚本结构与钩子设计。
+   - Draft titles, 3-second opening, action path, save/share reason, natural connection hook, soft CTA, and non-misleading boundary.
+   - For 45-second slice mode, draft the 0-45 second segment structure before writing the final script.
+   - Checkpoint output: 标题方向, 3 秒开头, 三步行动路径, 收藏/转发理由, 自然连接钩子, 轻 CTA, 误导边界. Then wait for confirmation or edits.
 
-7. 去 AI 味润色。
+5. 成片生成与去 AI 味润色。
+   - Write the 40-50 second script, or the 45-second slice script when requested.
    - Run Final Human Polish before output.
    - Remove template phrases, rigid symmetry, slogan endings, and over-organized transitions.
+   - Final output: polished script and the minimum supporting fields needed for publishing.
 
 ## Output Format
 
-Use this format unless the user asks for another one:
+Default to checkpoint output. Do not output later checkpoints before the user confirms the current one.
+
+Checkpoint 1:
 
 ```text
-选题准入判断：
+阶段 1/5：素材识别与爆款潜力初判
 - 原始类型：
-- 爆款类型：
-- 是否建议继续：
+- 目标用户：
+- 爆款潜力：高 / 中 / 低
+- 传播底座：
+- 最大问题：
+- 初步建议：继续 / 谨慎继续 / 阻断
+
+请确认：这个素材值不值得继续做？要不要调整方向？
+```
+
+Checkpoint 2:
+
+```text
+阶段 2/5：入口确认与选题准入
+- 入口状态：
+- 准入结果：
 - 判断理由：
-- 缺口或风险：
+- 风险/缺口：
 
-最强传播角度：
--
+请确认：是否通过准入？缺口要不要先补？
+```
 
-用户收益：
--
+Checkpoint 3:
 
-标题 3 个：
-1.
-2.
-3.
+```text
+阶段 3/5：爆款类型与传播角度
+- 爆款类型：
+- 最强传播角度：
+- 典型场景：
+- 用户收益：
+- 痛点压缩：
+- 记忆点：
 
-3 秒开头：
+请确认：这个角度够不够尖？要不要换一个方向？
+```
 
-40-50 秒脚本：
+Checkpoint 4:
 
-三步以内行动路径：
-1.
-2.
-3.
+```text
+阶段 4/5：脚本结构与钩子设计
+- 标题方向：
+- 3 秒开头：
+- 三步以内行动路径：
+- 收藏/转发理由：
+- 自然连接钩子：
+- 轻 CTA：
+- 误导边界：
 
-收藏/转发理由：
--
+请确认：标题、开头和钩子是否要调整？
+```
 
-自然连接钩子：
--
+Checkpoint 5:
 
-轻 CTA：
--
-
-误导边界：
--
-
-IP 记忆点：
--
+```text
+阶段 5/5：成片生成与去 AI 味润色
+- 40-50 秒脚本：
+- 发布前检查：
 ```
 
 If admission is 阻断, stop after explaining why and what information or angle is needed. Do not output a script.
 
-When the user asks for 45 seconds, short-video rhythm, slice timing, or every segment under 5 seconds, use this optional script block instead of the default `40-50 秒脚本` block:
+When the user asks for 45 seconds, short-video rhythm, slice timing, or every segment under 5 seconds, use this optional script block in checkpoint 5:
 
 ```text
 45 秒切片脚本：
@@ -205,7 +225,7 @@ When the user asks for 45 seconds, short-video rhythm, slice timing, or every se
 Use these modes when the user's request matches them:
 
 - 准入判断模式：when the user asks whether a material is suitable. Return 通过, 谨慎通过, or 阻断, with a short reason and recommended next step.
-- 成片生成模式：default mode for qualified material. Produce a 40-50 second script using the output format.
+- 成片生成模式：default mode for qualified material, but still follow the 5 checkpoint workflow. Produce the final 40-50 second script only after the user confirms checkpoints 1-4, unless the user explicitly asks for one-shot output.
 - 脚本质检模式：when the user pastes a script and asks to check, optimize, make it spoken, or diagnose knowledge curse. Identify confusing expert assumptions, stiff wording, weak hooks, missing emotional value, weak interaction points, missing service feeling, hard lead-generation wording, and lack of a natural connection entry. Then rewrite it.
 - 多平台改写模式：when the user asks for Douyin, 视频号, 小红书, 即刻, or 公众号 versions. Rewrite title, opening, rhythm, emotional intensity, and interaction hook for each platform.
 - 45 秒切片模式：when the user asks for a 45-second video, short-video slice rhythm, or each segment under 5 seconds. Use the 0-45 second slice format, keep each slice focused on one job, and make user benefits visible before tool details.
@@ -220,6 +240,27 @@ Use these modes when the user's request matches them:
 - If search finds multiple plausible entries, stop and ask the user to confirm.
 - If search finds nothing, stop and ask for the missing link or source.
 - For risky repair instructions, include backup and caution. Do not encourage direct deletion or destructive operations.
+
+## Viral Potential Rules
+
+Judge viral potential before script planning. Use only these 4 signals, in this order:
+
+1. 用户收益：can viewers immediately understand what they save, avoid, complete faster, control better, or explain more easily?
+2. 用户痛点：is there a concrete, common scene that makes viewers feel "this is about me" within 3 seconds?
+3. 行动路径：can viewers save, try, avoid, fix, or follow it after watching?
+4. 惊喜感：does it create an "原来还能这样" feeling?
+
+- 高：strongly hits at least 3 of the 4 signals, especially user benefit.
+- 中：hits 2 signals, or can be reshaped to make user benefit and action path clear.
+- 低：hits 0-1 signal, stays abstract, lacks a clear user scene, or cannot produce a concrete benefit.
+- Hard stop still belongs to topic admission: no credible source, no entry for a named tool/resource, no action path, or exaggerated claims.
+
+Use these questions:
+
+- 观众能不能立刻知道自己会得到什么好处？
+- 观众 3 秒内知道这和自己有什么关系吗？
+- 它给了观众一个可以收藏、转发、尝试、避坑或回复的东西吗？
+- 有没有 "原来还能这样" 的惊喜感？
 
 ## Viral Content Types
 
