@@ -5,9 +5,11 @@ from pathlib import Path
 
 STAGE_FILES = [
     "01-source.md",
-    "02-humanized.md",
-    "03-airay-style.md",
-    "04-final.md",
+    "02-source-lock.md",
+    "03-ip-voice.md",
+    "04-humanized.md",
+    "05-calibrated.md",
+    "06-final.md",
 ]
 
 
