@@ -92,7 +92,7 @@ Bad questions:
 
 ```
 Wrong: Ask 5 at once
-"Goal? Audience? Platform? Style? What to emphasize?"
+"Goal? Audience? Platform? Content type? What to emphasize?"
 
 Correct: Multiple rounds
 Round 1: What's the goal?
@@ -143,14 +143,14 @@ Answer thinking       → "What's the answer/solution?"
 
 ```
 Suitable scenarios:
-✅ Clear options (platform, style, goal, structure)
+✅ Clear options (platform, content type, goal, structure)
 ✅ Need quick classification
 ✅ Easy for users to choose
 ✅ No detailed explanation needed
 
 Example:
 "What's the target platform? A. WeChat OA B. Xiaohongshu C. Weibo"
-"What's the article style? A. Professional B. Humorous C. Story-based"
+"What's the content type? A. Experience review B. Method breakdown C. Case story"
 ```
 
 ### When to Use Open Questions (Direct Dialogue)?
@@ -230,7 +230,7 @@ User: "todo is an underrated command"
 
 ```
 "Article structure? A. Problem-Analysis B. What-Why-How"
-"Style preference? A. Professional B. Humorous C. Story-based"
+"Content type? A. Experience review B. Method breakdown C. Case story"
 ```
 
 **Purpose: Confirm generation method**
@@ -579,7 +579,7 @@ Is this okay?"
 
 - [ ] **Interactive Design** - Want readers to do what?
 - [ ] **Call to Action** - Any specific action guidance?
-- [ ] **Style Preference** - What style?
+- [ ] **Content Type** - What type?
 
 ---
 
@@ -611,164 +611,126 @@ If user doesn't want to provide:
 
 ---
 
-## Iterative Optimization Flow
+## Content Completion Flow
 
-### Why Need Iterative Optimization?
+### Why Need Content Completion?
 
-**First draft often needs one more pass to become natural, specific, and easy to read.**
+**First draft often needs one more pass to make sure required content is complete.**
 
 ```
 After first draft generated:
-- Information may not be fully integrated
-- Cases may not be vivid enough
-- Emotions may not be full enough
-- Uniqueness may not be突出
+- Some source material may not be integrated
+- Cases may lack concrete details
+- Emotions may lack a clear turning point
+- Unique viewpoints may not be visible
 
-Need: Reflect → Optimize → Regenerate
+Need: Check → Ask → Integrate
 ```
 
 ---
 
-### Timing of Iterative Optimization
+### Timing of Content Completion
 
-**After first draft generated, proactively ask:**
+**After first draft generated, proactively ask only about missing content:**
 
 ```
-"Content generated. Before finalizing, I want to confirm a few questions:
+"Content generated. Before finalizing, I need to confirm:
 
-1. Are cases vivid? Need to add details?
-2. Is emotional resonance there? Need to strengthen?
-3. Are unique viewpoints突出? Need to reinforce?
-4. Anything else that needs optimization?"
+1. Is the case specific enough, or should we add time, scene, action, and result?
+2. Is the emotional turning point clear?
+3. Is the unique viewpoint visible?
+4. Is any original material missing?"
 ```
 
 ---
 
-### Directions for Iterative Optimization
+### Content Completion Directions
 
-#### 1. Cases Not Vivid Enough
+#### 1. Case Details Missing
 
 ```
-"The case part feels it could be more vivid.
-Can you add some details?
+"The case needs more concrete detail.
+Can you add:
 - Specific dialogue?
 - The scene at the time?
-- Your reaction?"
+- What action happened next?"
 ```
 
-#### 2. Emotions Not Full Enough
+#### 2. Emotional Turning Point Missing
 
 ```
-"The emotion part could be fuller.
-The moment that made you most [crushed/surprised],
-Can you tell me more?
-What was your thinking then?
-Any physical reaction?"
+"The emotional turning point is not clear yet.
+What was the moment that changed your reaction?
+What did you think or do then?"
 ```
 
-#### 3. Uniqueness Not Prominent
+#### 3. Unique Viewpoint Missing
 
 ```
-"The uniqueness part could be more突出.
-This tip/viewpoint,
-Is it your exclusive discovery?
-Or have others mentioned it?
-If exclusive, can you emphasize it more?"
+"The unique viewpoint is not visible enough.
+Which judgment, trick, or lesson is yours?
+Why is it different from common understanding?"
 ```
 
-#### 4. Structure Can Be Optimized
+#### 4. Structure Needs Adjustment
 
 ```
-"The article structure could be optimized.
-Want to adjust:
-- Put cases at the very beginning?
-- Make golden sentences into titles?
-- Make comparisons into tables?"
+"The structure needs to match the content better.
+Should the case appear earlier, or should the method steps come first?"
 ```
 
 ---
 
-### Example of Iterative Optimization
+### Example of Content Completion
 
 ```
-Skill: First draft generated. Before finalizing, I want to confirm:
-      Are cases vivid? Need to add details?
+Skill: First draft generated. Before finalizing, I need to confirm:
+      Is the case specific enough?
 
 User: Cases are a bit dry, not specific enough
 
-Skill: Can you add some details?
+Skill: Can you add details?
       Like:
       - What feature were you working on?
       - What specifically did Claude say?
-      - What was your reaction?
+      - What action happened next?
 
 User: It was when working on user login...
       Claude said "where did I get to"
-      I was speechless...
+      Then I realized the todo list was the missing thread.
 
-Skill: Good, I'll update the content, add these details.
-      (Regenerate)
-
-Skill: Update complete. Anything else to optimize?
-
-User: Title could be more attractive
-
-Skill: Current title is "Underrated Tool: Claude Code's todo Command"
-      What style title do you want?
-      A. Suspense
-      B. Data
-      C. Contrast
-      D. Golden sentence
-
-User: D - Golden sentence
-
-Skill: Good, I'll redesign the title...
-      (Update title)
-
-Skill: Final version complete.
-      Want to see if anything else needs optimization?
-
-User: No, this is fine
-
-Skill: Good, final version is ready.
+Skill: Got it. I will integrate these details into the case section.
 ```
 
 ---
 
-### Principles of Iterative Optimization
+### Principles of Content Completion
 
-1. **Proactively initiate** - After generation, proactively ask, don't wait for user to bring up
-2. **Specific suggestions** - Don't ask "is it good?", ask "what needs optimization?"
-3. **Provide options** - Give specific optimization directions to choose from
-4. **Quick iterations** - Small steps, one optimization at a time
-5. **Confirm before ending** - User confirms no more optimization needed before ending
+1. **Check required slots** - Case, emotion, viewpoint, original material
+2. **Ask concrete questions** - Time, scene, action, result
+3. **Only fill missing content** - Do not shift into expression processing
+4. **Confirm before ending** - User confirms content is complete before ending
 
 ---
 
-### Complete Iterative Optimization Flow
+### Complete Content Completion Flow
 
 ```
 First draft generated
     ↓
-Proactively reflect: What could be better?
+Check required content slots
     ↓
-User feedback: Cases are a bit dry
+User feedback: Case lacks detail
     ↓
-Specific follow-up: What details to add?
+Specific follow-up: What detail to add?
     ↓
-Regenerate: Integrate new information
+Integrate new information
     ↓
-Reflect again: Any more optimization?
+Check required content slots again
     ↓
-User feedback: Title not attractive enough
+Final confirmation: Is content complete?
     ↓
-Provide options: Suspense/Data/Contrast/Golden sentence?
-    ↓
-Regenerate: Update title
-    ↓
-Final confirmation: Anything else to optimize?
-    ↓
-User confirms: It's good
+User confirms
     ↓
 Final version
 ```
@@ -788,7 +750,7 @@ Final version
 9. **Handle search failures** - Seek alternatives, don't give up on external validation
 10. **Pursue uniqueness** - Mine tips, pits, viewpoints others don't have
 11. **Strong content goal** - Need 7-10 rounds of dialogue, pursue quality social media content
-12. **Iterative optimization** - After first draft, proactively reflect and optimize, don't settle for "can generate"
+12. **Content completion** - After first draft, check required content slots, don't settle for "can generate"
 
 ---
 
@@ -802,7 +764,7 @@ Final version
 | 3-4 rounds | Core viewpoints, value analysis | Clear structure |
 | 5-6 rounds | Real cases, emotional resonance | Fleshed out |
 | 7-8 rounds | Unique viewpoints, external validation | Persuasive |
-| 9-10 rounds | Draft, naturalize, confirm | Ready to publish |
+| 9-10 rounds | Draft, content check, confirm | Ready to publish |
 
 ### Three Pillars That Cannot Be Skipped
 
@@ -810,6 +772,6 @@ Final version
 2. **Emotional Resonance** - "How did you feel then? Physical reaction?"
 3. **Unique Viewpoints** - "Tips others haven't found? Counter-intuitive understanding?"
 
-### Iterative Optimization Is Key to Final Quality
+### Content Completion Is Key to Final Quality
 
-First draft → Naturalize and improve layout → Final version
+First draft → Check required content slots → Final version

@@ -272,8 +272,8 @@ options:
     description: Used innovative technical means
   - label: Novel model
     description: Adopted novel business model
-  - label: Thinking style
-    description: Applied different thinking style
+  - label: Thinking mode
+    description: Applied different thinking mode
 multiSelect: true
 ```
 
@@ -558,22 +558,22 @@ multiSelect: true
 
 ---
 
-## Style Preference Questions
+## Content Type Questions
 
-All frameworks end by asking about style preferences.
+All frameworks end by confirming content type and supplementary materials.
 
 ```yaml
-question: What's the overall style you want for the post?
-header: Style Preference
+question: What's the content type you want for the post?
+header: Content Type
 options:
-  - label: Professional and rigorous
-    description: Data support, tight logic, professional terminology
-  - label: Lighthearted and humorous
-    description: Lively language, humorous, accessible
-  - label: Story-based
+  - label: Experience review
+    description: Review what happened, what changed, and what was learned
+  - label: Method breakdown
+    description: Explain steps, decisions, and practical details
+  - label: Case story
     description: Use storytelling, vivid plot
   - label: Practical content
-    description: Direct methods, list-style, actionable
+    description: Direct methods, list format, actionable
 multiSelect: false
 ```
 
@@ -598,4 +598,4 @@ multiSelect: false
 
 - **Stage 1**: Before framework selection (goal, audience, platform)
 - **Stage 2**: After framework selection (framework-specific questions)
-- **Stage 3**: Before content generation (style preference, supplementary information)
+- **Stage 3**: Before content generation (content type, supplementary information)

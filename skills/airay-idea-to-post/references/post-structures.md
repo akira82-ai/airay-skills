@@ -290,7 +290,7 @@ Quality over quantity.
 I believe remote work is the future trend.
 Reason: Lower costs, higher efficiency, larger talent pool.
 Suggestion: Companies should embrace, not resist.
-#remoteWork #workStyle
+#remoteWork #workMethod
 
 ---
 
@@ -441,27 +441,27 @@ Summarize points, invite discussion
 
 ---
 
-## Cross-Platform Adaptation Strategy
+## Platform Output Format Guide
 
-### Master Draft First, Then Adapt
+### Master Draft First, Then Choose Format
 
-**策略：先完成自然可读的母稿，再按平台特点适配输出。**
+**策略：先完成内容完整的母稿，再按目标平台选择输出格式。**
 
-母稿是完整版的 Markdown 文章，包含所有论点、案例、数据。适配时不是重写，而是：
+母稿是完整版的 Markdown 文章，包含所有论点、案例、数据。平台格式只决定保留哪些内容层级：
 
 ```
 母稿（完整 Markdown）
     ↓
 [公众号] 保留完整版，微调排版和标题
     ↓
-[小红书] 精简提取 + emoji + 步骤清单化
+[小红书] 精简提取 + 步骤清单化
     ↓
 [X/Twitter] 拆分为 Thread，每条 280 字符
     ↓
-[LinkedIn] 调整为专业语气 + 个人经历角度
+[LinkedIn] 保留个人经历角度
 ```
 
-### Adaptation Principles
+### Platform Format Principles
 
 | Original Content | WeChat OA | Xiaohongshu | X/Twitter | LinkedIn |
 |-----------------|-----------|-------------|-----------|----------|
@@ -607,7 +607,7 @@ My writing process went from:
 To:
 - Brainstorm with AI: 15 min
 - Generate draft: 10 min
-- Polish: 5 min
+- Final check: 5 min
 
 ---
 

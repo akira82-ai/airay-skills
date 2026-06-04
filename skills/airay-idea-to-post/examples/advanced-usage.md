@@ -1,6 +1,6 @@
 # Advanced Usage Examples
 
-This document demonstrates advanced usage scenarios of the `idea-to-post` skill, including information search integration, framework combination usage, multi-round dialogue optimization, etc.
+This document demonstrates advanced usage scenarios of the `idea-to-post` skill, including information search integration, framework combination usage, and multi-round content completion.
 
 ---
 
@@ -510,7 +510,7 @@ Question "taken for granted", to find the real solution.
 
 ---
 
-## Example 4: Multi-Round Dialogue Optimization
+## Example 4: Multi-Round Content Completion
 
 ### First Round Dialogue
 
@@ -533,9 +533,9 @@ Question "taken for granted", to find the real solution.
 
 ### Third Round Dialogue
 
-**User:** Style too serious, can you make it more lighthearted?
+**User:** The case is not specific enough. Can we add more details?
 
-**Skill:** Adjusting to lighthearted humorous style...
+**Skill:** I will ask for missing case details, then integrate them into the draft.
 
 ---
 
@@ -555,27 +555,27 @@ Question "taken for granted", to find the real solution.
 - Can proactively specify search direction
 - Search results can request presentation format (data/cases/trends)
 
-### 3. Multi-Platform Adaptation
+### 3. Platform Format Selection
 
-- Generate once, multiple versions
-- Clearly specify main platform, skill will optimize that platform version
+- Generate one complete master draft
+- Clearly specify target platform format
 - Can request specific platform format
 
-### 4. Iterative Optimization
+### 4. Content Completion
 
-- Continue adjusting based on generation results
-- Propose specific modification requests
-- Can request "more X" (more professional/more humorous/more concise)
+- Continue adding missing content based on draft review
+- Propose specific content completion requests
+- Can request more concrete cases, data, emotions, or original material
 
 ---
 
 ## Usage Suggestions
 
-1. **Provide more context** - Target audience, publishing platform, style preferences
+1. **Provide more context** - Target audience, publishing platform, content type
 
 2. **Utilize search function** - Technical/professional content can be greatly enriched
 
-3. **Multi-round dialogue optimization** - Don't expect perfection in one go, gradually adjust
+3. **Multi-round content completion** - Don't expect all material in one go, gradually fill missing slots
 
 4. **Specify framework** - If you know what framework to use, can directly specify
 

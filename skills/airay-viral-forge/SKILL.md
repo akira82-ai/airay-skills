@@ -1,7 +1,7 @@
 ---
 name: airay-viral-forge
 version: 2.0.0
-description: Use when turning AI, technology, tools, products, GitHub projects, resources, tutorials, notes, URLs, experience posts, or expert writing into viral short-video scripts. Use for topic admission, resource/tool discovery, practical tutorials, checklists, incident lessons, connection hooks, anti-AI-flavor polishing, and platform rewrites.
+description: Use when turning AI, technology, tools, products, GitHub projects, resources, tutorials, notes, URLs, experience posts, or expert writing into viral short-video scripts. Use for topic admission, resource/tool discovery, practical tutorials, checklists, incident lessons, connection hooks, and short-video script generation.
 ---
 
 # Viral Forge
@@ -23,9 +23,9 @@ description: Use when turning AI, technology, tools, products, GitHub projects, 
 - 从用户场景出发，讲清工具能帮观众省什么、避开什么
 - 支持 40-50 秒成片，也支持 45 秒分段切片节奏
 - 补全工具入口、三步行动路径、收藏转发理由、自然连接钩子和轻 CTA
-- 最终稿去 AI 味，可直接改发短视频、朋友圈、X、微博
+- 后续表达处理交给 airay-style-rewrite
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-05-28
+最后更新：2026-06-04
 
 技能已启动...
 ```
@@ -52,38 +52,21 @@ The core job is topic admission and script translation. First decide whether the
 - Use 45-second slice mode only when the user asks for "45 seconds", "short-video rhythm", "every slice under 5 seconds", "sliced script", or similar platform-ready pacing.
 - Prefer natural connection hooks that invite users to share specific scenarios, pain points, workflows, or confusions.
 - Do not use hard lead-generation phrases such as "私信我", "加群", "领取资料", or "评论 1 发你" unless the user explicitly asks.
-- Keep the tone clear, concrete, and conversational.
+- Keep the script clear, concrete, and conversational.
 - Avoid professional jargon unless it is explained in plain language.
 - Do not invent claims that are not supported by the input source.
 - For URL input, read the page if the current environment supports it. If not, ask the user to paste the article text or a summary.
 
-## Spoken Chinese Style
+## Script Readability Rules
 
 Apply these rules to final scripts and titles:
 
 - Say the conclusion directly. Keep setup short.
-- Use natural particles such as "啊", "吧", "呀", "哈", "呢", and "呐" when they sound natural.
-- Be firm in familiar domains: use words like "肯定" and "一定是".
-- Be cautious in unfamiliar domains: use phrases like "应该是" and "需要验证".
-- When something is wrong, say "不对" or "这个问题" directly.
-- Use short sentences. Break lines where a speaker would pause.
-- Make the script sound like a person talking, not an article being read aloud.
-- Avoid neat parallel structure, slogan-like rhythm, and over-polished symmetry.
-
-## Forbidden Phrases
-
-Avoid these in final scripts and titles:
-
-- "我觉得", "可能", "大概", "或许"
-- "事实上", "本质上", "某种程度上"
-- "值得注意的是", "换句话说"
-- "不是……而是……"
-- "首先", "其次", "最后", "综上所述", "总而言之"
-- Opening with "随着" or "近年来"
-- "不仅...而且..."
-- "此外", "另外", "与此同时", "不仅如此"
-- Exclamation marks
-- Dashes used as dramatic punctuation
+- Keep each spoken block short enough for video delivery.
+- Explain professional jargon in plain language when the audience may not know it.
+- Keep the script concrete: tool name, URL, scene, action, result, or limitation.
+- Use line breaks to support reading aloud.
+- Do not add unsupported claims, invented numbers, or exaggerated outcomes.
 
 ## Accepted Inputs
 
@@ -131,11 +114,10 @@ Follow this sequence as an interactive checkpoint workflow:
    - For 45-second slice mode, draft the 0-45 second segment structure before writing the final script.
    - Checkpoint output: 标题方向, 3 秒开头, 三步行动路径, 收藏/转发理由, 自然连接钩子, 轻 CTA, 误导边界. Then wait for confirmation or edits.
 
-5. 成片生成与去 AI 味润色。
+5. 成片生成。
    - Write the 40-50 second script, or the 45-second slice script when requested.
-   - Run Final Human Polish before output.
-   - Remove template phrases, rigid symmetry, slogan endings, and over-organized transitions.
-   - Final output: polished script and the minimum supporting fields needed for publishing.
+   - Keep the script aligned with the confirmed topic angle, action path, save/share reason, and connection hook.
+   - Final output: script and the minimum supporting fields needed for publishing.
 
 ## Output Format
 
@@ -199,7 +181,7 @@ Checkpoint 4:
 Checkpoint 5:
 
 ```text
-阶段 5/5：成片生成与去 AI 味润色
+阶段 5/5：成片生成
 - 40-50 秒脚本：
 - 发布前检查：
 ```
@@ -226,8 +208,7 @@ Use these modes when the user's request matches them:
 
 - 准入判断模式：when the user asks whether a material is suitable. Return 通过, 谨慎通过, or 阻断, with a short reason and recommended next step.
 - 成片生成模式：default mode for qualified material, but still follow the 5 checkpoint workflow. Produce the final 40-50 second script only after the user confirms checkpoints 1-4, unless the user explicitly asks for one-shot output.
-- 脚本质检模式：when the user pastes a script and asks to check, optimize, make it spoken, or diagnose knowledge curse. Identify confusing expert assumptions, stiff wording, weak hooks, missing emotional value, weak interaction points, missing service feeling, hard lead-generation wording, and lack of a natural connection entry. Then rewrite it.
-- 多平台改写模式：when the user asks for Douyin, 视频号, 小红书, 即刻, or 公众号 versions. Rewrite title, opening, rhythm, emotional intensity, and interaction hook for each platform.
+- 脚本诊断模式：when the user pastes a script and asks whether it can become a qualified short video. Identify topic admission issues, weak hooks, missing action path, unclear user benefit, weak save/share reason, and missing connection entry.
 - 45 秒切片模式：when the user asks for a 45-second video, short-video slice rhythm, or each segment under 5 seconds. Use the 0-45 second slice format, keep each slice focused on one job, and make user benefits visible before tool details.
 
 ## Topic Admission Rules
@@ -331,26 +312,26 @@ Each script should feel like a natural 40-50 second share from someone who just 
 
 Allow pauses, short lines, slight repetition, and a little excitement. Do not force every script into the same rhythm.
 
-## Final Human Polish
+## Publication Check
 
-Run this before any final script, X post, Weibo post, friend-circle post, or platform rewrite:
+Run this before any final script:
 
-- Make the draft sound like a real person sharing a useful discovery, not an AI summary.
-- Prefer short sentences, natural pauses, and uneven rhythm.
-- Keep concrete details: tool name, URL, file type, error code, scene, number, or action.
-- Remove rigid parallel structure, slogan endings, and over-complete explanations.
-- Explain professional terms in plain language before keeping the term.
-- End with a concrete reminder, action, or connection hook, not abstract elevation.
-- Delete or rewrite template expressions: "事实上", "本质上", "某种程度上", "值得注意的是", "换句话说", "首先", "其次", "最后", "综上所述", "总而言之", "随着", "近年来", "不仅……而且……", "不是……而是……", "此外", "另外", "与此同时", "不仅如此".
-- Replace AI-flavored contrast patterns with natural speech. For example, avoid "不是工具，而是工作流"; say "它厉害的地方不在工具本身。是你用完之后，真的少走一步弯路。"
-- Replace template feature lists such as "第一个特点 / 第二个特点 / 第三个特点" with natural short-video speech when possible: "这里最舒服的是", "你不用再", "它帮你省掉的是", "以前你只能...现在你可以...".
-- Make benefits sound concrete, not corporate. Prefer "少写一大段解释", "别把整块都改坏", "少来回拉扯十几轮" over "提升效率" or "优化体验".
+- The topic admission result is clear.
+- The script matches the confirmed viral type and angle.
+- The opening names a concrete scene, pain point, or useful discovery.
+- The tool, resource, method, checklist, or incident lesson is specific.
+- The user benefit is visible before or near the tool details.
+- The action path stays within three steps when applicable.
+- The save/share reason is concrete.
+- The connection hook asks about a real user situation.
+- Claims are supported by the input source or clearly marked as interpretation.
+- The script length fits the requested format.
 
 ## Content Values
 
 Use these values as judgment rules:
 
-- 活人感，是 AI 时代最贵的奢侈品。
+- 具体场景，是短视频内容的第一入口。
 - 真诚，是永远的必杀技。
 - 价值观比流量更重要。
 - 选题决定内容 80% 的生死。
@@ -384,8 +365,8 @@ A good output should pass these checks:
 - The viewer can understand it without AI, finance, law, medicine, or industry background.
 - The title creates curiosity without misleading the viewer.
 - The explanation connects the professional point to ordinary life or work.
-- Any final script passes Final Human Polish and avoids forbidden template expressions.
-- Any final script can be reused as short-video口播, friend-circle text, X post, Weibo post, or Xiaohongshu copy with minor edits.
+- Any final script passes Publication Check.
+- Any final script can be used as short-video口播 with minor timing edits.
 
 ## Examples
 

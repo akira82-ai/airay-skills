@@ -60,13 +60,13 @@ C. Weibo/Twitter
 D. Juejin/Zhihu
 ```
 
-#### 4. Style Preference
+#### 4. Content Type
 
 ```
-"What's the article style?"
-A. Professional and rigorous
-B. Lighthearted and humorous
-C. Story-based
+"What's the content type?"
+A. Experience review
+B. Method breakdown
+C. Case story
 D. Practical content
 ```
 
@@ -276,7 +276,7 @@ Purpose: Confirm generation method
 
 Example questions:
 - Article structure? (A/B/C)
-- Style preference? (A/B/C/D)
+- Content type? (A/B/C/D)
 
 Why use multiple choice?
 - Need standardization

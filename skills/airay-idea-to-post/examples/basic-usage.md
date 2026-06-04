@@ -198,7 +198,7 @@ If you're considering going fully remote, ask yourself three questions first:
 
 *How is your company's fully remote experience going? Welcome to share.*
 
-#remoteWork #teamManagement #workStyle
+#remoteWork #teamManagement #workMethod
 ```
 
 ---
@@ -508,7 +508,7 @@ Round 2: Core elements (based on framework)
     ↓
 Round 3: Detail supplement (cases, data, turning points)
     ↓
-Round 4: Polish design (emotional points, call to action)
+Round 4: Content design (emotional points, call to action)
     ↓
 Round 5: Confirm and revise
 ```
@@ -522,7 +522,7 @@ Round 5: Confirm and revise
 | Supporting material | ✓ Sufficient |
 | Emotional value | ✓ Has resonance points |
 | Call to action | ✓ Specific and clear |
-| Platform adaptation | ✓ Fits characteristics |
+| Platform format | ✓ Fits target format |
 | External validation | ✓ Has search materials |
 
 ---
