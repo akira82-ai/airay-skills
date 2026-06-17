@@ -1,8 +1,8 @@
 ---
 name: airay-agent-review
-version: 1.1.0
+version: 1.2.0
 description: |
-  每日复盘。根据 Claude Code / Codex 本地对话记录，生成结构化的每日工作复盘报告。支持当天、昨天、近 3 天、近 7 天。
+  每日复盘。根据 Claude Code / Codex / ZCode 本地对话记录，生成结构化的每日工作复盘报告。支持当天、昨天、近 3 天、近 7 天。
 
   当用户说"复盘"、"agent review"、"/agent-review"、"/复盘"时触发。
 ---
@@ -16,7 +16,7 @@ description: |
 ```
 ═══════════════════════════════════════════════════════════════
 ▌ 每日复盘 ▐
-根据 Claude Code / Codex 本地对话记录，生成结构化的每日工作复盘报告
+根据 Claude Code / Codex / ZCode 本地对话记录，生成结构化的每日工作复盘报告
 ═══════════════════════════════════════════════════════════════
 磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
 ───────────────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ description: |
 - 生成结构化报告：概要 / 工作量统计 / 成功与进展 / 困难与卡点 / AI 自评
 - 报告自动保存至当前工作目录
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-05-18
+最后更新：2026-06-17
 ```
 
 ## 参数处理
@@ -42,15 +42,17 @@ description: |
 
 ### 第 1 步：从本地记录获取消息列表
 
-用 Bash 执行 Python 脚本，读取 Claude Code 与 Codex 本地记录，按时间戳筛选指定日期范围内的所有记录。
+用 Bash 执行 Python 脚本，读取 Claude Code、Codex 与 ZCode 本地记录，按时间戳筛选指定日期范围内的所有记录。
 Claude Code 数据来自 `~/.claude/history.jsonl` 与 `~/.claude/projects/*/*.jsonl`。
 Codex 数据来自 `~/.codex/sessions/**/*.jsonl` 与 `~/.codex/archived_sessions/*.jsonl`。
+ZCode 数据来自 `~/.zcode/cli/rollout/model-io-sess_*.jsonl`，并使用 `~/.zcode/cli/db/db.sqlite` 补充 session 标题与工作目录。
+`~/.zcode/v2/logs/*.log` 不纳入复盘正文。
 统计精确的消息条数。
 如果选择了多天（近 3 天、近 7 天），按天分别统计。
 
 ### 第 2 步：获取涉及的 session 列表
 
-从第 1 步中提取不重复的 sessionId、source（claude/codex）和对应的项目路径。
+从第 1 步中提取不重复的 sessionId、source（claude/codex/zcode）和对应的项目路径。
 
 ### 时间戳格式说明（重要）
 
@@ -85,7 +87,7 @@ python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms>
 **脚本返回的数据结构**：
 ```json
 {
-  "sessions": [{"source": "claude/codex", ...}],
+  "sessions": [{"source": "claude/codex/zcode", ...}],
   "total_messages": N,
   "tool_calls": {"Bash": 36, "Read": 2, "Write": 2, ...},
   "tool_errors": {...},
@@ -99,8 +101,10 @@ python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms>
 - 时间戳格式转换（int 毫秒 / ISO 8601 字符串统一处理）
 - Claude content 数组遍历（检查 tool_use 和 server_tool_use）
 - Codex response_item 解析（message / function_call / custom_tool_call / tool output）
+- ZCode rollout 解析（按 turn 去重用户输入，读取 response.toolCalls）
+- ZCode session 索引补充（从 db.sqlite 读取工作目录）
 - Claude 路径编码（项目路径中的 / 替换为 -）
-- 错误统计（Claude 的 is_error 标记 / Codex 工具输出 exit_code）
+- 错误统计（Claude 的 is_error 标记 / Codex 工具输出 exit_code / ZCode 仅在存在明确错误标记时统计）
 
 ### 第 4 步：获取 Git 提交记录
 

@@ -4,6 +4,7 @@
 import argparse
 import json
 import datetime
+import sqlite3
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Any
@@ -192,6 +193,24 @@ def extract_codex_text(content) -> str:
     return '\n'.join(parts).strip()
 
 
+def extract_zcode_text(content) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, dict):
+        text = content.get('text')
+        if isinstance(text, str):
+            return text.strip()
+        return ''
+    if not isinstance(content, list):
+        return ''
+    parts = []
+    for item in content:
+        text = extract_zcode_text(item)
+        if text:
+            parts.append(text)
+    return '\n'.join(parts).strip()
+
+
 def collect_paths(value, paths: set):
     if isinstance(value, dict):
         for key, item in value.items():
@@ -221,6 +240,105 @@ def codex_output_is_error(output) -> bool:
         tail = text.split(marker, 1)[1].split()[0]
         return tail.lstrip('-').isdigit() and int(tail) != 0
     return False
+
+
+def load_zcode_session_index() -> Dict[str, Dict[str, str]]:
+    db_file = Path.home() / '.zcode' / 'cli' / 'db' / 'db.sqlite'
+    if not db_file.exists():
+        return {}
+
+    try:
+        conn = sqlite3.connect(db_file)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute('select id, title, directory from session').fetchall()
+        conn.close()
+    except sqlite3.Error:
+        return {}
+
+    return {
+        row['id']: {
+            'title': row['title'] or '',
+            'directory': row['directory'] or ''
+        }
+        for row in rows
+    }
+
+
+def zcode_tool_call_is_error(tool_call: Dict[str, Any]) -> bool:
+    if tool_call.get('isError') is True:
+        return True
+    output = tool_call.get('output')
+    if isinstance(output, dict):
+        if output.get('isError') is True:
+            return True
+        exit_code = output.get('exit_code')
+        if isinstance(exit_code, int):
+            return exit_code != 0
+    return False
+
+
+def analyze_zcode_session(
+    session_file: Path,
+    start_ms: int,
+    end_ms: int,
+    session_index: Dict[str, Dict[str, str]]
+) -> Dict[str, Any]:
+    session_id = session_file.stem
+    if session_id.startswith('model-io-'):
+        session_id = session_id[len('model-io-'):]
+
+    session_meta = session_index.get(session_id, {})
+    result = {
+        'sessionId': session_id,
+        'project_path': session_meta.get('directory', ''),
+        'message_count': 0,
+        'user_messages': [],
+        'tool_calls': defaultdict(int),
+        'tool_errors': defaultdict(int),
+        'files_touched': set()
+    }
+    seen_turns = set()
+
+    with open(session_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            try:
+                entry = json.loads(line.strip())
+            except json.JSONDecodeError:
+                continue
+
+            started_ms = to_ms(entry.get('startedAt'))
+            completed_ms = to_ms(entry.get('completedAt')) or started_ms
+            if completed_ms <= start_ms or started_ms >= end_ms:
+                continue
+
+            turn_id = entry.get('turnId')
+            request = entry.get('request') or {}
+            response = entry.get('response') or {}
+
+            if turn_id not in seen_turns:
+                current_user_message = ''
+                for message in request.get('messages') or []:
+                    if message.get('role') != 'user':
+                        continue
+                    text = extract_zcode_text(message.get('content'))
+                    if text:
+                        current_user_message = text
+                if current_user_message:
+                    result['user_messages'].append(current_user_message)
+                    result['message_count'] += 1
+                seen_turns.add(turn_id)
+
+            for tool_call in response.get('toolCalls') or []:
+                tool_name = tool_call.get('name', 'unknown')
+                result['tool_calls'][tool_name] += 1
+                collect_paths(tool_call.get('input', {}), result['files_touched'])
+                if zcode_tool_call_is_error(tool_call):
+                    result['tool_errors'][tool_call.get('id', 'unknown')] += 1
+
+    result['tool_calls'] = dict(result['tool_calls'])
+    result['tool_errors'] = dict(result['tool_errors'])
+    result['files_touched'] = sorted(result['files_touched'])
+    return result
 
 
 def analyze_codex_session(session_file: Path, start_ms: int, end_ms: int) -> Dict[str, Any]:
@@ -302,6 +420,20 @@ def get_codex_sessions(start_ms: int, end_ms: int) -> List[Dict[str, Any]]:
     return sessions
 
 
+def get_zcode_sessions(start_ms: int, end_ms: int) -> List[Dict[str, Any]]:
+    zcode_rollout_dir = Path.home() / '.zcode' / 'cli' / 'rollout'
+    if not zcode_rollout_dir.exists():
+        return []
+
+    session_index = load_zcode_session_index()
+    sessions = []
+    for session_file in sorted(zcode_rollout_dir.glob('model-io-sess_*.jsonl')):
+        session = analyze_zcode_session(session_file, start_ms, end_ms, session_index)
+        if session['message_count'] or session['tool_calls']:
+            sessions.append(session)
+    return sessions
+
+
 def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     """
     提取指定时间范围内的所有数据
@@ -318,6 +450,7 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     # 获取 session 列表
     sessions = get_history_sessions(history_file, start_ms, end_ms)
     codex_sessions = get_codex_sessions(start_ms, end_ms)
+    zcode_sessions = get_zcode_sessions(start_ms, end_ms)
 
     # 聚合所有数据
     all_data = {
@@ -382,6 +515,26 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
         if session['project_path']:
             all_data['projects'].add(session['project_path'])
 
+    for session in zcode_sessions:
+        all_data['sessions'].append({
+            'sessionId': session['sessionId'],
+            'project_path': session['project_path'],
+            'message_count': session['message_count'],
+            'tool_calls': session['tool_calls'],
+            'tool_errors': session['tool_errors'],
+            'files_touched': session['files_touched'],
+            'source': 'zcode'
+        })
+        all_data['total_messages'] += session['message_count']
+        all_data['user_messages'].extend(session['user_messages'])
+        for tool, count in session['tool_calls'].items():
+            all_data['tool_calls'][tool] += count
+        for tool, count in session['tool_errors'].items():
+            all_data['tool_errors'][tool] += count
+        all_data['files_touched'].update(session['files_touched'])
+        if session['project_path']:
+            all_data['projects'].add(session['project_path'])
+
     # 转换为可 JSON 序列化的格式
     all_data['tool_calls'] = dict(sorted(
         all_data['tool_calls'].items(),
@@ -397,7 +550,7 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
 
 def main():
     """命令行入口"""
-    parser = argparse.ArgumentParser(description='提取 Claude Code 对话记录数据')
+    parser = argparse.ArgumentParser(description='提取 Claude Code、Codex、ZCode 对话记录数据')
     parser.add_argument('--start_ms', type=int, required=True, help='开始时间戳（毫秒）')
     parser.add_argument('--end_ms', type=int, required=True, help='结束时间戳（毫秒）')
 
