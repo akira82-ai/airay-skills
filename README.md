@@ -4,8 +4,8 @@ AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
-- 技能数量：13
-- 最近更新：2026-06-03
+- 技能数量：14
+- 最近更新：2026-06-26
 
 ## 安装
 
@@ -31,6 +31,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 
 | 技能 | 说明 |
 |------|------|
+| airay-100-questions | 围绕技术与产品主题生成六章式 100 问问题清单 |
 | airay-agent-review | 基于本地对话与工具记录生成每日工作复盘 |
 | airay-chat-export | 导出 Claude Code 对话 session 到本地 JSON |
 | airay-file-organizer | 基于语义分析进行文件分类整理（Johnny Decimal） |
