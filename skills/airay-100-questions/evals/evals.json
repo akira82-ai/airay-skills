@@ -7,7 +7,7 @@
       "name": "topic-only-minimal-input",
       "description": "只给主题名时，先补资料而不是直接硬生成",
       "prompt": "围绕 Claude Code 生成 100 个问题。",
-      "expected_behavior": "先盘点缺失信息，主动索要参考链接、个人踩坑或目标受众，再决定是否进入搜索补充。",
+      "expected_behavior": "先盘点缺失信息，主动索要参考链接、个人踩坑、目标受众或读者当前卡点，再决定是否进入搜索补充。",
       "expected_output": "先出现资料补齐导向的追问或缺口说明，而不是直接输出 100 个问题。",
       "files": [],
       "assertions": [
@@ -23,8 +23,8 @@
       "name": "standard-input-with-materials",
       "description": "有主题、官方文档和踩坑经验时，能稳定进入六章建模",
       "prompt": "围绕 Loop Engineering 生成 100 个问题。目标读者是已经在用 AI 编程工具的工程师。参考资料有官方文档、两篇实战文章。我自己的坑是 loop 跑久了容易偏、回滚成本高、评估标准写不清。",
-      "expected_behavior": "先整合资料，再给出 6 章结构，确认后按章生成 100 问。",
-      "expected_output": "产出清晰的六章结构，第三章明显围绕真实踩坑，最终结果保持问题清单格式。",
+      "expected_behavior": "先整合资料，建立读者画像卡，再给出 6 章结构，确认后按章生成 100 问。",
+      "expected_output": "产出清晰的六章结构，第三章明显围绕真实踩坑；最终问题同时包含传播型、收藏型和认知型，并保持问题清单格式。",
       "files": [],
       "assertions": [
         {
@@ -44,8 +44,8 @@
       "name": "product-topic-release-notes",
       "description": "产品类主题要主动利用 changelog 和 release notes",
       "prompt": "围绕 Cursor 生成 100 个问题，直接给完整结果。受众是已经在团队里试用过 AI IDE 的技术负责人。我关心的是最近一年它到底新增了什么、哪些坑修过了、还有哪些旧用法可能过时。",
-      "expected_behavior": "识别为产品类主题，主动补当年 release notes、changelog、新功能、修复项和弃用项，再把这些信息转成第三章和第五章的问题。",
-      "expected_output": "最终问题清单中，能看到围绕新功能、修复项、迁移和过时路径的具体问题，而不是只写通用产品介绍。",
+      "expected_behavior": "识别为产品类主题，主动补当年 release notes、changelog、新功能、修复项和弃用项；搜索引擎只作为入口，真正的问题来源来自官方页和社区页。",
+      "expected_output": "最终问题清单中，能看到围绕新功能、修复项、迁移和过时路径的具体问题，并同时具备点击价值与保存价值，而不是只写通用产品介绍。",
       "files": [],
       "assertions": [
         {
