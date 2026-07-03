@@ -478,11 +478,13 @@ def add_heading(doc, level, text, chapter_label=None):
         p.paragraph_format.space_before = Pt(8)
 
 
-def add_paragraph(doc, text, text_color=None):
+def add_paragraph(doc, text, text_color=None, line_spacing=1.6,
+                  space_before_pt=0, space_after_pt=6):
     p = doc.add_paragraph()
     add_inline_runs(p, text, base_size=11, text_color=text_color)
-    p.paragraph_format.line_spacing = 1.6
-    p.paragraph_format.space_after = Pt(6)
+    p.paragraph_format.line_spacing = line_spacing
+    p.paragraph_format.space_before = Pt(space_before_pt)
+    p.paragraph_format.space_after = Pt(space_after_pt)
 
 
 def add_italic_subtitle(doc, text):
@@ -641,12 +643,14 @@ def add_table_block(doc, table_lines):
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
 
-def add_list_block(doc, items, ordered=False, text_color=None):
+def add_list_block(doc, items, ordered=False, text_color=None,
+                   line_spacing=1.5, space_before_pt=0, space_after_pt=3):
     for i, item in enumerate(items, 1):
         p = doc.add_paragraph()
         p.paragraph_format.left_indent = Cm(0.6)
-        p.paragraph_format.line_spacing = 1.5
-        p.paragraph_format.space_after = Pt(3)
+        p.paragraph_format.line_spacing = line_spacing
+        p.paragraph_format.space_before = Pt(space_before_pt)
+        p.paragraph_format.space_after = Pt(space_after_pt)
         prefix = f"{i}. " if ordered else "• "
         r = p.add_run(prefix)
         set_run_font(r, size_pt=11, color=C_ORANGE, bold=True)
@@ -665,7 +669,10 @@ def render_block(doc, block, image_resolver, chapter_label=None,
             add_paragraph(
                 doc,
                 block["text"],
-                text_color=C_ORANGE if block["text"].strip() == "参考资料：" else None
+                text_color=C_ORANGE if block["text"].strip() == "参考资料：" else None,
+                line_spacing=1.0 if block["text"].strip() == "参考资料：" else 1.6,
+                space_before_pt=0,
+                space_after_pt=0 if block["text"].strip() == "参考资料：" else 6
             )
     elif kind == "code":
         add_code_block(doc, block["lines"])
@@ -678,10 +685,16 @@ def render_block(doc, block, image_resolver, chapter_label=None,
         add_table_block(doc, block["rows"])
     elif kind == "ul":
         add_list_block(doc, block["items"], ordered=False,
-                       text_color=C_ORANGE if reference_mode else None)
+                       text_color=C_ORANGE if reference_mode else None,
+                       line_spacing=1.0 if reference_mode else 1.5,
+                       space_before_pt=0,
+                       space_after_pt=0 if reference_mode else 3)
     elif kind == "ol":
         add_list_block(doc, block["items"], ordered=True,
-                       text_color=C_ORANGE if reference_mode else None)
+                       text_color=C_ORANGE if reference_mode else None,
+                       line_spacing=1.0 if reference_mode else 1.5,
+                       space_before_pt=0,
+                       space_after_pt=0 if reference_mode else 3)
     elif kind == "hr":
         add_horizontal_line(doc)
 

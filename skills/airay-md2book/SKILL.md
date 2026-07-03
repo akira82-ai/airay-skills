@@ -101,6 +101,7 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 - 全文中文字体统一为宋体风格
 - 全文英文字体统一为 `Consolas`
 - 章节标题、问题标题、引用资料文字统一使用书内红色
+- `参考资料` 部分是硬规则：标题与条目统一 1 倍行距、段前段后均为 0
 
 ### 图片
 
