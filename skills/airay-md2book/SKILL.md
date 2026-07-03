@@ -81,6 +81,8 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 - `H1` 用于章节级目录
 - `H2` 用于主条目
 - `H3` 用于轻量子条目
+- 目录页排版已固化：在原字号基础上统一减 2、1.2 倍行距、段前段后均为 0
+- 全书页眉页脚强制留空：不得写任何文字、页码、换行或占位内容
 
 如果 `H1` 本身已经带有 `第一章`、`第二章`、`附录`、`后记`、`前言`、`序` 等前缀，而书籍模式又通过 `--chapter-labels` 提供了章标签，目录展示时应去掉标题里的重复前缀，避免出现：
 
@@ -135,6 +137,13 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch01.md --book \
   --author-page-file ./author-page.md \
   -o book.docx
 ```
+
+作者页排版已固化：
+
+- 在原字号基础上统一减 2
+- 1.2 倍行距
+- 段前段后均为 0
+- 全书页眉页脚强制留空：不得写任何文字、页码、换行或占位内容
 
 ## 依赖
 

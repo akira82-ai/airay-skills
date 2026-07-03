@@ -14,7 +14,7 @@ python3 md_to_docx.py article.md --images-dir ./images
 # 多文件合并成书（按文件名顺序）
 python3 md_to_docx.py ch01.md ch02.md ch03.md -o book.docx
 
-# 完整书模式（带封面 + 目录 + 页眉页脚）
+# 完整书模式（带封面 + 目录 + 作者页）
 python3 md_to_docx.py ch*.md --book \\
     --title "图解 Agent Skills" \\
     --subtitle "让 AI 记住你的工作方式" \\
@@ -819,27 +819,30 @@ def add_author_page(doc, text):
         if kind == "heading":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_before = Pt(0 if idx == 0 else 22)
-            p.paragraph_format.space_after = Pt(12)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.2
             r = p.add_run(block["text"])
-            set_run_font(r, size_pt=12.5, bold=True, color=C_CORAL,
+            set_run_font(r, size_pt=10.5, bold=True, color=C_CORAL,
                          font_cn=FONT_CN_HEAD)
         elif kind == "paragraph":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_after = Pt(8)
-            p.paragraph_format.line_spacing = 1.52
-            add_inline_runs(p, block["text"], base_size=11.6)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.2
+            add_inline_runs(p, block["text"], base_size=9.6)
             for run in p.runs:
                 run.bold = False
                 run.font.color.rgb = C_INK
         elif kind == "link":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_before = Pt(2)
-            p.paragraph_format.space_after = Pt(58)
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.2
             add_external_link(
-                p, block["text"], block["text"], size_pt=11.8,
+                p, block["text"], block["text"], size_pt=9.8,
                 color=(0x1A, 0x1A, 0x1A), font_cn=FONT_CN_HEAD,
                 font_en="Helvetica Neue"
             )
@@ -849,8 +852,10 @@ def add_toc(doc, toc_items):
     """toc_items: list of {level, label, title}"""
     p = doc.add_paragraph()
     r = p.add_run("目  录")
-    set_run_font(r, size_pt=20, bold=True, color=C_INK, font_cn=FONT_CN_HEAD)
-    p.paragraph_format.space_after = Pt(20)
+    set_run_font(r, size_pt=18, bold=True, color=C_INK, font_cn=FONT_CN_HEAD)
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing = 1.2
 
     for item in toc_items:
         level = item["level"]
@@ -859,32 +864,32 @@ def add_toc(doc, toc_items):
         p = doc.add_paragraph()
         if level == 1:
             p.paragraph_format.left_indent = Cm(0)
-            p.paragraph_format.space_before = Pt(8)
-            p.paragraph_format.space_after = Pt(3)
-            p.paragraph_format.line_spacing = 1.25
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.2
             if label:
                 r1 = p.add_run(label + "  ")
-                set_run_font(r1, size_pt=10, color=C_MUTED, font_cn=FONT_CN_HEAD)
+                set_run_font(r1, size_pt=8, color=C_MUTED, font_cn=FONT_CN_HEAD)
             r2 = p.add_run(title)
-            set_run_font(r2, size_pt=13.5, bold=True, color=C_INK,
+            set_run_font(r2, size_pt=11.5, bold=True, color=C_INK,
                          font_cn=FONT_CN_HEAD)
         elif level == 2:
             p.paragraph_format.left_indent = Cm(0.6)
-            p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(1)
-            p.paragraph_format.line_spacing = 1.45
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.2
             if label:
                 r1 = p.add_run(label + "  ")
-                set_run_font(r1, size_pt=9.5, color=C_MUTED, font_cn=FONT_CN_HEAD)
+                set_run_font(r1, size_pt=7.5, color=C_MUTED, font_cn=FONT_CN_HEAD)
             r2 = p.add_run(title)
-            set_run_font(r2, size_pt=11.5, color=C_INK)
+            set_run_font(r2, size_pt=9.5, color=C_INK)
         else:
             p.paragraph_format.left_indent = Cm(1.35)
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.35
+            p.paragraph_format.line_spacing = 1.2
             r = p.add_run(title)
-            set_run_font(r, size_pt=9.5, color=C_MUTED)
+            set_run_font(r, size_pt=7.5, color=C_MUTED)
 
 
 # ============================================================
@@ -941,32 +946,6 @@ def setup_page(doc, page_size="book"):
     rFonts.set(qn("w:eastAsia"), FONT_CN_BODY)
     rFonts.set(qn("w:ascii"), FONT_EN)
     rFonts.set(qn("w:hAnsi"), FONT_EN)
-
-
-def add_header_footer(section, header_text=""):
-    if header_text:
-        header = section.header
-        p = header.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r = p.add_run(header_text)
-        set_run_font(r, size_pt=9, italic=True, color=C_MUTED,
-                     font_cn=FONT_CN_HEAD)
-
-    # 页脚页码
-    footer = section.footer
-    p = footer.paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = p.add_run()
-    fldChar = OxmlElement("w:fldChar")
-    fldChar.set(qn("w:fldCharType"), "begin")
-    r._r.append(fldChar)
-    instrText = OxmlElement("w:instrText")
-    instrText.text = "PAGE"
-    r._r.append(instrText)
-    fldChar2 = OxmlElement("w:fldChar")
-    fldChar2.set(qn("w:fldCharType"), "end")
-    r._r.append(fldChar2)
-    set_run_font(r, size_pt=9, color=C_MUTED, font_cn=FONT_CN_HEAD)
 
 
 # ============================================================
