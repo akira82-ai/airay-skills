@@ -1,6 +1,6 @@
 ---
 name: airay-md2book
-description: 把一份或多份 Markdown 加工成书籍级 docx，适用于出版社审校、投稿、纸质书定稿和正式交付。支持单文件转换，也支持书籍模式：自动生成封面、目录、页眉页脚、章节分页，并自动嵌入图片。触发词：md 转 docx、markdown 转 word、做一本书、出版社审校稿、投稿稿、纸质书定稿、book docx、目录页、作者页、章节分页、生成 word 稿件。
+description: 把一份或多份 Markdown 加工成书籍级 docx，适用于出版社审校、投稿、纸质书定稿和正式交付。支持单文件转换，也支持书籍模式：自动生成封面、目录、作者页、章节分页，并自动嵌入图片。触发词：md 转 docx、markdown 转 word、做一本书、出版社审校稿、投稿稿、纸质书定稿、book docx、目录页、作者页、章节分页、生成 word 稿件。
 ---
 
 # airay-md2book
@@ -14,7 +14,7 @@ description: 把一份或多份 Markdown 加工成书籍级 docx，适用于出�
 - 把单篇 md 生成 Word 稿件
 - 把多篇 md 合成一本书
 - 生成出版社审校稿 / 投稿稿 / 纸质书定稿
-- 需要封面、目录、页眉页脚、章节分页的 Word 文档
+- 需要封面、目录、作者页、章节分页的 Word 文档
 
 不再负责：
 
@@ -55,12 +55,12 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 
 ## 参数说明
 
-- `--book`：开启书籍模式，自动加封面、目录、页眉页脚、章节分页
+- `--book`：开启书籍模式，自动加封面、目录、作者页、章节分页
 - `--title`：书名，书籍模式必填
 - `--subtitle`：副标题
 - `--author`：作者名
 - `--extra-info`：封面顶部小字
-- `--cover-image`：封面图路径；传入后封面页只放这张图，不再额外叠加文字
+- `--cover-image`：封面图路径；书籍模式必填，封面页只放这张图，不再额外叠加文字
 - `--author-page-file`：作者页内容文件，生成可复制文本页
 - `--author-page-preset`：内置作者页模板，当前支持 `100qs`
   - `100qs` 已固化为技能内置模板，后续所有《100 个问题系列》书稿可直接复用
@@ -152,7 +152,7 @@ python3 -m pip install python-docx Pillow
 
 - docx 的绝对路径
 - 文件是否成功生成
-- 如果是书籍模式，可顺带说明包含了封面、目录和页眉页脚
+- 如果是书籍模式，可顺带说明包含了封面、作者页和目录
 
 ## 参考
 

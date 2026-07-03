@@ -795,7 +795,6 @@ def add_cover(doc, title, subtitle, author, extra_info=None, cover_image=None):
     tail_spacer = doc.add_paragraph()
     tail_spacer.paragraph_format.space_after = Pt(12)
     add_horizontal_line(doc, color_hex="D6D0C4")
-    add_page_break(doc)
 
 
 def parse_author_page_blocks(text):
@@ -845,8 +844,6 @@ def add_author_page(doc, text):
                 font_en="Helvetica Neue"
             )
 
-    add_page_break(doc)
-
 
 def add_toc(doc, toc_items):
     """toc_items: list of {level, label, title}"""
@@ -888,8 +885,6 @@ def add_toc(doc, toc_items):
             p.paragraph_format.line_spacing = 1.35
             r = p.add_run(title)
             set_run_font(r, size_pt=9.5, color=C_MUTED)
-
-    add_page_break(doc)
 
 
 # ============================================================
@@ -985,8 +980,10 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
     setup_page(doc, page_size=page_size)
 
     if book_mode and title:
-        if cover_image:
-            configure_section_page(doc.sections[0], page_size=page_size, full_bleed=True)
+        if not cover_image:
+            print("❌ 书籍模式必须提供封面图：请传入 --cover-image /path/to/cover.png", file=sys.stderr)
+            sys.exit(1)
+        configure_section_page(doc.sections[0], page_size=page_size, full_bleed=True)
         add_cover(doc, title, subtitle, author, extra_info, cover_image)
         if author_page_text:
             author_section = doc.add_section(WD_SECTION.NEW_PAGE)
@@ -995,7 +992,6 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
 
         toc_section = doc.add_section(WD_SECTION.NEW_PAGE)
         configure_section_page(toc_section, page_size=page_size, full_bleed=False)
-        add_header_footer(toc_section, header_text=title)
 
         # 目录：严格收 H1/H2/H3，不包含正文
         toc_items = []
@@ -1015,8 +1011,12 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
             toc_items.extend(file_toc_items)
         add_toc(doc, toc_items)
 
+        content_section = doc.add_section(WD_SECTION.NEW_PAGE)
+        configure_section_page(content_section, page_size=page_size, full_bleed=False)
+
     elif book_mode:
-        add_header_footer(doc.sections[0], header_text="")
+        print("❌ --book 模式必须指定 --title", file=sys.stderr)
+        sys.exit(1)
 
     for idx, md_path in enumerate(md_files):
         md_path = Path(md_path)
@@ -1098,7 +1098,7 @@ def main():
     ap.add_argument("-o", "--output", help="输出 docx 路径（默认从首个 md 推导）")
     ap.add_argument("--images-dir", help="图片所在目录（默认从 md 同级目录找）")
     ap.add_argument("--book", action="store_true",
-                    help="书籍模式：加封面+目录+页眉页脚+章节分页")
+                    help="书籍模式：加封面+作者页+目录+章节分页")
     ap.add_argument("--title", help="书名（书籍模式必填）")
     ap.add_argument("--subtitle", help="副标题")
     ap.add_argument("--author", help="作者")
