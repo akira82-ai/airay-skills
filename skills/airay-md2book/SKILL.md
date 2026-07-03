@@ -64,7 +64,7 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 - `--author-page-file`：作者页内容文件，生成可复制文本页
 - `--author-page-preset`：内置作者页模板，当前支持 `100qs`
   - `100qs` 已固化为技能内置模板，后续所有《100 个问题系列》书稿可直接复用
-- `--chapter-labels`：章号标签，逗号分隔
+- `--chapter-labels`：保留兼容参数；当前不再用于目录页和章节页显示
 - `--images-dir`：图片目录
 - `--page-size`：`book` 或 `a4`
 - `-o/--output`：输出 docx 路径
@@ -84,13 +84,7 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 - 目录页排版已固化：在原字号基础上统一减 2、1.2 倍行距、段前段后均为 0
 - 全书页眉页脚强制留空：不得写任何文字、页码、换行或占位内容
 
-如果 `H1` 本身已经带有 `第一章`、`第二章`、`附录`、`后记`、`前言`、`序` 等前缀，而书籍模式又通过 `--chapter-labels` 提供了章标签，目录展示时应去掉标题里的重复前缀，避免出现：
-
-- `第一章 第一章 基础认知与定位`
-
-正确效果应为：
-
-- `第一章 基础认知与定位`
+- 不再生成独立章标签，不再单独显示 `第一章 / 第五章` 这类小标
 
 ### 章节标题
 
@@ -100,7 +94,13 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 # 第一章 基础认知与定位
 ```
 
-如果书籍模式需要章号小标，优先使用 `--chapter-labels`，不要把章号逻辑硬编码在正文里。
+章节首页不再额外生成章号小标，只显示 H1 标题本身。
+
+### 全局样式
+
+- 全文中文字体统一为宋体风格
+- 全文英文字体统一为 `Consolas`
+- 章节标题、问题标题、引用资料文字统一使用书内红色
 
 ### 图片
 

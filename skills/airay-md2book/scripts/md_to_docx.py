@@ -23,7 +23,7 @@ python3 md_to_docx.py ch*.md --book \\
 
 特性
 ----
-- 中文友好的字体（思源宋体/思源黑体，回退 PingFang SC / Songti SC）
+- 中文统一宋体风格，英文统一 Consolas
 - 自动嵌入图片（识别 ![]() 内联和 ![][ref] 引用两种语法）
 - 引用块按类型自动配色（💡 重点 / ✅ 建议 / ⚠️ 注意 / 普通）
 - 代码块带左侧色边 + 浅灰底
@@ -73,11 +73,11 @@ C_MUTED = RGBColor(0x6B, 0x6B, 0x6B)
 C_ROSE = RGBColor(0xBE, 0x12, 0x3C)
 C_CORAL = RGBColor(0xFF, 0x6C, 0x5C)
 
-FONT_CN_BODY = "思源宋体 CN"
-FONT_CN_HEAD = "思源黑体 CN"
+FONT_CN_BODY = "Songti SC"
+FONT_CN_HEAD = "Songti SC"
 FONT_CN_TITLE = "Songti SC"
-FONT_MONO = "JetBrains Mono"
-FONT_EN = "Georgia"
+FONT_MONO = "Consolas"
+FONT_EN = "Consolas"
 
 
 # ============================================================
@@ -246,18 +246,18 @@ INLINE_PATTERN = re.compile(
 )
 
 
-def add_inline_runs(paragraph, text, base_size=11):
+def add_inline_runs(paragraph, text, base_size=11, text_color=None):
     pos = 0
     for m in INLINE_PATTERN.finditer(text):
         if m.start() > pos:
             r = paragraph.add_run(text[pos:m.start()])
-            set_run_font(r, size_pt=base_size)
+            set_run_font(r, size_pt=base_size, color=text_color)
         if m.group(2):  # bold
             r = paragraph.add_run(m.group(2))
-            set_run_font(r, size_pt=base_size, bold=True)
+            set_run_font(r, size_pt=base_size, bold=True, color=text_color)
         elif m.group(4):  # italic
             r = paragraph.add_run(m.group(4))
-            set_run_font(r, size_pt=base_size, italic=True, color=C_MUTED)
+            set_run_font(r, size_pt=base_size, italic=True, color=text_color or C_MUTED)
         elif m.group(6):  # inline code
             r = paragraph.add_run(m.group(6))
             set_run_font(r, size_pt=base_size - 0.5, font_cn=FONT_MONO,
@@ -269,7 +269,7 @@ def add_inline_runs(paragraph, text, base_size=11):
         pos = m.end()
     if pos < len(text):
         r = paragraph.add_run(text[pos:])
-        set_run_font(r, size_pt=base_size)
+        set_run_font(r, size_pt=base_size, color=text_color)
 
 
 # ============================================================
@@ -418,22 +418,16 @@ def clean_chapter_title(text):
 
 def extract_toc_items(md_text, chapter_label=None):
     toc_items = []
-    first_h1 = True
     for line in md_text.splitlines():
         m = re.match(r"^(#{1,3})\s+(.+)$", line.strip())
         if not m:
             continue
         level = len(m.group(1))
         text = m.group(2).strip()
-        label = ""
         if level == 1:
-            if first_h1:
-                label = chapter_label or ""
-                first_h1 = False
             text = clean_chapter_title(text)
         toc_items.append({
             "level": level,
-            "label": label,
             "title": text,
         })
     return toc_items
@@ -444,17 +438,10 @@ def extract_toc_items(md_text, chapter_label=None):
 # ============================================================
 def add_heading(doc, level, text, chapter_label=None):
     if level == 1:
-        # 章号小标
-        if chapter_label:
-            p = doc.add_paragraph()
-            r = p.add_run(chapter_label)
-            set_run_font(r, size_pt=11, color=C_MUTED, font_cn=FONT_CN_HEAD)
-            p.paragraph_format.space_after = Pt(2)
-
         p = doc.add_paragraph()
         clean = clean_chapter_title(text)
         r = p.add_run(clean if clean else text)
-        set_run_font(r, size_pt=24, bold=True, color=C_INK, font_cn=FONT_CN_HEAD)
+        set_run_font(r, size_pt=24, bold=True, color=C_ORANGE, font_cn=FONT_CN_HEAD)
         p.paragraph_format.space_after = Pt(14)
         # 橙色底部分隔线
         pPr = p._p.get_or_add_pPr()
@@ -470,7 +457,7 @@ def add_heading(doc, level, text, chapter_label=None):
     elif level == 2:
         p = doc.add_paragraph()
         r = p.add_run(text)
-        set_run_font(r, size_pt=17, bold=True, color=C_INK,
+        set_run_font(r, size_pt=17, bold=True, color=C_ORANGE,
                      font_cn=FONT_CN_HEAD)
         p.paragraph_format.space_before = Pt(20)
         p.paragraph_format.space_after = Pt(8)
@@ -486,14 +473,14 @@ def add_heading(doc, level, text, chapter_label=None):
     else:
         p = doc.add_paragraph()
         r = p.add_run(text)
-        set_run_font(r, size_pt=12, bold=True, color=C_INK,
+        set_run_font(r, size_pt=12, bold=True, color=C_ORANGE,
                      font_cn=FONT_CN_HEAD)
         p.paragraph_format.space_before = Pt(8)
 
 
-def add_paragraph(doc, text):
+def add_paragraph(doc, text, text_color=None):
     p = doc.add_paragraph()
-    add_inline_runs(p, text, base_size=11)
+    add_inline_runs(p, text, base_size=11, text_color=text_color)
     p.paragraph_format.line_spacing = 1.6
     p.paragraph_format.space_after = Pt(6)
 
@@ -502,7 +489,7 @@ def add_italic_subtitle(doc, text):
     p = doc.add_paragraph()
     r = p.add_run(text)
     set_run_font(r, size_pt=11, italic=True, color=C_MUTED,
-                 font_cn=FONT_CN_HEAD, font_en="Georgia")
+                 font_cn=FONT_CN_HEAD, font_en=FONT_EN)
     p.paragraph_format.space_after = Pt(14)
 
 
@@ -654,7 +641,7 @@ def add_table_block(doc, table_lines):
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
 
-def add_list_block(doc, items, ordered=False):
+def add_list_block(doc, items, ordered=False, text_color=None):
     for i, item in enumerate(items, 1):
         p = doc.add_paragraph()
         p.paragraph_format.left_indent = Cm(0.6)
@@ -663,21 +650,23 @@ def add_list_block(doc, items, ordered=False):
         prefix = f"{i}. " if ordered else "• "
         r = p.add_run(prefix)
         set_run_font(r, size_pt=11, color=C_ORANGE, bold=True)
-        add_inline_runs(p, item, base_size=11)
+        add_inline_runs(p, item, base_size=11, text_color=text_color)
 
 
 def render_block(doc, block, image_resolver, chapter_label=None,
-                 is_first_h1=False):
+                 is_first_h1=False, reference_mode=False):
     kind = block["kind"]
     if kind == "heading":
-        level = block["level"]
-        label = chapter_label if (level == 1 and is_first_h1) else None
-        add_heading(doc, level, block["text"], chapter_label=label)
+        add_heading(doc, block["level"], block["text"], chapter_label=None)
     elif kind == "p":
         if re.match(r"^\*[^*]+\*$", block["text"]):
             add_italic_subtitle(doc, block["text"].strip("*"))
         else:
-            add_paragraph(doc, block["text"])
+            add_paragraph(
+                doc,
+                block["text"],
+                text_color=C_ORANGE if block["text"].strip() == "参考资料：" else None
+            )
     elif kind == "code":
         add_code_block(doc, block["lines"])
     elif kind == "image":
@@ -688,9 +677,11 @@ def render_block(doc, block, image_resolver, chapter_label=None,
     elif kind == "table":
         add_table_block(doc, block["rows"])
     elif kind == "ul":
-        add_list_block(doc, block["items"], ordered=False)
+        add_list_block(doc, block["items"], ordered=False,
+                       text_color=C_ORANGE if reference_mode else None)
     elif kind == "ol":
-        add_list_block(doc, block["items"], ordered=True)
+        add_list_block(doc, block["items"], ordered=True,
+                       text_color=C_ORANGE if reference_mode else None)
     elif kind == "hr":
         add_horizontal_line(doc)
 
@@ -762,7 +753,7 @@ def add_cover(doc, title, subtitle, author, extra_info=None, cover_image=None):
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     r = p.add_run(title)
     set_run_font(r, size_pt=28, bold=True, color=C_INK,
-                 font_cn=FONT_CN_TITLE, font_en="Georgia")
+                 font_cn=FONT_CN_TITLE, font_en=FONT_EN)
     p.paragraph_format.space_after = Pt(10)
     p.paragraph_format.line_spacing = 1.15
 
@@ -777,7 +768,7 @@ def add_cover(doc, title, subtitle, author, extra_info=None, cover_image=None):
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     r = p.add_run("BOOK MANUSCRIPT")
     set_run_font(r, size_pt=9.5, color=C_MUTED,
-                 font_cn=FONT_CN_HEAD, font_en="Georgia")
+                 font_cn=FONT_CN_HEAD, font_en=FONT_EN)
 
     if author:
         p = right_cell.paragraphs[0]
@@ -844,12 +835,12 @@ def add_author_page(doc, text):
             add_external_link(
                 p, block["text"], block["text"], size_pt=9.8,
                 color=(0x1A, 0x1A, 0x1A), font_cn=FONT_CN_HEAD,
-                font_en="Helvetica Neue"
+                font_en=FONT_EN
             )
 
 
 def add_toc(doc, toc_items):
-    """toc_items: list of {level, label, title}"""
+    """toc_items: list of {level, title}"""
     p = doc.add_paragraph()
     r = p.add_run("目  录")
     set_run_font(r, size_pt=18, bold=True, color=C_INK, font_cn=FONT_CN_HEAD)
@@ -859,7 +850,6 @@ def add_toc(doc, toc_items):
 
     for item in toc_items:
         level = item["level"]
-        label = item["label"]
         title = item["title"]
         p = doc.add_paragraph()
         if level == 1:
@@ -867,9 +857,6 @@ def add_toc(doc, toc_items):
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.line_spacing = 1.2
-            if label:
-                r1 = p.add_run(label + "  ")
-                set_run_font(r1, size_pt=8, color=C_MUTED, font_cn=FONT_CN_HEAD)
             r2 = p.add_run(title)
             set_run_font(r2, size_pt=11.5, bold=True, color=C_INK,
                          font_cn=FONT_CN_HEAD)
@@ -878,9 +865,6 @@ def add_toc(doc, toc_items):
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.line_spacing = 1.2
-            if label:
-                r1 = p.add_run(label + "  ")
-                set_run_font(r1, size_pt=7.5, color=C_MUTED, font_cn=FONT_CN_HEAD)
             r2 = p.add_run(title)
             set_run_font(r2, size_pt=9.5, color=C_INK)
         else:
@@ -1053,9 +1037,14 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
         print(f"  ✓ {md_path.name}  ~{text_chars} 字 · {n_imgs} 图")
 
         is_first_h1 = True
+        reference_mode = False
         for b in blocks:
+            if b["kind"] == "p":
+                reference_mode = b.get("text", "").strip() == "参考资料："
+            elif b["kind"] not in {"ul", "ol"}:
+                reference_mode = False
             render_block(doc, b, resolver, chapter_label=chapter_label,
-                         is_first_h1=is_first_h1)
+                         is_first_h1=is_first_h1, reference_mode=reference_mode)
             if b["kind"] == "heading" and b["level"] == 1:
                 is_first_h1 = False
 
