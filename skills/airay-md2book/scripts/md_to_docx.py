@@ -17,8 +17,7 @@ python3 md_to_docx.py ch01.md ch02.md ch03.md -o book.docx
 # 完整书模式（带封面 + 目录 + 作者页）
 python3 md_to_docx.py ch*.md --book \\
     --title "图解 Agent Skills" \\
-    --subtitle "让 AI 记住你的工作方式" \\
-    --author "花叔" \\
+    --cover-image ./cover.png \\
     -o book.docx
 
 特性
@@ -28,13 +27,13 @@ python3 md_to_docx.py ch*.md --book \\
 - 引用块按类型自动配色（💡 重点 / ✅ 建议 / ⚠️ 注意 / 普通）
 - 代码块带左侧色边 + 浅灰底
 - 表格干净边框 + 表头底色
-- 章节首页专业版面（章号 + 标题 + 英文副标题 + 分隔线）
-- 页眉书名 + 页脚自动页码
+- 章节首页支持大标题 + 英文副标题 + 分隔线
+- 页眉页脚强制留空
 - 默认大 32 开（176×240 mm），适合纸质书
 
 依赖
 ----
-python3 -m pip install python-docx Pillow
+python3 -m pip install python-docx Pillow PyYAML
 """
 
 import argparse
@@ -42,6 +41,12 @@ import re
 import sys
 import tempfile
 from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    print("缺少依赖：python3 -m pip install PyYAML", file=sys.stderr)
+    sys.exit(1)
 
 try:
     from PIL import Image as PILImage
@@ -63,28 +68,91 @@ except ImportError:
     sys.exit(1)
 
 
-# ============================================================
-# 颜色 & 字体
-# ============================================================
-C_ORANGE = RGBColor(0xC2, 0x41, 0x0C)
-C_TEAL = RGBColor(0x0E, 0x7C, 0x66)
-C_INK = RGBColor(0x1A, 0x1A, 0x1A)
-C_MUTED = RGBColor(0x6B, 0x6B, 0x6B)
-C_ROSE = RGBColor(0xBE, 0x12, 0x3C)
-C_CORAL = RGBColor(0xFF, 0x6C, 0x5C)
+BASE_DIR = Path(__file__).resolve().parent.parent
+THEME_PATH = BASE_DIR / "docx-theme.yaml"
 
-FONT_CN_BODY = "Songti SC"
-FONT_CN_HEAD = "Songti SC"
-FONT_CN_TITLE = "Songti SC"
-FONT_MONO = "Consolas"
-FONT_EN = "Consolas"
+
+def load_theme():
+    if not THEME_PATH.exists():
+        print(f"❌ 找不到样式配置：{THEME_PATH}", file=sys.stderr)
+        sys.exit(1)
+    return yaml.safe_load(THEME_PATH.read_text(encoding="utf-8")) or {}
+
+
+THEME = load_theme()
+
+
+def theme_get(path, default=None):
+    value = THEME
+    for part in path.split("."):
+        if not isinstance(value, dict) or part not in value:
+            return default
+        value = value[part]
+    return value
+
+
+def resolve_color_value(value):
+    if isinstance(value, str) and not value.startswith("#"):
+        return theme_get(f"colors.{value}", value)
+    return value
+
+
+def theme_color(path, default=None):
+    value = resolve_color_value(theme_get(path, default))
+    if not value:
+        return None
+    value = value.lstrip("#")
+    return RGBColor(int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16))
+
+
+def theme_color_hex(path, default=None):
+    value = resolve_color_value(theme_get(path, default))
+    if not value:
+        return None
+    return value.lstrip("#").upper()
+
+
+def theme_color_tuple(path, default=None):
+    value = resolve_color_value(theme_get(path, default))
+    if not value:
+        return None
+    value = value.lstrip("#")
+    return (int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16))
+
+
+def font_cn_body():
+    return theme_get("fonts.cn_body", "Songti SC")
+
+
+def font_cn_heading():
+    return theme_get("fonts.cn_heading", font_cn_body())
+
+
+def font_en_body():
+    return theme_get("fonts.en_body", "Consolas")
+
+
+def font_en_mono():
+    return theme_get("fonts.en_mono", font_en_body())
+
+
+def is_reference_title(text):
+    if not text:
+        return False
+    stripped = text.strip()
+    titles = theme_get("reference_section.title_texts")
+    if isinstance(titles, list) and titles:
+        return stripped in titles
+    return stripped == theme_get("reference_section.title_text", "参考资料：")
 
 
 # ============================================================
 # 底层 OOXML 工具
 # ============================================================
 def set_run_font(run, size_pt=11, bold=False, italic=False, color=None,
-                 font_cn=FONT_CN_BODY, font_en=None):
+                 font_cn=None, font_en=None):
+    font_cn = font_cn or font_cn_body()
+    font_en = font_en or font_cn
     run.font.name = font_en or font_cn
     run.font.size = Pt(size_pt)
     run.bold = bold
@@ -97,9 +165,8 @@ def set_run_font(run, size_pt=11, bold=False, italic=False, color=None,
         rFonts = OxmlElement("w:rFonts")
         rPr.append(rFonts)
     rFonts.set(qn("w:eastAsia"), font_cn)
-    if font_en:
-        rFonts.set(qn("w:ascii"), font_en)
-        rFonts.set(qn("w:hAnsi"), font_en)
+    rFonts.set(qn("w:ascii"), font_en)
+    rFonts.set(qn("w:hAnsi"), font_en)
 
 
 def add_page_break(doc):
@@ -107,35 +174,18 @@ def add_page_break(doc):
     p.add_run().add_break(WD_BREAK.PAGE)
 
 
-def add_horizontal_line(doc, color_hex="D6D0C4"):
+def add_horizontal_line(doc, color_hex=None):
+    color_hex = color_hex or theme_color_hex("horizontal_rule.color", "#D6D0C4")
     p = doc.add_paragraph()
     pPr = p._p.get_or_add_pPr()
     pBdr = OxmlElement("w:pBdr")
     bottom = OxmlElement("w:bottom")
     bottom.set(qn("w:val"), "single")
-    bottom.set(qn("w:sz"), "6")
-    bottom.set(qn("w:space"), "1")
+    bottom.set(qn("w:sz"), str(theme_get("horizontal_rule.size", 6)))
+    bottom.set(qn("w:space"), str(theme_get("horizontal_rule.space", 1)))
     bottom.set(qn("w:color"), color_hex)
     pBdr.append(bottom)
     pPr.append(pBdr)
-
-
-def get_content_width_inches(doc):
-    section = doc.sections[0]
-    return (
-        section.page_width - section.left_margin - section.right_margin
-    ) / 914400
-
-
-def get_content_size_inches(doc):
-    section = doc.sections[0]
-    width = (
-        section.page_width - section.left_margin - section.right_margin
-    ) / 914400
-    height = (
-        section.page_height - section.top_margin - section.bottom_margin
-    ) / 914400
-    return width, height
 
 
 def get_page_size_inches(doc):
@@ -170,9 +220,8 @@ def crop_image_to_ratio(image_path, target_ratio):
 
 
 def load_builtin_author_page(preset_name):
-    base_dir = Path(__file__).resolve().parent.parent
     preset_map = {
-        "100qs": base_dir / "references" / "author-page-100qs.md",
+        "100qs": BASE_DIR / "references" / "author-page-100qs.md",
     }
     preset_path = preset_map.get(preset_name)
     if not preset_path or not preset_path.exists():
@@ -199,7 +248,9 @@ def remove_table_borders(table):
 
 
 def add_external_link(paragraph, text, url, size_pt=12.5, color=None,
-                      font_cn=FONT_CN_HEAD, font_en=FONT_EN, underline=True):
+                      font_cn=None, font_en=None, underline=True):
+    font_cn = font_cn or font_cn_heading()
+    font_en = font_en or font_en_body()
     part = paragraph.part
     r_id = part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
     hyperlink = OxmlElement("w:hyperlink")
@@ -257,14 +308,20 @@ def add_inline_runs(paragraph, text, base_size=11, text_color=None):
             set_run_font(r, size_pt=base_size, bold=True, color=text_color)
         elif m.group(4):  # italic
             r = paragraph.add_run(m.group(4))
-            set_run_font(r, size_pt=base_size, italic=True, color=text_color or C_MUTED)
+            set_run_font(r, size_pt=base_size, italic=True,
+                         color=text_color or theme_color("colors.text_muted"))
         elif m.group(6):  # inline code
             r = paragraph.add_run(m.group(6))
-            set_run_font(r, size_pt=base_size - 0.5, font_cn=FONT_MONO,
-                         font_en=FONT_MONO, color=C_ORANGE)
+            set_run_font(
+                r,
+                size_pt=base_size + theme_get("inline_code.font_size_delta_pt", -0.5),
+                font_cn=font_en_mono(),
+                font_en=font_en_mono(),
+                color=theme_color("inline_code.color"),
+            )
         elif m.group(7):  # link
             r = paragraph.add_run(m.group(8))
-            set_run_font(r, size_pt=base_size, color=C_ORANGE)
+            set_run_font(r, size_pt=base_size, color=theme_color("colors.primary_red"))
             r.underline = True
         pos = m.end()
     if pos < len(text):
@@ -416,7 +473,7 @@ def clean_chapter_title(text):
     return clean if clean else text.strip()
 
 
-def extract_toc_items(md_text, chapter_label=None):
+def extract_toc_items(md_text):
     toc_items = []
     for line in md_text.splitlines():
         m = re.match(r"^(#{1,3})\s+(.+)$", line.strip())
@@ -436,70 +493,99 @@ def extract_toc_items(md_text, chapter_label=None):
 # ============================================================
 # docx 渲染
 # ============================================================
-def add_heading(doc, level, text, chapter_label=None):
+def add_heading(doc, level, text):
     if level == 1:
         p = doc.add_paragraph()
         clean = clean_chapter_title(text)
         r = p.add_run(clean if clean else text)
-        set_run_font(r, size_pt=24, bold=True, color=C_ORANGE, font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_after = Pt(14)
-        # 橙色底部分隔线
+        set_run_font(
+            r,
+            size_pt=theme_get("headings.h1.font_size_pt", 24),
+            bold=theme_get("headings.h1.bold", True),
+            color=theme_color("headings.h1.color"),
+            font_cn=font_cn_heading(),
+        )
+        p.paragraph_format.space_after = Pt(theme_get("headings.h1.space_after_pt", 14))
         pPr = p._p.get_or_add_pPr()
         pBdr = OxmlElement("w:pBdr")
         bottom = OxmlElement("w:bottom")
         bottom.set(qn("w:val"), "single")
-        bottom.set(qn("w:sz"), "12")
-        bottom.set(qn("w:space"), "8")
-        bottom.set(qn("w:color"), "C2410C")
+        bottom.set(qn("w:sz"), str(theme_get("headings.h1.border_bottom_size", 12)))
+        bottom.set(qn("w:space"), str(theme_get("headings.h1.border_bottom_space", 8)))
+        bottom.set(qn("w:color"), theme_color_hex("headings.h1.border_bottom_color", "#C2410C"))
         pBdr.append(bottom)
         pPr.append(pBdr)
 
     elif level == 2:
         p = doc.add_paragraph()
         r = p.add_run(text)
-        set_run_font(r, size_pt=17, bold=True, color=C_ORANGE,
-                     font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_before = Pt(20)
-        p.paragraph_format.space_after = Pt(8)
+        set_run_font(
+            r,
+            size_pt=theme_get("headings.h2.font_size_pt", 17),
+            bold=theme_get("headings.h2.bold", True),
+            color=theme_color("headings.h2.color"),
+            font_cn=font_cn_heading(),
+        )
+        p.paragraph_format.space_before = Pt(theme_get("headings.h2.space_before_pt", 20))
+        p.paragraph_format.space_after = Pt(theme_get("headings.h2.space_after_pt", 8))
 
     elif level == 3:
         p = doc.add_paragraph()
         r = p.add_run(text)
-        set_run_font(r, size_pt=13.5, bold=True, color=C_ORANGE,
-                     font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = Pt(4)
+        set_run_font(
+            r,
+            size_pt=theme_get("headings.h3.font_size_pt", 13.5),
+            bold=theme_get("headings.h3.bold", True),
+            color=theme_color("headings.h3.color"),
+            font_cn=font_cn_heading(),
+        )
+        p.paragraph_format.space_before = Pt(theme_get("headings.h3.space_before_pt", 12))
+        p.paragraph_format.space_after = Pt(theme_get("headings.h3.space_after_pt", 4))
 
     else:
         p = doc.add_paragraph()
         r = p.add_run(text)
-        set_run_font(r, size_pt=12, bold=True, color=C_ORANGE,
-                     font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_before = Pt(8)
+        set_run_font(
+            r,
+            size_pt=theme_get("headings.h4_plus.font_size_pt", 12),
+            bold=theme_get("headings.h4_plus.bold", True),
+            color=theme_color("headings.h4_plus.color"),
+            font_cn=font_cn_heading(),
+        )
+        p.paragraph_format.space_before = Pt(theme_get("headings.h4_plus.space_before_pt", 8))
 
 
-def add_paragraph(doc, text, text_color=None, line_spacing=1.6,
-                  space_before_pt=0, space_after_pt=6):
+def add_paragraph(doc, text, text_color=None, line_spacing=None,
+                  space_before_pt=None, space_after_pt=None):
     p = doc.add_paragraph()
-    add_inline_runs(p, text, base_size=11, text_color=text_color)
-    p.paragraph_format.line_spacing = line_spacing
-    p.paragraph_format.space_before = Pt(space_before_pt)
-    p.paragraph_format.space_after = Pt(space_after_pt)
+    add_inline_runs(
+        p,
+        text,
+        base_size=theme_get("body.font_size_pt", 11),
+        text_color=text_color or theme_color("body.text_color"),
+    )
+    p.paragraph_format.line_spacing = (
+        line_spacing if line_spacing is not None else theme_get("body.line_spacing", 1.6)
+    )
+    p.paragraph_format.space_before = Pt(
+        space_before_pt if space_before_pt is not None else theme_get("body.space_before_pt", 0)
+    )
+    p.paragraph_format.space_after = Pt(
+        space_after_pt if space_after_pt is not None else theme_get("body.space_after_pt", 6)
+    )
 
 
-def add_italic_subtitle(doc, text):
-    p = doc.add_paragraph()
-    r = p.add_run(text)
-    set_run_font(r, size_pt=11, italic=True, color=C_MUTED,
-                 font_cn=FONT_CN_HEAD, font_en=FONT_EN)
-    p.paragraph_format.space_after = Pt(14)
-
-
-def add_image(doc, image_path, alt_text, max_width_inches=5.8):
+def add_image(doc, image_path, alt_text, max_width_inches=None):
+    max_width_inches = max_width_inches or theme_get("image.max_width_inches", 5.8)
     if not image_path or not Path(image_path).exists():
         p = doc.add_paragraph()
         r = p.add_run(f"[未找到图片：{image_path}]")
-        set_run_font(r, size_pt=9, italic=True, color=C_ROSE)
+        set_run_font(
+            r,
+            size_pt=theme_get("image.missing_image_font_size_pt", 9),
+            italic=True,
+            color=theme_color("image.missing_image_color"),
+        )
         return
 
     try:
@@ -512,8 +598,8 @@ def add_image(doc, image_path, alt_text, max_width_inches=5.8):
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(10)
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_before = Pt(theme_get("image.space_before_pt", 10))
+    p.paragraph_format.space_after = Pt(theme_get("image.space_after_pt", 4))
     r = p.add_run()
     r.add_picture(str(image_path), width=Inches(width_inches))
 
@@ -521,9 +607,14 @@ def add_image(doc, image_path, alt_text, max_width_inches=5.8):
         p_cap = doc.add_paragraph()
         p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r_cap = p_cap.add_run(alt_text)
-        set_run_font(r_cap, size_pt=9, italic=True, color=C_MUTED,
-                     font_cn=FONT_CN_HEAD)
-        p_cap.paragraph_format.space_after = Pt(14)
+        set_run_font(
+            r_cap,
+            size_pt=theme_get("image.caption_font_size_pt", 9),
+            italic=True,
+            color=theme_color("image.caption_color"),
+            font_cn=font_cn_heading(),
+        )
+        p_cap.paragraph_format.space_after = Pt(theme_get("image.caption_space_after_pt", 14))
 
 
 def add_code_block(doc, code_lines):
@@ -531,36 +622,34 @@ def add_code_block(doc, code_lines):
     pPr = p._p.get_or_add_pPr()
     shd = OxmlElement("w:shd")
     shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:fill"), "F5F5F0")
+    shd.set(qn("w:fill"), theme_color_hex("code_block.background_color", "#F5F5F0"))
     pPr.append(shd)
     pBdr = OxmlElement("w:pBdr")
     left = OxmlElement("w:left")
     left.set(qn("w:val"), "single")
-    left.set(qn("w:sz"), "16")
-    left.set(qn("w:space"), "10")
-    left.set(qn("w:color"), "C2410C")
+    left.set(qn("w:sz"), str(theme_get("code_block.left_border_size", 16)))
+    left.set(qn("w:space"), str(theme_get("code_block.left_border_space", 10)))
+    left.set(qn("w:color"), theme_color_hex("code_block.left_border_color", "#C2410C"))
     pBdr.append(left)
     pPr.append(pBdr)
 
-    p.paragraph_format.space_before = Pt(8)
-    p.paragraph_format.space_after = Pt(8)
-    p.paragraph_format.line_spacing = 1.4
+    p.paragraph_format.space_before = Pt(theme_get("code_block.space_before_pt", 8))
+    p.paragraph_format.space_after = Pt(theme_get("code_block.space_after_pt", 8))
+    p.paragraph_format.line_spacing = theme_get("code_block.line_spacing", 1.4)
 
     r = p.add_run("\n".join(code_lines))
-    set_run_font(r, size_pt=9.5, color=C_INK, font_cn=FONT_MONO,
-                 font_en=FONT_MONO)
+    set_run_font(
+        r,
+        size_pt=theme_get("code_block.font_size_pt", 9.5),
+        color=theme_color("code_block.text_color"),
+        font_cn=font_en_mono(),
+        font_en=font_en_mono(),
+    )
 
 
 def add_quote_block(doc, lines):
-    first_text = "\n".join(lines)
-    if "⚠️" in first_text[:10] or "**⚠️" in first_text:
-        border, fill = "BE123C", "FFE4E6"
-    elif "💡" in first_text[:10] or "**💡" in first_text:
-        border, fill = "D97706", "FEF3C7"
-    elif "✅" in first_text[:10] or "**✅" in first_text:
-        border, fill = "0E7C66", "CCFBF1"
-    else:
-        border, fill = "C2410C", "FFF7ED"
+    border = theme_color_hex("blockquote.default.border_color", "#C2410C")
+    fill = theme_color_hex("blockquote.default.fill_color", "#FFF7ED")
 
     for idx, line in enumerate(lines):
         if not line.strip():
@@ -574,18 +663,22 @@ def add_quote_block(doc, lines):
         pBdr = OxmlElement("w:pBdr")
         left = OxmlElement("w:left")
         left.set(qn("w:val"), "single")
-        left.set(qn("w:sz"), "20")
-        left.set(qn("w:space"), "10")
+        left.set(qn("w:sz"), str(theme_get("blockquote.common.left_border_size", 20)))
+        left.set(qn("w:space"), str(theme_get("blockquote.common.left_border_space", 10)))
         left.set(qn("w:color"), border)
         pBdr.append(left)
         pPr.append(pBdr)
 
         if idx == 0:
-            p.paragraph_format.space_before = Pt(8)
+            p.paragraph_format.space_before = Pt(theme_get("blockquote.common.space_before_pt", 8))
         if idx == len(lines) - 1:
-            p.paragraph_format.space_after = Pt(8)
-        p.paragraph_format.line_spacing = 1.5
-        add_inline_runs(p, line, base_size=10.5)
+            p.paragraph_format.space_after = Pt(theme_get("blockquote.common.space_after_pt", 8))
+        p.paragraph_format.line_spacing = theme_get("blockquote.common.line_spacing", 1.5)
+        add_inline_runs(
+            p,
+            line,
+            base_size=theme_get("blockquote.common.font_size_pt", 10.5),
+        )
 
 
 def add_table_block(doc, table_lines):
@@ -610,8 +703,8 @@ def add_table_block(doc, table_lines):
     for border_name in ("top", "left", "bottom", "right", "insideH", "insideV"):
         b = OxmlElement(f"w:{border_name}")
         b.set(qn("w:val"), "single")
-        b.set(qn("w:sz"), "4")
-        b.set(qn("w:color"), "D6D0C4")
+        b.set(qn("w:sz"), str(theme_get("table.border_size", 4)))
+        b.set(qn("w:color"), theme_color_hex("table.border_color", "#D6D0C4"))
         tblBorders.append(b)
     existing = tblPr.find(qn("w:tblBorders"))
     if existing is not None:
@@ -629,51 +722,73 @@ def add_table_block(doc, table_lines):
             for j, segment in enumerate(cell_text.split("\n")):
                 if j > 0:
                     p.add_run("\n")
-                add_inline_runs(p, segment, base_size=10)
+                add_inline_runs(p, segment, base_size=theme_get("table.body_font_size_pt", 10))
                 if row_idx == 0:
                     for r in p.runs:
-                        r.bold = True
-                        r.font.color.rgb = C_INK
+                        r.bold = theme_get("table.header_bold", True)
+                        r.font.color.rgb = theme_color("table.header_text_color")
             if row_idx == 0:
                 tcPr = cell._tc.get_or_add_tcPr()
                 shd = OxmlElement("w:shd")
                 shd.set(qn("w:val"), "clear")
-                shd.set(qn("w:fill"), "F5F5F0")
+                shd.set(qn("w:fill"), theme_color_hex("table.header_fill_color", "#F5F5F0"))
                 tcPr.append(shd)
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
 
 def add_list_block(doc, items, ordered=False, text_color=None,
-                   line_spacing=1.5, space_before_pt=0, space_after_pt=3):
+                   line_spacing=None, space_before_pt=None, space_after_pt=None):
     for i, item in enumerate(items, 1):
         p = doc.add_paragraph()
-        p.paragraph_format.left_indent = Cm(0.6)
-        p.paragraph_format.line_spacing = line_spacing
-        p.paragraph_format.space_before = Pt(space_before_pt)
-        p.paragraph_format.space_after = Pt(space_after_pt)
+        p.paragraph_format.left_indent = Cm(theme_get("lists.left_indent_cm", 0.6))
+        p.paragraph_format.line_spacing = (
+            line_spacing if line_spacing is not None else theme_get("lists.line_spacing", 1.5)
+        )
+        p.paragraph_format.space_before = Pt(
+            space_before_pt if space_before_pt is not None else theme_get("lists.space_before_pt", 0)
+        )
+        p.paragraph_format.space_after = Pt(
+            space_after_pt if space_after_pt is not None else theme_get("lists.space_after_pt", 3)
+        )
         prefix = f"{i}. " if ordered else "• "
         r = p.add_run(prefix)
-        set_run_font(r, size_pt=11, color=C_ORANGE, bold=True)
-        add_inline_runs(p, item, base_size=11, text_color=text_color)
+        set_run_font(
+            r,
+            size_pt=theme_get("lists.font_size_pt", 11),
+            color=theme_color("lists.marker_color"),
+            bold=theme_get("lists.marker_bold", True),
+        )
+        add_inline_runs(
+            p,
+            item,
+            base_size=theme_get("lists.font_size_pt", 11),
+            text_color=text_color or theme_color("body.text_color"),
+        )
 
 
-def render_block(doc, block, image_resolver, chapter_label=None,
-                 is_first_h1=False, reference_mode=False):
+def render_block(doc, block, image_resolver, reference_mode=False):
     kind = block["kind"]
     if kind == "heading":
-        add_heading(doc, block["level"], block["text"], chapter_label=None)
+        add_heading(doc, block["level"], block["text"])
     elif kind == "p":
-        if re.match(r"^\*[^*]+\*$", block["text"]):
-            add_italic_subtitle(doc, block["text"].strip("*"))
-        else:
-            add_paragraph(
-                doc,
-                block["text"],
-                text_color=C_ORANGE if block["text"].strip() == "参考资料：" else None,
-                line_spacing=1.0 if block["text"].strip() == "参考资料：" else 1.6,
-                space_before_pt=0,
-                space_after_pt=0 if block["text"].strip() == "参考资料：" else 6
-            )
+        is_reference = is_reference_title(block["text"])
+        add_paragraph(
+            doc,
+            block["text"],
+            text_color=theme_color("reference_section.title.color") if is_reference else None,
+            line_spacing=(
+                theme_get("reference_section.title.line_spacing", 1.0)
+                if is_reference else theme_get("body.line_spacing", 1.6)
+            ),
+            space_before_pt=(
+                theme_get("reference_section.title.space_before_pt", 0)
+                if is_reference else theme_get("body.space_before_pt", 0)
+            ),
+            space_after_pt=(
+                theme_get("reference_section.title.space_after_pt", 0)
+                if is_reference else theme_get("body.space_after_pt", 6)
+            ),
+        )
     elif kind == "code":
         add_code_block(doc, block["lines"])
     elif kind == "image":
@@ -685,16 +800,16 @@ def render_block(doc, block, image_resolver, chapter_label=None,
         add_table_block(doc, block["rows"])
     elif kind == "ul":
         add_list_block(doc, block["items"], ordered=False,
-                       text_color=C_ORANGE if reference_mode else None,
-                       line_spacing=1.0 if reference_mode else 1.5,
-                       space_before_pt=0,
-                       space_after_pt=0 if reference_mode else 3)
+                       text_color=theme_color("reference_section.item.color") if reference_mode else None,
+                       line_spacing=theme_get("reference_section.item.line_spacing", 1.0) if reference_mode else None,
+                       space_before_pt=theme_get("reference_section.item.space_before_pt", 0) if reference_mode else None,
+                       space_after_pt=theme_get("reference_section.item.space_after_pt", 0) if reference_mode else None)
     elif kind == "ol":
         add_list_block(doc, block["items"], ordered=True,
-                       text_color=C_ORANGE if reference_mode else None,
-                       line_spacing=1.0 if reference_mode else 1.5,
-                       space_before_pt=0,
-                       space_after_pt=0 if reference_mode else 3)
+                       text_color=theme_color("reference_section.item.color") if reference_mode else None,
+                       line_spacing=theme_get("reference_section.item.line_spacing", 1.0) if reference_mode else None,
+                       space_before_pt=theme_get("reference_section.item.space_before_pt", 0) if reference_mode else None,
+                       space_after_pt=theme_get("reference_section.item.space_after_pt", 0) if reference_mode else None)
     elif kind == "hr":
         add_horizontal_line(doc)
 
@@ -733,72 +848,10 @@ def add_cover_image_panel(doc, image_path):
     return True
 
 
-def add_cover(doc, title, subtitle, author, extra_info=None, cover_image=None):
-    has_cover_image = add_cover_image_panel(doc, cover_image)
-    if has_cover_image:
-        return
-
-    for _ in range(2):
-        doc.add_paragraph()
-
-    if extra_info:
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r = p.add_run(extra_info)
-        set_run_font(r, size_pt=10, color=C_MUTED, font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_after = Pt(10)
-
-    for _ in range(4):
-        doc.add_paragraph()
-
-    table = doc.add_table(rows=1, cols=2)
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table.autofit = False
-    remove_table_borders(table)
-
-    left_cell = table.rows[0].cells[0]
-    right_cell = table.rows[0].cells[1]
-    left_cell.width = Cm(10.2)
-    right_cell.width = Cm(3.8)
-    right_cell.vertical_alignment = WD_ALIGN_VERTICAL.BOTTOM
-
-    p = left_cell.paragraphs[0]
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    r = p.add_run(title)
-    set_run_font(r, size_pt=28, bold=True, color=C_INK,
-                 font_cn=FONT_CN_TITLE, font_en=FONT_EN)
-    p.paragraph_format.space_after = Pt(10)
-    p.paragraph_format.line_spacing = 1.15
-
-    if subtitle:
-        p = left_cell.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        r = p.add_run(subtitle)
-        set_run_font(r, size_pt=12.5, color=C_MUTED, font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_after = Pt(14)
-
-    p = left_cell.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    r = p.add_run("BOOK MANUSCRIPT")
-    set_run_font(r, size_pt=9.5, color=C_MUTED,
-                 font_cn=FONT_CN_HEAD, font_en=FONT_EN)
-
-    if author:
-        p = right_cell.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r = p.add_run("作者")
-        set_run_font(r, size_pt=9.5, color=C_MUTED, font_cn=FONT_CN_HEAD)
-        p.paragraph_format.space_after = Pt(6)
-
-        p = right_cell.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        r = p.add_run(author)
-        set_run_font(r, size_pt=16, bold=True, color=C_INK,
-                     font_cn=FONT_CN_HEAD)
-
-    tail_spacer = doc.add_paragraph()
-    tail_spacer.paragraph_format.space_after = Pt(12)
-    add_horizontal_line(doc, color_hex="D6D0C4")
+def add_cover(doc, cover_image):
+    if not add_cover_image_panel(doc, cover_image):
+        print(f"❌ 封面图不可用：{cover_image}", file=sys.stderr)
+        sys.exit(1)
 
 
 def parse_author_page_blocks(text):
@@ -823,85 +876,109 @@ def add_author_page(doc, text):
         if kind == "heading":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.space_before = Pt(theme_get("author_page.heading.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("author_page.heading.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("author_page.heading.line_spacing", 1.2)
             r = p.add_run(block["text"])
-            set_run_font(r, size_pt=10.5, bold=True, color=C_CORAL,
-                         font_cn=FONT_CN_HEAD)
+            set_run_font(
+                r,
+                size_pt=theme_get("author_page.heading.font_size_pt", 10.5),
+                bold=theme_get("author_page.heading.bold", True),
+                color=theme_color("author_page.heading.color"),
+                font_cn=font_cn_heading(),
+            )
         elif kind == "paragraph":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
-            add_inline_runs(p, block["text"], base_size=9.6)
+            p.paragraph_format.space_before = Pt(theme_get("author_page.paragraph.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("author_page.paragraph.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("author_page.paragraph.line_spacing", 1.2)
+            add_inline_runs(p, block["text"], base_size=theme_get("author_page.paragraph.font_size_pt", 9.6))
             for run in p.runs:
-                run.bold = False
-                run.font.color.rgb = C_INK
+                run.bold = theme_get("author_page.paragraph.bold", False)
+                run.font.color.rgb = theme_color("author_page.paragraph.color")
         elif kind == "link":
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.space_before = Pt(theme_get("author_page.link.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("author_page.link.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("author_page.link.line_spacing", 1.2)
             add_external_link(
-                p, block["text"], block["text"], size_pt=9.8,
-                color=(0x1A, 0x1A, 0x1A), font_cn=FONT_CN_HEAD,
-                font_en=FONT_EN
+                p, block["text"], block["text"],
+                size_pt=theme_get("author_page.link.font_size_pt", 9.8),
+                color=theme_color_tuple("author_page.link.color", "#1A1A1A"),
+                font_cn=font_cn_heading(),
+                font_en=font_en_body(),
+                underline=theme_get("author_page.link.underline", True),
             )
 
 
 def add_toc(doc, toc_items):
     """toc_items: list of {level, title}"""
     p = doc.add_paragraph()
-    r = p.add_run("目  录")
-    set_run_font(r, size_pt=18, bold=True, color=C_INK, font_cn=FONT_CN_HEAD)
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(0)
-    p.paragraph_format.line_spacing = 1.2
+    r = p.add_run(theme_get("toc.title.text", "目  录"))
+    set_run_font(
+        r,
+        size_pt=theme_get("toc.title.font_size_pt", 18),
+        bold=theme_get("toc.title.bold", True),
+        color=theme_color("toc.title.color"),
+        font_cn=font_cn_heading(),
+    )
+    p.paragraph_format.space_before = Pt(theme_get("toc.title.space_before_pt", 0))
+    p.paragraph_format.space_after = Pt(theme_get("toc.title.space_after_pt", 0))
+    p.paragraph_format.line_spacing = theme_get("toc.title.line_spacing", 1.2)
 
     for item in toc_items:
         level = item["level"]
         title = item["title"]
         p = doc.add_paragraph()
         if level == 1:
-            p.paragraph_format.left_indent = Cm(0)
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.left_indent = Cm(theme_get("toc.h1.left_indent_cm", 0))
+            p.paragraph_format.space_before = Pt(theme_get("toc.h1.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("toc.h1.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("toc.h1.line_spacing", 1.2)
             r2 = p.add_run(title)
-            set_run_font(r2, size_pt=11.5, bold=True, color=C_INK,
-                         font_cn=FONT_CN_HEAD)
+            set_run_font(
+                r2,
+                size_pt=theme_get("toc.h1.font_size_pt", 11.5),
+                bold=theme_get("toc.h1.bold", True),
+                color=theme_color("toc.h1.color"),
+                font_cn=font_cn_heading(),
+            )
         elif level == 2:
-            p.paragraph_format.left_indent = Cm(0.6)
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.left_indent = Cm(theme_get("toc.h2.left_indent_cm", 0.6))
+            p.paragraph_format.space_before = Pt(theme_get("toc.h2.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("toc.h2.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("toc.h2.line_spacing", 1.2)
             r2 = p.add_run(title)
-            set_run_font(r2, size_pt=9.5, color=C_INK)
+            set_run_font(
+                r2,
+                size_pt=theme_get("toc.h2.font_size_pt", 9.5),
+                bold=theme_get("toc.h2.bold", False),
+                color=theme_color("toc.h2.color"),
+            )
         else:
-            p.paragraph_format.left_indent = Cm(1.35)
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
+            p.paragraph_format.left_indent = Cm(theme_get("toc.h3.left_indent_cm", 1.35))
+            p.paragraph_format.space_before = Pt(theme_get("toc.h3.space_before_pt", 0))
+            p.paragraph_format.space_after = Pt(theme_get("toc.h3.space_after_pt", 0))
+            p.paragraph_format.line_spacing = theme_get("toc.h3.line_spacing", 1.2)
             r = p.add_run(title)
-            set_run_font(r, size_pt=7.5, color=C_MUTED)
+            set_run_font(
+                r,
+                size_pt=theme_get("toc.h3.font_size_pt", 7.5),
+                bold=theme_get("toc.h3.bold", False),
+                color=theme_color("toc.h3.color"),
+            )
 
 
 # ============================================================
 # 页面设置
 # ============================================================
-def configure_section_page(section, page_size="book", full_bleed=False):
-    if page_size == "book":
-        section.page_width = Cm(17.6)
-        section.page_height = Cm(24.0)
-        top = bottom = Cm(2.2)
-        left = right = Cm(2.0)
-    else:
-        section.page_width = Cm(21.0)
-        section.page_height = Cm(29.7)
-        top = bottom = left = right = Cm(2.5)
+def configure_section_page(section, full_bleed=False):
+    section.page_width = Cm(17.6)
+    section.page_height = Cm(24.0)
+    top = bottom = Cm(2.2)
+    left = right = Cm(2.0)
 
     if full_bleed:
         section.top_margin = Cm(0)
@@ -928,67 +1005,61 @@ def configure_author_page(section):
     section.footer_distance = Cm(0)
 
 
-def setup_page(doc, page_size="book"):
+def setup_page(doc):
     section = doc.sections[0]
-    configure_section_page(section, page_size=page_size, full_bleed=False)
+    configure_section_page(section, full_bleed=False)
 
     style = doc.styles["Normal"]
-    style.font.name = FONT_CN_BODY
-    style.font.size = Pt(11)
+    style.font.name = font_cn_body()
+    style.font.size = Pt(theme_get("body.font_size_pt", 11))
     rPr = style.element.get_or_add_rPr()
     rFonts = rPr.find(qn("w:rFonts"))
     if rFonts is None:
         rFonts = OxmlElement("w:rFonts")
         rPr.append(rFonts)
-    rFonts.set(qn("w:eastAsia"), FONT_CN_BODY)
-    rFonts.set(qn("w:ascii"), FONT_EN)
-    rFonts.set(qn("w:hAnsi"), FONT_EN)
+    rFonts.set(qn("w:eastAsia"), font_cn_body())
+    rFonts.set(qn("w:ascii"), font_en_body())
+    rFonts.set(qn("w:hAnsi"), font_en_body())
 
 
 # ============================================================
 # 主流程
 # ============================================================
 def build_docx(md_files, output, images_dir=None, book_mode=False,
-               title=None, subtitle=None, author=None, extra_info=None,
-               chapter_labels=None, page_size="book", cover_image=None,
-               author_page_text=None):
+               title=None, cover_image=None, author_page_text=None):
     doc = Document()
-    setup_page(doc, page_size=page_size)
+    setup_page(doc)
 
     if book_mode and title:
         if not cover_image:
             print("❌ 书籍模式必须提供封面图：请传入 --cover-image /path/to/cover.png", file=sys.stderr)
             sys.exit(1)
-        configure_section_page(doc.sections[0], page_size=page_size, full_bleed=True)
-        add_cover(doc, title, subtitle, author, extra_info, cover_image)
+        configure_section_page(doc.sections[0], full_bleed=True)
+        add_cover(doc, cover_image)
         if author_page_text:
             author_section = doc.add_section(WD_SECTION.NEW_PAGE)
             configure_author_page(author_section)
             add_author_page(doc, author_page_text)
 
         toc_section = doc.add_section(WD_SECTION.NEW_PAGE)
-        configure_section_page(toc_section, page_size=page_size, full_bleed=False)
+        configure_section_page(toc_section, full_bleed=False)
 
         # 目录：严格收 H1/H2/H3，不包含正文
         toc_items = []
-        for idx, md in enumerate(md_files):
-            label = (chapter_labels[idx] if chapter_labels
-                     and idx < len(chapter_labels)
-                     else "")
+        for md in md_files:
             text = Path(md).read_text(encoding="utf-8")
-            file_toc_items = extract_toc_items(text, chapter_label=label)
+            file_toc_items = extract_toc_items(text)
             if not file_toc_items:
                 fallback_title = clean_chapter_title(Path(md).stem)
                 file_toc_items = [{
                     "level": 1,
-                    "label": label,
                     "title": fallback_title,
                 }]
             toc_items.extend(file_toc_items)
         add_toc(doc, toc_items)
 
         content_section = doc.add_section(WD_SECTION.NEW_PAGE)
-        configure_section_page(content_section, page_size=page_size, full_bleed=False)
+        configure_section_page(content_section, full_bleed=False)
 
     elif book_mode:
         print("❌ --book 模式必须指定 --title", file=sys.stderr)
@@ -1003,8 +1074,6 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
         md_text = md_path.read_text(encoding="utf-8")
         image_refs = extract_image_refs(md_text)
         blocks = parse_blocks(md_text, image_refs)
-        chapter_label = (chapter_labels[idx] if chapter_labels
-                         and idx < len(chapter_labels) else None)
 
         # 图片解析器
         def make_resolver(md_p, refs):
@@ -1049,17 +1118,13 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
                          if b["kind"] == "p")
         print(f"  ✓ {md_path.name}  ~{text_chars} 字 · {n_imgs} 图")
 
-        is_first_h1 = True
         reference_mode = False
         for b in blocks:
             if b["kind"] == "p":
-                reference_mode = b.get("text", "").strip() == "参考资料："
+                reference_mode = is_reference_title(b.get("text", ""))
             elif b["kind"] not in {"ul", "ol"}:
                 reference_mode = False
-            render_block(doc, b, resolver, chapter_label=chapter_label,
-                         is_first_h1=is_first_h1, reference_mode=reference_mode)
-            if b["kind"] == "heading" and b["level"] == 1:
-                is_first_h1 = False
+            render_block(doc, b, resolver, reference_mode=reference_mode)
 
         if book_mode and idx < len(md_files) - 1:
             add_page_break(doc)
@@ -1081,19 +1146,10 @@ def main():
     ap.add_argument("--book", action="store_true",
                     help="书籍模式：加封面+作者页+目录+章节分页")
     ap.add_argument("--title", help="书名（书籍模式必填）")
-    ap.add_argument("--subtitle", help="副标题")
-    ap.add_argument("--author", help="作者")
-    ap.add_argument("--extra-info", help="封面顶部小字（如「2026 年 · 橙皮书系列」）")
-    ap.add_argument("--chapter-labels",
-                    help="章号标签，逗号分隔（如「第 1 章,第 2 章,后记」）")
-    ap.add_argument("--author-page-file",
-                    help="作者页内容文件（Markdown/纯文本，生成可复制文本页）")
     ap.add_argument("--author-page-preset", choices=["100qs"],
                     help="内置作者页模板")
     ap.add_argument("--cover-image",
                     help="封面背景图/题图路径（书籍模式使用）")
-    ap.add_argument("--page-size", choices=["book", "a4"], default="book",
-                    help="页面规格：book=大 32 开 / a4=A4")
     args = ap.parse_args()
 
     md_files = [Path(f) for f in args.md_files]
@@ -1109,14 +1165,8 @@ def main():
         else:
             output = "book.docx"
 
-    chapter_labels = None
-    if args.chapter_labels:
-        chapter_labels = [s.strip() for s in args.chapter_labels.split(",")]
-
     author_page_text = None
-    if args.author_page_file:
-        author_page_text = Path(args.author_page_file).read_text(encoding="utf-8")
-    elif args.author_page_preset == "100qs":
+    if args.author_page_preset == "100qs":
         author_page_text = load_builtin_author_page(args.author_page_preset)
 
     if args.book and not args.title:
@@ -1130,11 +1180,6 @@ def main():
         images_dir=args.images_dir,
         book_mode=args.book,
         title=args.title,
-        subtitle=args.subtitle,
-        author=args.author,
-        extra_info=args.extra_info,
-        chapter_labels=chapter_labels,
-        page_size=args.page_size,
         cover_image=args.cover_image,
         author_page_text=author_page_text,
     )

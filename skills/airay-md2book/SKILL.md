@@ -43,12 +43,8 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch01.md ch02.md ch03.md -o combined.d
 ```bash
 python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --book \
   --title "图解 Agent Skills" \
-  --subtitle "让 AI 记住你的工作方式" \
-  --author "花叔" \
-  --extra-info "2026 年 · 橙皮书系列" \
   --cover-image ./cover.png \
   --author-page-preset 100qs \
-  --chapter-labels "第 1 章,第 2 章,第 3 章,后记,附录" \
   --images-dir ./images \
   -o book.docx
 ```
@@ -57,16 +53,10 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 
 - `--book`：开启书籍模式，自动加封面、目录、作者页、章节分页
 - `--title`：书名，书籍模式必填
-- `--subtitle`：副标题
-- `--author`：作者名
-- `--extra-info`：封面顶部小字
 - `--cover-image`：封面图路径；书籍模式必填，封面页只放这张图，不再额外叠加文字
-- `--author-page-file`：作者页内容文件，生成可复制文本页
 - `--author-page-preset`：内置作者页模板，当前支持 `100qs`
   - `100qs` 已固化为技能内置模板，后续所有《100 个问题系列》书稿可直接复用
-- `--chapter-labels`：保留兼容参数；当前不再用于目录页和章节页显示
 - `--images-dir`：图片目录
-- `--page-size`：`book` 或 `a4`
 - `-o/--output`：输出 docx 路径
 
 ## 输入约定
@@ -129,16 +119,6 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch01.md --book \
   -o book.docx
 ```
 
-或者传你自己的内容文件：
-
-```bash
-python3 "$SKILL_DIR/scripts/md_to_docx.py" ch01.md --book \
-  --title "AI Agent 100 问" \
-  --cover-image ./cover.png \
-  --author-page-file ./author-page.md \
-  -o book.docx
-```
-
 作者页排版已固化：
 
 - 在原字号基础上统一减 2
@@ -146,12 +126,25 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch01.md --book \
 - 段前段后均为 0
 - 全书页眉页脚强制留空：不得写任何文字、页码、换行或占位内容
 
+### 参考资料
+
+`参考资料` 这一节的识别和样式入口已经统一放到：
+
+- [docx-theme.yaml](/Users/agiray/Desktop/github/airay-skills/skills/airay-md2book/docx-theme.yaml)
+
+重点看：
+
+- `reference_section.title_text`
+- `reference_section.title_texts`
+- `reference_section.title`
+- `reference_section.item`
+
 ## 依赖
 
 先确保安装：
 
 ```bash
-python3 -m pip install python-docx Pillow
+python3 -m pip install python-docx Pillow PyYAML
 ```
 
 脚本缺依赖时会直接报错并提示安装命令。
@@ -163,9 +156,3 @@ python3 -m pip install python-docx Pillow
 - docx 的绝对路径
 - 文件是否成功生成
 - 如果是书籍模式，可顺带说明包含了封面、作者页和目录
-
-## 参考
-
-完整 cookbook：
-
-- `references/md-to-docx-cookbook.md`

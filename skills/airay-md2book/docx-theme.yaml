@@ -1,0 +1,277 @@
+# airay-md2book 默认样式配置草案
+# 当前文件已经接入 md_to_docx.py。
+# 目标：把字体、颜色、字号、行距、段前段后等高频调整项从代码里抽出来。
+
+meta:
+  # 配置名称，仅用于识别这份主题
+  theme_name: "airay-md2book-default"
+  # 配置版本，后续结构升级时用于区分
+  version: 1
+  # 当前状态：active 表示脚本正在读取这份配置
+  status: "active"
+
+# 全局字体设置
+fonts:
+  # 正文中文字体
+  cn_body: "Songti SC"
+  # 标题中文字体
+  cn_heading: "Songti SC"
+  # 全文英文字体
+  en_body: "Consolas"
+  # 代码块和行内代码字体
+  en_mono: "Consolas"
+
+# 全局颜色设置
+# 使用十六进制颜色，后续脚本接入时直接转成 docx 颜色对象
+colors:
+  # 主红色：章节标题、问题标题、参考资料、列表符号、代码左边线等
+  primary_red: "#C2410C"
+  # 正文主文字颜色
+  text_black: "#1A1A1A"
+  # 次级文字颜色
+  text_muted: "#6B6B6B"
+  # 玫红：缺图提示、警告引用块等
+  rose: "#BE123C"
+  # 珊瑚色：作者页小标题
+  coral: "#FF6C5C"
+  # 柔和浅灰线
+  soft_rule: "#D6D0C4"
+  # 代码块和表头浅底色
+  soft_fill: "#F5F5F0"
+  # 普通引用块浅底色
+  quote_default_fill: "#FFF7ED"
+
+# 正文基础排版
+body:
+  # 正文字号，单位 pt
+  font_size_pt: 11
+  # 正文行距，倍数
+  line_spacing: 1.6
+  # 段前距离，单位 pt
+  space_before_pt: 0
+  # 段后距离，单位 pt
+  space_after_pt: 6
+  # 默认正文颜色
+  text_color: "text_black"
+
+# 章节标题与小标题
+headings:
+  h1:
+    # 一级标题字号，单位 pt
+    font_size_pt: 24
+    # 是否加粗
+    bold: true
+    # 字色
+    color: "primary_red"
+    # 段后距离，单位 pt
+    space_after_pt: 14
+    # 底部分隔线颜色
+    border_bottom_color: "primary_red"
+    # 底部分隔线粗细，单位为 docx 原始值
+    border_bottom_size: 12
+    # 底部分隔线与文字距离
+    border_bottom_space: 8
+  h2:
+    font_size_pt: 17
+    bold: true
+    color: "primary_red"
+    space_before_pt: 20
+    space_after_pt: 8
+  h3:
+    font_size_pt: 13.5
+    bold: true
+    color: "primary_red"
+    space_before_pt: 12
+    space_after_pt: 4
+  h4_plus:
+    font_size_pt: 12
+    bold: true
+    color: "primary_red"
+    space_before_pt: 8
+
+# 目录页排版
+toc:
+  title:
+    # 目录标题文案
+    text: "目  录"
+    font_size_pt: 18
+    bold: true
+    color: "text_black"
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+  h1:
+    font_size_pt: 11.5
+    bold: true
+    color: "text_black"
+    left_indent_cm: 0
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+  h2:
+    font_size_pt: 9.5
+    bold: false
+    color: "text_black"
+    left_indent_cm: 0.6
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+  h3:
+    font_size_pt: 7.5
+    bold: false
+    color: "text_muted"
+    left_indent_cm: 1.35
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+
+# 作者页排版
+author_page:
+  heading:
+    font_size_pt: 10.5
+    bold: true
+    color: "coral"
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+  paragraph:
+    font_size_pt: 9.6
+    bold: false
+    color: "text_black"
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+  link:
+    font_size_pt: 9.8
+    color: "text_black"
+    underline: true
+    line_spacing: 1.2
+    space_before_pt: 0
+    space_after_pt: 0
+
+# 普通列表样式
+lists:
+  # 列表缩进，单位 cm
+  left_indent_cm: 0.6
+  # 列表文字字号，单位 pt
+  font_size_pt: 11
+  # 列表符号或数字颜色
+  marker_color: "primary_red"
+  # 是否让列表符号加粗
+  marker_bold: true
+  # 行距
+  line_spacing: 1.5
+  # 段前距离
+  space_before_pt: 0
+  # 段后距离
+  space_after_pt: 3
+
+# “参考资料”专属样式
+reference_section:
+  # 触发这个模式的主标题文案
+  title_text: "参考资料："
+  # 如果以后想支持多个同义标题，就在这里继续加
+  title_texts:
+    - "参考资料："
+  title:
+    font_size_pt: 11
+    color: "primary_red"
+    line_spacing: 1.0
+    space_before_pt: 0
+    space_after_pt: 0
+  item:
+    font_size_pt: 11
+    color: "primary_red"
+    line_spacing: 1.0
+    space_before_pt: 0
+    space_after_pt: 0
+
+# 引用块样式
+blockquote:
+  common:
+    # 引用块文字字号
+    font_size_pt: 10.5
+    # 引用块行距
+    line_spacing: 1.5
+    # 第一段前距
+    space_before_pt: 8
+    # 最后一段后距
+    space_after_pt: 8
+    # 左侧竖线粗细，单位为 docx 原始值
+    left_border_size: 20
+    # 左侧竖线与文字距离
+    left_border_space: 10
+  default:
+    border_color: "primary_red"
+    fill_color: "quote_default_fill"
+
+# 表格样式
+table:
+  # 表格边框颜色
+  border_color: "soft_rule"
+  # 表格边框粗细，单位为 docx 原始值
+  border_size: 4
+  # 表头背景色
+  header_fill_color: "soft_fill"
+  # 表头文字颜色
+  header_text_color: "text_black"
+  # 表头是否加粗
+  header_bold: true
+  # 单元格字号
+  body_font_size_pt: 10
+
+# 图片样式
+image:
+  # 正文图片最大宽度，单位 inch
+  max_width_inches: 5.8
+  # 图片前间距，单位 pt
+  space_before_pt: 10
+  # 图片后间距，单位 pt
+  space_after_pt: 4
+  # 图说字号，单位 pt
+  caption_font_size_pt: 9
+  # 图说颜色
+  caption_color: "text_muted"
+  # 图说段后距离，单位 pt
+  caption_space_after_pt: 14
+  # 缺图提示字号
+  missing_image_font_size_pt: 9
+  # 缺图提示颜色
+  missing_image_color: "rose"
+
+# 代码块样式
+code_block:
+  # 背景色
+  background_color: "soft_fill"
+  # 左边线颜色
+  left_border_color: "primary_red"
+  # 左边线粗细，单位为 docx 原始值
+  left_border_size: 16
+  # 左边线与内容距离
+  left_border_space: 10
+  # 字号，单位 pt
+  font_size_pt: 9.5
+  # 字色
+  text_color: "text_black"
+  # 行距
+  line_spacing: 1.4
+  # 段前距离
+  space_before_pt: 8
+  # 段后距离
+  space_after_pt: 8
+
+# 行内代码样式
+inline_code:
+  # 相对正文缩小的字号差值
+  font_size_delta_pt: -0.5
+  # 行内代码颜色
+  color: "primary_red"
+
+# 分隔线样式
+horizontal_rule:
+  # 分隔线颜色
+  color: "soft_rule"
+  # 分隔线粗细，单位为 docx 原始值
+  size: 6
+  # 分隔线与段落距离
+  space: 1
