@@ -46,11 +46,11 @@ body:
   # 正文字号，单位 pt
   font_size_pt: 11
   # 正文行距，倍数
-  line_spacing: 1.6
+  line_spacing: 1.5
   # 段前距离，单位 pt
   space_before_pt: 0
   # 段后距离，单位 pt
-  space_after_pt: 6
+  space_after_pt: 0
   # 默认正文颜色
   text_color: "text_black"
 
