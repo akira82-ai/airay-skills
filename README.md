@@ -4,8 +4,8 @@ AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
-- 技能数量：14
-- 最近更新：2026-06-26
+- 技能数量：15
+- 最近更新：2026-07-04
 
 ## 安装
 
@@ -41,6 +41,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-insights-zh | 生成/翻译 Claude Code insights 中文报告 |
 | airay-viral-forge | 将工具、资源、经验和专业内容锻造成高传播短视频脚本 |
 | airay-lark-wiki-agent | 飞书知识库 Wiki 节点 CRUD 与批量操作 |
+| airay-md2book | 将一份或多份 Markdown 加工成书籍级 docx |
 | airay-prompt-optimizer | 诊断并优化提示词，输出可直接复制的改写版本 |
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计指定时间段内的技能使用情况 |

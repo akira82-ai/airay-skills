@@ -14,6 +14,7 @@ description: |
 2. Script path = `{baseDir}/scripts/{script-name}`
 3. Before running any script, resolve `{baseDir}` first
 
+## 启动横幅
 
 **重要**：技能加载后，将下方 banner 以纯文本形式输出给用户，然后再执行任何操作。
 
@@ -28,7 +29,7 @@ description: |
   恢复    从备份文件还原技能到 ~/.claude/skills/
   列表    查看备份文件中包含的技能清单
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-03-31
+最后更新：2026-05-25
 
 技能已启动...
 ```
