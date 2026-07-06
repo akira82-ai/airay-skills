@@ -1,6 +1,6 @@
 ---
 name: airay-agent-review
-version: 1.2.0
+version: 1.2.1
 description: |
   每日复盘。根据 Claude Code / Codex / ZCode 本地对话记录，生成结构化的每日工作复盘报告。支持当天、昨天、近 3 天、近 7 天。
 
@@ -88,6 +88,11 @@ python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms>
 ```json
 {
   "sessions": [{"source": "claude/codex/zcode", ...}],
+  "source_summary": {
+    "claude": {"sessions": 0, "messages": 0, "tool_calls": 0, "tool_errors": 0},
+    "codex": {"sessions": 3, "messages": 67, "tool_calls": 92, "tool_errors": 0},
+    "zcode": {"sessions": 1, "messages": 2, "tool_calls": 2, "tool_errors": 0}
+  },
   "total_messages": N,
   "tool_calls": {"Bash": 36, "Read": 2, "Write": 2, ...},
   "tool_errors": {...},
@@ -105,6 +110,17 @@ python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms>
 - ZCode session 索引补充（从 db.sqlite 读取工作目录）
 - Claude 路径编码（项目路径中的 / 替换为 -）
 - 错误统计（Claude 的 is_error 标记 / Codex 工具输出 exit_code / ZCode 仅在存在明确错误标记时统计）
+
+### 第 3.5 步：先做数据源完整性判断
+
+在写报告前，必须先读取 `source_summary`，确认 Claude Code、Codex、ZCode 三类来源的结果。
+
+硬规则：
+
+- 不能只因为 Claude Code 为 0，就判定“当天无记录”。
+- 只有当 `source_summary.claude.sessions`、`source_summary.codex.sessions`、`source_summary.zcode.sessions` 三者同时为 0 时，才能生成“当天无记录”版本。
+- 只要 Codex 或 ZCode 任一来源命中会话，就必须按正常复盘写，不得输出“复盘数据源为空”“当天无记录”“未命中任何有效会话”之类表述。
+- 概要、困难与卡点、AI 自评里都不能把数据源写成仅有 Claude Code，必须按真实命中来源表述；如果三者都有命中，可以写“根据 Claude Code、Codex、ZCode 本地对话记录”。
 
 ### 第 4 步：获取 Git 提交记录
 
@@ -163,3 +179,4 @@ python <airay-agent-review技能目录>/scripts/extract.py --start_ms <start_ms>
 - 不设"下一步"章节
 - 使用中文
 - 不使用 emoji
+- 如果当天无记录，前提必须是三类来源合并后确实全为 0

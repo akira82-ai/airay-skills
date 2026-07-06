@@ -20,7 +20,7 @@
 
 ## 《100 个问题系列》丛书库
 
-https://github.com/akira82-ai/100-questions-of-ai-agent
+https://my.feishu.cn/wiki/FC6ZwnwWWi0dWpke56act61gnUd
 
 ## 我是磊叔，认识一下
 

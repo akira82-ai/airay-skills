@@ -434,6 +434,25 @@ def get_zcode_sessions(start_ms: int, end_ms: int) -> List[Dict[str, Any]]:
     return sessions
 
 
+def build_source_summary(sessions: List[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
+    summary = {
+        'claude': {'sessions': 0, 'messages': 0, 'tool_calls': 0, 'tool_errors': 0},
+        'codex': {'sessions': 0, 'messages': 0, 'tool_calls': 0, 'tool_errors': 0},
+        'zcode': {'sessions': 0, 'messages': 0, 'tool_calls': 0, 'tool_errors': 0}
+    }
+
+    for session in sessions:
+        source = session.get('source')
+        if source not in summary:
+            continue
+        summary[source]['sessions'] += 1
+        summary[source]['messages'] += session.get('message_count', 0)
+        summary[source]['tool_calls'] += sum(session.get('tool_calls', {}).values())
+        summary[source]['tool_errors'] += sum(session.get('tool_errors', {}).values())
+
+    return summary
+
+
 def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     """
     提取指定时间范围内的所有数据
@@ -455,6 +474,7 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     # 聚合所有数据
     all_data = {
         'sessions': [],
+        'source_summary': {},
         'total_messages': 0,
         'tool_calls': defaultdict(int),
         'tool_errors': defaultdict(int),
@@ -544,6 +564,7 @@ def extract_all_data(start_ms: int, end_ms: int) -> Dict[str, Any]:
     all_data['tool_errors'] = dict(all_data['tool_errors'])
     all_data['files_touched'] = sorted(list(all_data['files_touched']))
     all_data['projects'] = sorted(list(all_data['projects']))
+    all_data['source_summary'] = build_source_summary(all_data['sessions'])
 
     return all_data
 
