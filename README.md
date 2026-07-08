@@ -5,7 +5,7 @@ AI 磊叔 开发或二创的技能仓库。
 ## 项目状态
 
 - 技能数量：15
-- 最近更新：2026-07-04
+- 最近更新：2026-07-08
 
 ## 安装
 
@@ -39,7 +39,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-html-ppt-skill | 生成杂志风横向翻页 Web PPT（含导出能力） |
 | airay-idea-to-post | 通过多轮引导将灵感扩展为深度文章 |
 | airay-insights-zh | 生成/翻译 Claude Code insights 中文报告 |
-| airay-viral-forge | 将工具、资源、经验和专业内容锻造成高传播短视频脚本 |
+| airay-viral-forge | 基于开环驱动模型+5段结构+9模板钩子的高传播短视频脚本锻造（v4.0） |
 | airay-lark-wiki-agent | 飞书知识库 Wiki 节点 CRUD 与批量操作 |
 | airay-md2book | 将一份或多份 Markdown 加工成书籍级 docx |
 | airay-prompt-optimizer | 诊断并优化提示词，输出可直接复制的改写版本 |
