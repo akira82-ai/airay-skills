@@ -18,7 +18,7 @@ description: 围绕技术、产品、工具、方法论、工程实践类主题�
 磊叔 │ 微信：AIRay1015 │ github.com/akira82-ai
 技能已启动...
 ═══════════════════════════════════════════════════════════════
-最后更新：2026-07-01
+最后更新：2026-07-10
 ```
 
 ## Default Behavior
@@ -111,8 +111,11 @@ description: 围绕技术、产品、工具、方法论、工程实践类主题�
 - 产品类主题必须额外搜索 `release notes` 或 `changelog`。
 - 每轮并行搜索 3-4 个方向，不要只盯官方文档。
 - 优先找真实经验帖、社区讨论、issue、吐槽和版本更新记录。
-- 当环境允许联网时，优先使用 firecrawl；如果当前环境没有 firecrawl，再使用可用搜索工具。
-- Google、Bing 或其他搜索工具只负责发现候选页面，不直接作为问题来源。
+- 三层搜索工具协同（详见下方"可用研究工具"）：
+  1. `wechat-article-search`：补中文公众号一手经验
+  2. `Bing/Google`：智能关键字广度搜索，发现候选页面
+  3. `deep-research`：对高价值页面全文抓取 + 多源综合深挖
+- 搜索引擎拿到的候选页面，不直接作为问题来源；必须用 `deep-research` 的 WebFetch 抓全文后再提炼。
 
 搜索源分工：
 
@@ -137,6 +140,91 @@ description: 围绕技术、产品、工具、方法论、工程实践类主题�
 - 中文补充：`v2ex.com`、`sspai.com`
 
 优先使用公开可访问、正文清晰、agent 易抓取的页面。遇到登录墙、反爬或正文残缺，直接换源，不要硬用。
+
+站点池作为搜索引擎的站点限定参数用：用 `site:reddit.com`、`site:v2ex.com` 等限定 Bing/Google 查询范围，把通用搜索流量导向高价值信源。
+
+### 可用研究工具
+
+本技能按三层分工调用以下研究/检索工具，不要只用通用 Web 搜索。默认执行顺序：公众号补中文 → Bing/Google 广度发现 → deep-research 深度综合。
+
+#### 第 1 层：wechat-article-search（公众号检索）
+
+定位：中文公众号文章检索，补充 Web 搜索覆盖不到的中文一手经验、社区讨论和中文圈踩坑帖。
+
+- 实现：基于搜狗微信搜索（weixin.sogou.com）的 Python 脚本
+- 信号源：微信公众号文章 + 公众号账号本身
+- 关键参数：
+  - `--count/-c`：返回条数（默认 10，最多 100）
+  - `--type/-t`：`article`（文章，默认）/ `gzh`（公众号账号）
+  - `--days/-d`：最近 N 天（**必带**，否则返回旧文）
+  - `--hours`：最近 N 小时
+  - `--time-range`：日期区间 `YYYY-MM-DD YYYY-MM-DD`
+  - `--fetch-content/-f`：抓取文章原文
+  - `--limit/-l`：抓原文条数限制
+  - `--output/-o`：导出 JSON
+  - `--no-limit`：禁限频（最快，已测 30 并发无封）
+- 典型组合：
+
+  ```bash
+  # 抓最近 7 天 30 篇含原文
+  python scripts/sogou_search.py "关键词" --count 30 --days 7 --fetch-content
+  ```
+
+- 已知坑：冷门词在指定时间内文章不足时，搜狗会**补旧文凑数** → 拿到结果后按 `time` 字段二次过滤
+- 使用时机：中文主题、中文社区经验、中文圈产品反馈、或者 Web 搜索信号太弱时
+
+#### 第 2 层：Bing / Google（智能关键字广度搜索）
+
+定位：用智能生成的中英文关键字做广度搜索，发现候选页面，再用站点池做 `site:` 限定把流量导向高价值信源。
+
+智能关键字生成规则：
+
+| 维度 | 做法 |
+|---|---|
+| 双语 | 每个搜索方向同时生成中文 + 英文关键字，不能只用一种 |
+| 变形 | 原词、同义词、行业黑话、缩写、产品代号都要覆盖（如"降级"→degrade/fallback/circuit break） |
+| 组合 | 主题词 × 痛点词 × 场景词（如 "X + 踩坑/production failure/real world"） |
+| 年份 | 所有关键字强制带当前年份 |
+| 分型 | 概念类、踩坑类、对比类、版本类各自出不同关键字组合 |
+
+站点限定示例：
+
+- 官方：`site:github.com`、`site:stackoverflow.com`
+- 社区：`site:reddit.com`、`site:news.ycombinator.com`
+- 中文：`site:v2ex.com`、`site:sspai.com`
+- 长文：`site:medium.com`、`site:substack.com`
+
+关键限制：搜索引擎只负责发现候选页面，不直接作为问题来源；高价值页面交给 `deep-research` 抓全文后提炼。
+
+#### 第 3 层：deep-research（深度研究）
+
+定位：多子 agent 并行执行的深度研究工具，对 Bing/Google 发现的高价值页面做全文抓取和多源综合深挖。
+
+- 架构：Lead Agent（规划/澄清/综合） + research_subagent（并行抓取）
+- 查询分型：
+  - Depth-first：多视角深挖单一主题
+  - Breadth-first：拆成多个子题并行覆盖
+  - Straightforward：单 agent 直查
+- Subagent 数量预算（按复杂度）：
+  - 简单：1 个 / <5 次工具调用
+  - 中等：3-5 个 / 5 次调用
+  - 困难：5-10 个 / 10 次调用
+  - 硬上限：20 个 subagent / 单 subagent 20 次调用 / 100 源
+- 并发控制：**同时运行的 subagent 最多 3 个**，超出排成队列串行启动，避免触发大模型并发限制
+- 源质量规则：
+  - 优先一手源（官网、SEC、政府门户、原报告）
+  - 避开新闻聚合器、匿名引述、营销话术
+  - 事实冲突按 新鲜度 / 交叉一致性 / 源质量 综合裁决，无法调和就上报冲突
+- 边际递减：新信息不再改变结论时立即停止、进入综合
+- 输出：`research_plan_[topic].md` + `research_report_[topic].md`（Markdown，含 References 链接）
+- 使用时机：主题大、需要多源交叉、或者需要深挖争议/踩坑/迁移类信息时
+
+#### 三层配合
+
+- 默认执行顺序：`wechat-article-search`（中文一手）→ `Bing/Google`（智能关键字广度发现）→ `deep-research`（全文抓取 + 多源综合深挖）
+- 如果主题偏英文/国际社区（如 React、Rust、K8s 新版本）：跳过或弱化公众号，主用 Bing/Google + deep-research
+- 如果主题是中文产品或中文圈热点（如飞书、钉钉、抖音电商、私域运营）：重用 wechat-article-search，Bing/Google 作为补充，deep-research 用于综合
+- 三层结果在进入六章建模前合并去重，不要分层重复提炼同一个问题
 
 ### 阶段 3：六章建模
 
