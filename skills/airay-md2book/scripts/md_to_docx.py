@@ -468,8 +468,9 @@ CHAPTER_PREFIX_RE = re.compile(
 
 
 def clean_chapter_title(text):
-    clean = CHAPTER_PREFIX_RE.sub("", text).strip()
-    clean = re.sub(r"^\d{2}\s+", "", clean).strip()
+    # 不再剥除"第X章"前缀——完整保留原标题（如"第一章 · 认知颠覆"）
+    # 仅清理文件名残留的两位数字前缀（如 "01 "）
+    clean = re.sub(r"^\d{2}\s+", "", text).strip()
     return clean if clean else text.strip()
 
 
