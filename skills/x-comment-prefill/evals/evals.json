@@ -1,0 +1,178 @@
+{
+  "skill_name": "x-comment-prefill",
+  "description": "验证 X 评论预填技能的状态恢复、候选冻结、评论策略和人工交接边界",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-run-state-and-gates",
+      "description": "新一轮扫描请求应先建立临时参数和状态机，不把长期规则与本轮目标混在一起",
+      "prompt": "用 Chrome 扫描当前 X 内容流前 50 条，目标是引流优先，主题全部，自然匹配时允许放链接。筛选后串行打开详情页、填好评论但不要提交。请把本轮状态和每一步的验收结果记录清楚。",
+      "expected_output": "先记录 run_id、浏览器、目标、主题、链接策略和阶段；按预检、去重、筛选冻结、详情核验、精确回读、live tabs 交接执行，并明确 submitted=false。",
+      "files": [],
+      "expectations": [
+        "建立包含 run_id、current_stage、browser 和 goal 的本轮状态",
+        "在详情页填充前先冻结去重后的候选清单",
+        "最终报告区分 opened、filled、handed_off 和 submitted=false"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "continue-resumes-active-run",
+      "description": "继续请求应恢复当前阶段并复用历史排除集，不重新扫描或替换已处理候选",
+      "prompt": "上一轮 x-comment-prefill 已经完成 50 条去重扫描，候选清单已冻结，正在处理第 3 个详情 tab；前两个已精确回读成功。现在我说：继续。请说明你会从哪里恢复、哪些 URL 不能再访问，以及是否会重新扫描。",
+      "expected_output": "恢复同一个 run_id 和 detail 阶段，保留前两个候选的事实，排除已读和历史 status URL，不重新扫描、不为同一 URL 开替代 tab。",
+      "files": [],
+      "expectations": [
+        "继续时恢复 active run 的当前阶段而不是创建新规则",
+        "复用 scanned_status_urls 和 historical_status_urls 排除集",
+        "不重新扫描、不重做已完成候选、不创建同 URL 替代 tab"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "revise-one-comment-only",
+      "description": "改评论请求只影响指定候选 tab，不触发全量重跑",
+      "prompt": "把 status URL 为 https://x.com/example/status/123 的评论改得更像分享信息，去掉链接；其他已经填好的评论不要动，也不要重新扫描 X。改完后重新核验这个 tab 的精确回读状态。",
+      "expected_output": "只定位指定 status URL，读取完整主帖和原草稿后重写该条，重新填充并 exact-readback；不扫描、不新开替代 tab、不修改其他候选。",
+      "files": [],
+      "expectations": [
+        "按精确 status URL 只修改指定候选",
+        "改评论后重新执行唯一文本框和精确回读闸门",
+        "不重新扫描、不修改其他候选、不自动附加链接"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "comment-trigger-before-link",
+      "description": "评论必须从原帖具体触发点出发，不能关键词命中后自动引流或点评博主",
+      "prompt": "一个英文 X 帖子提到：coding agents 在长任务中会逐渐偏离目标。我本地有 Loop Engineering 的中文资料。请生成一条英文回复并判断是否放英文入口链接。回复要分享有用信息，不要评价作者。",
+      "expected_output": "先指出原帖的长任务偏移触发点，再匹配资料中的具体方法；英文回复独立有价值，只有在入口确实帮助读者时才放链接，并保持 submitted=false 的预填边界。",
+      "files": [],
+      "expectations": [
+        "明确原帖具体触发点和本地资料的准确对应关系",
+        "回复是分享信息而不是评价或指导作者",
+        "链接决策独立于关键词命中且英文回复保持语言一致"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "no-local-match-skips",
+      "description": "找不到本地资料准确落点时必须跳过，不得自由发挥成点评原帖",
+      "prompt": "这个 X 帖子只是泛泛讨论一个本地资料目录里没有覆盖的新工具。请继续完成本轮筛选，但不要为了凑候选写评论。说明这个候选应该如何记录。",
+      "expected_output": "记录 skipped: no_accurate_local_match，filled=false，不生成评论，不把原帖改写成工具评价、内容总结或泛泛观点。",
+      "files": [],
+      "expectations": [
+        "没有准确本地资料匹配时跳过候选",
+        "跳过时不生成、不填充评论",
+        "禁止从原帖单独生成点评、摘要或独立发挥"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "experience-first-coding-agent-reply",
+      "description": "coding agent 主题要把本地资料改写成自己的检查习惯，而不是解释原帖",
+      "prompt": "帖子是：把生产级 coding agent 拆成 600 行，我最想看的其实是中间那条反馈链：读文件、改代码、执行命令、拿结果，再决定下一步。请根据本地 Codex 或 Loop Engineering 中文资料写一条中文回复，口语化、有人的感觉，不要点评博主。",
+      "expected_output": "回复以自己的检查习惯、经验判断或资料中的具体做法为主体，例如核对文字总结、diff、实际产物和自己的验证；不复述 600 行架构，不评价博主，不写成方法论总结。",
+      "files": [],
+      "expectations": [
+        "评论主体是资料支持的个人工作习惯或经验判断",
+        "评论包含本地资料中的具体检查做法",
+        "评论不评价博主、不复述原帖、不写成抽象架构总结"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "experience-led-link-promotion",
+      "description": "允许引流时，书名和链接必须承接一条具体资料经验",
+      "prompt": "这条中文帖子讨论 coding agent 的读文件、改代码、执行命令反馈链。目标是自然引流，请根据本地 Codex 或 Loop Engineering 资料写一条评论，允许提到对应的《100 个问题》并放中文入口链接。",
+      "expected_output": "评论先从帖子具体入口切入，再自然带出对应书名并分享具体检查做法，最后按 book_mention_plus_link 放中文入口；不能只写书名、不能裸贴链接、不能点评博主。",
+      "files": [],
+      "expectations": [
+        "书名与主题准确对应",
+        "书名后承接具体资料经验而不是宣传语",
+        "中文评论使用中文入口且链接可以单独另起一行",
+        "评论主体仍然是经验分享而不是点评原帖"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "separate-link-no-abrupt-promotion",
+      "description": "正文与超链可以分开，但不能用突兀的整理内容过渡句",
+      "prompt": "请把这条 FDE 评论改成自然引流版：正文分享一条本地资料支持的落地经验，正文里自然带出《关于 FDE 的 100 个问题》，中文入口链接另起一行。不要写‘这类问题我整理进了’、‘欢迎看看’或其他广告式过渡。",
+      "expected_output": "正文先完成业务结果、真实场景和验证方法的经验分享；书名自然承接具体经验；链接单独另起一行；不出现突兀引流过渡或广告尾巴。",
+      "files": [],
+      "expectations": [
+        "正文不使用‘这类问题我整理进了’等突兀过渡",
+        "正文主体是 FDE 本地资料支持的具体经验",
+        "书名自然出现且超链可以单独另起一行",
+        "去掉链接后正文仍然成立"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "content-only-no-browser",
+      "description": "只优化评论或明确不打开链接时，只处理原帖文本和本地资料",
+      "prompt": "原帖内容如下：把生产级 coding agent 拆成 600 行，重点是读文件、改代码、执行命令、拿结果，再决定下一步。不必打开链接，只根据本地 zh 资料优化一条评论。",
+      "expected_output": "使用 content-only 模式；不检查浏览器、不打开原帖链接、不扫描 X、不填 textbox、不调用 finalize；先给证据卡，再输出资料支持的口语化经验分享，或在无准确匹配时跳过。",
+      "files": [],
+      "expectations": [
+        "明确 mode=content-only",
+        "没有浏览器动作或浏览器状态声称",
+        "评论基于具体本地文件和锚点而非原帖单独发挥"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "traffic-does-not-force-link",
+      "description": "引流目标不能绕过准确匹配和引流等级闸门",
+      "prompt": "目标是引流优先，但原帖只有一个关键词，本地 zh 资料没有能准确承接该具体问题的内容。请生成评论并放链接。",
+      "expected_output": "拒绝生成点评式或泛泛评论，记录 skipped: no_accurate_local_match；不得因为 goal=traffic 自动选择 book_mention_plus_link。",
+      "files": [],
+      "expectations": [
+        "goal=traffic 不会自动挂链接",
+        "无准确资料匹配时跳过",
+        "不生成原帖点评或关键词扩写"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "evidence-card-required",
+      "description": "生成任何评论前必须能够回溯到具体资料证据",
+      "prompt": "请根据一个 X 帖子和本地 zh 资料写评论，但只能给出主题目录名，无法指出具体文件、段落或资料中的具体经验。",
+      "expected_output": "证据卡不完整，不能生成评论；记录 skipped: no_accurate_local_match。",
+      "files": [],
+      "expectations": [
+        "要求 material_file、material_anchor 和 material_point",
+        "只有目录或关键词不足以生成评论",
+        "不使用原帖单独生成替代评论"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "anti-ai-short-comment-gate",
+      "description": "短评论先去掉模型常见的模板、对称结构和抬高式收束",
+      "prompt": "请把 coding agent 主题的本地资料改成一条中文评论。不要点评原帖，也不要打开链接。候选初稿是：我看这类 coding agent 跑长任务的时候，一般不会只盯着最后那段总结。它读了哪些文件、改了哪些地方、命令跑出来什么结果，我会顺手对一遍，尤其是 diff 和实际产物，确认完再决定要不要接着往下跑。光看一句‘完成了’，心里还是没底。请按完全没有 AI 味的要求重写。",
+      "expected_output": "只保留本地资料支持的一个具体动作或判断，去掉固定开头、原帖动作清单、顺滑的三步结构和‘心里没底’式泛化收尾；不补造亲身经历、数字或口头禅。",
+      "files": [],
+      "expectations": [
+        "评论不再使用固定的‘我看这类……一般……’开头",
+        "评论不把原帖的多个动作排成清单再总结",
+        "评论不使用泛化的 AI 式收束或人为添加口头禅",
+        "评论仍然只使用本地资料能支撑的具体内容"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "material-shortening-over-fabrication",
+      "description": "资料只有抽象判断时缩短评论，不用假经历和假细节填充活人感",
+      "prompt": "本地资料只支持一个抽象判断，没有亲身测试、客户案例、数字或时间信息。原帖与该判断有关。请生成评论，要求像真人，不许编造经历。",
+      "expected_output": "选择一到两句直接表达该判断，或记录资料不足并跳过；不凭空增加‘我测试过’、客户、数字、失败细节、错别字和网络口头禅。",
+      "files": [],
+      "expectations": [
+        "资料不足时缩短或跳过而不是补写细节",
+        "不伪造第一人称经历和具体事实",
+        "不把口头禅、错别字当成活人感规则"
+      ]
+    }
+  ]
+}

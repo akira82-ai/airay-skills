@@ -4,8 +4,8 @@ AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
-- 技能数量：15
-- 最近更新：2026-07-08
+- 技能数量：16
+- 最近更新：2026-08-13
 
 ## 安装
 
@@ -46,6 +46,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计指定时间段内的技能使用情况 |
 | airay-style-rewrite | 个人语气风格迁移与去 AI 味改写 |
+| x-comment-prefill | 有状态、人工介入的 X(Twitter) 评论预填：扫描→筛选→基于本地中文语料起草；默认 text-handoff 文本交付，浏览器填框为显式 opt-in，永不发布 |
 
 ## 运行依赖
 
