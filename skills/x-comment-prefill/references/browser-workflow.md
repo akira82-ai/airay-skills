@@ -85,6 +85,15 @@ textbox:
 div[role="dialog"] div[role="textbox"]
 ```
 
+A null first probe is usually **lazy-load, not absence**. On a status detail
+page the inline composer (`tweetTextarea_0`) may not be in the DOM until the
+tweet region finishes rendering — the first `querySelector` returns null even
+though the box exists. If the first probe is null, **scroll the page (or the
+reply area) into view and wait 2–4s, then re-probe**; do not immediately fall
+back to the reply dialog or skip the candidate. Verified in run
+`xcp-20260813-1350-lfvj`: the first probe was null on two of three tabs, and a
+re-probe after a short wait succeeded.
+
 Ambiguous or hidden controls are a skip, not an invitation to use coordinates
 or positional guesses. Fill only after the complete main post is verified.
 Read back `innerText` or equivalent visible DOM text and require exact equality
@@ -197,6 +206,13 @@ URL and draft readback were verified. Run one `finalize({keep})` at most once;
 do not include source, home, or inspection tabs. After the attempt, stop all
 browser interaction, even if the result is an error. Never close tabs as part
 of handoff.
+
+**After content is written, do not close the filled reply tabs.** The handoff
+is `bsk session stop <sid>`, which promotes the Agent Window into a normal
+user window and **keeps** the filled tabs so the user can review and publish
+manually. A filled box that shows empty after promotion means re-fill that one
+tab — never treat it as a cleanup cue. Recycle/close only happens on the user's
+explicit request.
 
 The report must separate:
 
