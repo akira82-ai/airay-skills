@@ -7,7 +7,7 @@ candidate needs a direct topic match, a concrete trigger (claim, example,
 problem, contradiction, or method), and visible confirmed metrics. This trigger
 is only a screening and material-matching clue; it is not the substance of the
 comment. Default
-metric gate: reading/views `>= 2,000` and replies `< 100`; prefer replies `3–50`.
+metric gate: reading/views `>= 2,000` and replies `< 10`; prefer replies `3–9`.
 Allow `0–2` only when the post is unusually concrete and the reply adds clear
 value. Unknown required metrics do not pass the final gate.
 
