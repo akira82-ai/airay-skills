@@ -31,20 +31,21 @@ minimum shape:
 
 For `content-only`, do not create a browser run record. Return only the
 supplied post, the evidence card, the draft or skip reason, and the promotion
-level. Do not invent browser fields or a `finalize` result.
+level. Do not invent browser fields or a `finalize` result. When no accurate
+local match exists, return `skipped: no_accurate_local_match` without a draft.
 
-For `browser-prefill`, each candidate result should include `status_url`, `opened`, `filled`,
-`handed_off`, `submitted`, `material_file`, `material_anchor`, `material_point`,
-`trigger`, `ownership`, `promotion_level`, `failure_reason`, and, when filled`,
-the exact draft or a safe hash plus the exact-readback result. For
-`text-handoff`, use `status` of `drafted`, set `delivered_as: text`, include the
-copy-ready `draft` and `post_link`, and omit `opened`/`filled`/`handed_off`
-(nothing was filled). For `content-only`, return the evidence card and
-draft/skip result directly; do not add browser state fields. When no accurate
-match exists, use
-For `browser-prefill`, use `skipped: no_accurate_local_match` and leave
-`filled=false`. Do not store
-cookies, tokens, or unnecessary private page content.
+For `browser-prefill`, each candidate result should include `status_url`,
+`status`, `opened`, `filled`, `handed_off`, `submitted`, `material_file`,
+`material_anchor`, `material_point`, `trigger`, `ownership`,
+`promotion_level`, `failure_reason`, and, when filled, the exact draft or a
+safe hash plus the exact-readback result. When no accurate local match exists,
+set `status: skipped`, `reason: no_accurate_local_match`, and `filled=false`.
+
+For `text-handoff`, use `status: drafted`, set `delivered_as: text`, include
+the copy-ready `draft` and `post_link`, and omit `opened`/`filled`/`handed_off`
+(nothing was filled).
+
+Do not store cookies, tokens, or unnecessary private page content.
 
 ## User-facing report (`browser-prefill`)
 

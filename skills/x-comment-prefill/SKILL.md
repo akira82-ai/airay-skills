@@ -47,6 +47,12 @@ exist. Setting `promotion_level` late (e.g. "make it stronger / add the link"
 after comments are written) forces a full re-draft, which was the main rework
 driver in prior runs.
 
+`promotion_level` is a per-candidate **upper bound**, not a uniform switch.
+Even when the run sets `book_mention_plus_link`, a candidate may resolve to
+`book_mention` or `no_link` if the natural-match test fails or the
+delete-book-title test in `comment-strategy.md` would be violated. Re-evaluate
+the actual level for each candidate after its draft exists.
+
 Route the request before any browser action:
 
 - Use `content-only` when the user provides the post text or asks to optimize,
@@ -88,15 +94,9 @@ Maintain one state record for the active run. By default write it to
 `.x-comment-prefill/runs/{run_id}.json` under the current project; if that
 location is not writable, use the task workspace and report the fallback path.
 Create the directory only when the workflow actually starts. Do not hide state
-only in conversation memory. Use the schema in `references/report-template.md`;
-at minimum record:
-
-```text
-run_id, current_stage, browser, source_tab_url
-scanned_status_urls, historical_status_urls, frozen_candidates
-candidate states: discovered | opened | filled | handed_off | skipped | failed
-failure reasons, finalize_attempted, finalize_result, submitted=false
-```
+only in conversation memory. Use the schema in `references/report-template.md`. Candidate status values are:
+`discovered | drafted | opened | filled | handed_off | skipped | failed`.
+Never collapse these into a single "done" field.
 
 For every drafted candidate, also persist the material evidence card and the
 promotion level:
@@ -209,11 +209,10 @@ one at a time:
 2. Verify exact URL, target main article, author, and nonempty complete post
    text. Do not rely on the timeline excerpt.
 3. Use the post only as a topic or context clue to locate a specific
-   local-material passage before drafting. The draft's substance must come from
-   the user's local material: an experience, pitfall, summary, opinion,
-   technique, or joke. It must not answer, evaluate, agree with, disagree with,
-   explain, or summarize the author or post. If no accurate local match exists,
-   record `skipped: no_accurate_local_match`, do not draft, and do not fill that
+   local-material passage before drafting. Apply the drafting rules, the three
+   pre-draft questions, and the delete-book-title test in
+   `comment-strategy.md`. If no accurate local match exists, record
+   `skipped: no_accurate_local_match`, do not draft, and do not fill that
    tab.
 4. Read back the visible text and require exact equality with the draft.
 5. Persist `opened`, `filled`, `submitted=false`, the material anchor, and any
@@ -222,8 +221,8 @@ one at a time:
 
 In `text-handoff`, do not open a target tab, do not fill, and do not read back
 in the browser. After drafting (step 3), record the candidate as `drafted`
-with its evidence card and promotion level, and prepare copy-ready text (post
-link + final comment + promotion note). The user posts it themselves.
+with its evidence card and promotion level. Copy-ready text delivery happens
+in Stage 5.
 
 Contract: input is one frozen candidate at a time; allowed actions are exact-tab
 reacquisition, detail verification, draft generation, textbox filling, and

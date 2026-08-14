@@ -15,6 +15,25 @@ Drop pure promotion, pure reposts, empty reactions, jokes without a useful
 angle, and posts where the topic appears only in quoted text, a tag, a URL, or
 the username. Do not force a candidate count.
 
+## Three questions before drafting (mandatory)
+
+Before writing any draft, answer these three questions against the chosen
+material point. If any answer fails, pick a different material point or skip
+the candidate — do not write the draft and fix it later.
+
+1. **If the draft names a book or carries a link: after removing the book
+   title and link, what is left in the sentence?** If empty or only a
+   back-reference → the material point is not concrete enough; re-select or
+   skip. (Skip this question for `no_link` drafts with no book mention.)
+2. **Is this sentence answering, evaluating, or summarizing the author, or is
+   it sharing the user's own experience?** If the former → re-select; the post
+   is only a topic clue.
+3. **Would this sentence still hold under an unrelated post?** If yes → the
+   point is too generic; re-select a more specific material anchor.
+
+Only after all three pass may the draft be written. This front-loads the
+rejection checks instead of auditing a finished draft against a long list.
+
 ## Drafting sequence
 
 Before writing, establish this chain:
@@ -101,28 +120,20 @@ material, one clear personal position when supported, and no more than one
 explanatory turn. Short is a valid result. If making it sound human requires
 inventing a detail, shorten it or skip it.
 
-### Flexible grounding rule
-
-Do not default every comment to “我在……的时候” or “我整理……的时候”. These
-openings are optional and should be avoided when they make the comment sound
-templated. Use a concrete detail from the post only to find a natural association
-with the user's local material, then write the user's own experience, pitfall,
-summary, opinion, technique, or joke. The comment may use the post's context,
-but its substance must come from the local material; it must not turn into an
-answer to the post's claim.
-Use first person only when it clarifies a grounded working preference, such as
-“我一般会……” or “我会先……”. Otherwise use a direct observation, contrast,
-or practical implication. The finished comment should feel like the user's own
-material-backed content placed in the post's context, never a reply,
-evaluation, agreement, disagreement, or summary directed at the author.
-
-### Experience-first requirement
+### Grounding and experience
 
 The center of gravity must be the speaker's usable experience, pitfall, working
 habit, case, summary, opinion, technique, or joke as grounded in the matched
 local material. The post's wording may appear only as context or a natural
 association. Do not explain what the author means, judge whether the author is
 right, restate the post's thesis, or write advice aimed at the author.
+
+Use a concrete detail from the post only to find a natural association with
+the user's local material, then write the user's own experience, pitfall,
+summary, opinion, technique, or joke. Avoid templated openings — the Human-voice
+gate below lists the specific fixed openings to reject. Use first person only
+when it clarifies a grounded working preference, such as “我一般会……” or “我会
+先……”. Otherwise use a direct observation, contrast, or practical implication.
 
 Use this transformation:
 
@@ -151,10 +162,10 @@ For example, for a post about a coding agent's feedback chain:
 “600 行”重新解释成一段架构总结。
 
 If no local passage accurately matches the post's topic or context, skip the
-candidate with `no_accurate_local_match`. Do not fill a reply box. In
-particular, do not fall back to answering, evaluating, agreeing with,
-disagreeing with, rebutting, advising, or summarizing the post or author, and
-do not write a generic opinion from the keyword.
+candidate with `no_accurate_local_match` and do not fill a reply box. The
+non-negotiable boundary in `SKILL.md` already forbids the full list of fallback
+shapes (answering, evaluating, agreeing, rebutting, advising, summarizing);
+do not re-derive a comment from the keyword.
 
 ## Source and link decision
 
@@ -176,30 +187,58 @@ entry. Keep the whole reply in the post's language.
 
 ### Experience-led promotion
 
-When the promotion level is `book_mention_plus_link`, use an
-experience-led promotion shape:
+When the promotion level is `book_mention_plus_link`, the book title may appear
+at any beat of the narrative — opening, middle, or closing — but it must be a
+**natural part of that beat**, not an inserted tag or hook. The book name is a
+source label for a concrete point from the book; it is never the substance
+itself. What matters is not where the book name sits, but that the sentence
+around it carries a concrete method, case, or judgment from the book, and that
+removing the book name does not collapse the sentence into a generic opinion or
+a dangling reference.
 
-```text
-围绕这个语境，我在《对应主题的 100 个问题》中整理过一个经验：具体做法/案例/判断。
-对应语言的入口链接
-```
+Do not pick a book-title "shape" or "mode" and fill it in — that turns the
+mention into a template, which is exactly what makes a comment read as
+machine-written. Write the experience first, then let the book name land
+wherever the narrative beat naturally needs a source anchor. If a colon
+follows the book name, it must introduce a concrete point from the book, not a
+bare back-reference. The link is an optional continuation for readers who want
+the full context.
 
-The book mention is a source label for the preceding useful point, not the
-point itself. The link is an optional continuation for readers who want the
-full context. The wording can vary naturally:
+#### Delete-book-title mechanical test (mandatory)
 
-- “这个语境下，我在《……》里整理过一个经验：……”
-- “我在《……》中留下过一个比较实用的总结：……”
-- “相关资料里有一条技巧比较值得保留：……”
+Before accepting any draft that names a book or carries a link, run this test:
+
+1. Remove the book title (the entire `《…》` span) and the URL.
+2. Remove bare back-reference words: “这条”、“这个”、“整理过”、“记过”、“拆过”、
+   “相关资料里有一条” — but only when they point at the removed book rather
+   than introducing a concrete point.
+3. Read what remains:
+   - If the sentence is empty, or only a dangling back-reference
+     (e.g. “我在里整理过一个经验：”) → **violates, rewrite from a real material
+     point.**
+   - If the remainder is a concrete method, case, or judgment traceable to the
+     book → **passes.**
+
+This test guarantees the book name labels an already-substantive point, rather
+than acting as a hook for an empty opinion. The banned “complete opinion + thin
+book tag + bare link” shape fails this test because deleting the book title
+leaves only a generic opinion that could sit under any post.
+
+The book/source mention and the hyperlink are allowed to be separate: the
+mention belongs in the natural experience-sharing sentence, while the hyperlink
+may be placed on its own following line. The body must make sense without
+opening the link. The wording is open — the book name may lead, sit
+mid-sentence, or close the thought. The three lines below illustrate different
+landing points; they are **not modes to choose from**, just reminders that the
+mention can live at any beat as long as a concrete point follows it:
+
+- “我在《……》里整理过一个经验：[书里的具体做法]”（书名领起）
+- “[现场判断]，我在《……》里把这条拆过：[具体步骤]”（书名落在中段）
+- “[一段洞察]，这条《……》里讲得比较透：[书里的一句收束]”（书名收束）
 
 Use the user's preferred first-person ownership only when the matched material
 belongs to the user's local book corpus. Do not write “我在书中总结了” if the
-source is merely an external reference. Do not append a bare link after a
-complete comment; connect the link to the named book or the specific material
-point. The book/source mention and the hyperlink are allowed to be separate:
-the mention belongs in the natural experience-sharing sentence, while the
-hyperlink may be placed on its own following line. The body must make sense
-without opening the link.
+source is merely an external reference.
 
 Do not use abrupt promotion transitions such as:
 
@@ -214,7 +253,7 @@ conversation. Replace them with a concrete experience sentence that naturally
 reveals why the book is relevant, or omit the link entirely.
 
 For a FDE post about translating technical ability into customer-acceptable
-business outcomes, a valid shape is:
+business outcomes, a valid shape (book name landing mid-narrative) is:
 
 ```text
 这段时间和珠三角不少企业聊 FDE，反复碰到的一件事是：大家最后要的都不是一个能跑的 demo，而是一套能在真实场景里跑通、拿业务结果验收的东西。我在《关于 FDE 的 100 个问题》里把这条落地路径拆过：先找对真正的需求方，再把目标拆成能验证的小结果，最后用前后数据说话。
@@ -224,16 +263,10 @@ https://my.feishu.cn/wiki/FC6ZwnwWWi0dWpke56act61gnUd
 
 Here the body shares a material-backed FDE judgment first, the book title
 explains the source naturally, and the URL is only a separate continuation.
-
-For a Chinese post, the default full-link form is:
-
-```text
-https://my.feishu.cn/wiki/FC6ZwnwWWi0dWpke56act61gnUd
-```
-
-For an English post, use the English entry point from `topic-map.md`. If the
-link would feel forced, use the same book-mention structure without the link.
-Never add the book title or link when the local match is weak or absent.
+The exact entry-point URLs (Chinese and English) are defined in `topic-map.md`;
+use those rather than hardcoding them elsewhere. If the link would feel forced,
+use the same book-mention structure without the link. Never add the book title
+or link when the local match is weak or absent.
 
 ## Voice and rejection checks
 
@@ -249,7 +282,6 @@ Reject and rewrite if the draft:
 - evaluates the author (“你说得对”, “这个判断很准”);
 - merely repeats the post or says “认同 + 赞”;
 - claims a personal experience without evidence;
-- uses a book/link as the substance of the reply;
 - contains the banned phrases `不是……而是……`, `本质上`, or `说白了`;
 - has a link that would remain equally appropriate under unrelated posts.
 - uses a generic promotion tail such as “我最近也在整理”“欢迎看看” without
@@ -264,3 +296,10 @@ Reject and rewrite if the draft:
 - uses a generic human-sounding wrapper while the underlying content is still a
   summary of the post;
 - adds slang, typos, hesitations, or invented specifics merely to look human.
+- uses a bare back-reference tail such as “这条我记过”、“这个我整理过”、
+  “这条比较有用” when the sentence carries no concrete method, case, or
+  judgment from the book — i.e. the book mention is the substance, not a source
+  label for a real point;
+- fails the delete-book-title test: after removing the book title and bare
+  back-references, what remains is empty, a dangling reference, or a generic
+  opinion that could sit under any post.

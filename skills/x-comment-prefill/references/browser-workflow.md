@@ -24,7 +24,7 @@ harnesses trigger.
 
 Normalize only URLs that can be proven to identify the main post:
 
-1. Keep the `x.com` or `twitter.com` host and `/status/<id>` path.
+1. Keep the `x.com` or `twitter.com` host and the FULL path `/{username}/status/<id>`. The `/{username}/` segment is part of the canonical URL and MUST be preserved — a URL without it (`x.com/status/<id>`) returns "该页面不存在" (404). Only strip `/analytics` and query/tracking parameters.
 2. Remove `/analytics` and tracking/query parameters.
 3. Treat the normalized status URL as the identity for deduplication,
    historical exclusions, candidate records, and handoff verification.
@@ -56,6 +56,14 @@ them from likes, reposts, account size, or neighboring cards.
   in small increments, reading on each step and **merging by normalized status
   id** (dedupe), rather than assuming all cards persist. Stop when the requested
   unique count is reached or the feed is exhausted.
+
+- **Quoted/embedded tweets swap the permalink.** The first `a[href*="/status/"]`
+  inside an article may be the QUOTED (inner) post's permalink, not the outer
+  tweet's. Capturing it makes the frozen status ID and the visible author
+  disagree (e.g. the candidate ends up pointing at the wrong post). Capture the
+  outer tweet's own permalink — the `<a>` wrapping the timestamp (`time`
+  element) — and verify the resolved author matches the article's visible
+  author before freezing.
 
 ## Detail-page readiness
 
@@ -101,6 +109,12 @@ with the draft. A Draft.js `value` or an enabled submit button is not proof of
 successful fill.
 
 ### Filling X's Draft.js composer (verified method)
+
+`references/fill-draft.js` packages the select-all, insert, and verify steps
+below into reusable functions (`xcpSelectAll`, `xcpInsert`, `xcpFill`,
+`xcpVerify`). Prefer it when `bsk evaluate` can inline the file. The steps
+below explain the same logic inline for contexts where the file cannot be
+loaded.
 
 `bsk fill` does **not** register on X's `contenteditable` reply box (the
 `value` is set but React/Draft.js ignores it, so readback comes back empty).
