@@ -13,11 +13,11 @@ meta:
 # 全局字体设置
 fonts:
   # 正文中文字体
-  cn_body: "Songti SC"
+  cn_body: "微软雅黑"
   # 标题中文字体
-  cn_heading: "Songti SC"
-  # 全文英文字体
-  en_body: "Consolas"
+  cn_heading: "微软雅黑"
+  # 全文英文字体（Normal 样式西文字体，随正文统一）
+  en_body: "微软雅黑"
   # 代码块和行内代码字体
   en_mono: "Consolas"
 
@@ -43,8 +43,8 @@ colors:
 
 # 正文基础排版
 body:
-  # 正文字号，单位 pt
-  font_size_pt: 11
+  # 正文字号，单位 pt（五号）
+  font_size_pt: 10.5
   # 正文行距，倍数
   line_spacing: 1.5
   # 段前距离，单位 pt
@@ -56,15 +56,21 @@ body:
 
 # 章节标题与小标题
 headings:
+  # 是否给 H1-H3 挂内置 Heading 样式与大纲级别（Word 导航窗格、自动目录识别用）
+  use_builtin_styles: true
   h1:
-    # 一级标题字号，单位 pt
-    font_size_pt: 24
+    # 一级标题字号，单位 pt（四号）
+    font_size_pt: 14
     # 是否加粗
     bold: true
     # 字色
     color: "primary_red"
+    # 段前距离，单位 pt
+    space_before_pt: 0
     # 段后距离，单位 pt
-    space_after_pt: 14
+    space_after_pt: 0
+    # 行距，倍数
+    line_spacing: 1.5
     # 底部分隔线颜色
     border_bottom_color: "primary_red"
     # 底部分隔线粗细，单位为 docx 原始值
@@ -72,17 +78,20 @@ headings:
     # 底部分隔线与文字距离
     border_bottom_space: 8
   h2:
-    font_size_pt: 17
+    # 二级标题字号，单位 pt（小四）
+    font_size_pt: 12
     bold: true
     color: "primary_red"
-    space_before_pt: 20
-    space_after_pt: 8
+    space_before_pt: 0
+    space_after_pt: 0
+    line_spacing: 1.5
   h3:
     font_size_pt: 13.5
     bold: true
     color: "primary_red"
     space_before_pt: 12
     space_after_pt: 4
+    line_spacing: 1.5
   h4_plus:
     font_size_pt: 12
     bold: true
@@ -154,7 +163,7 @@ lists:
   # 列表缩进，单位 cm
   left_indent_cm: 0.6
   # 列表文字字号，单位 pt
-  font_size_pt: 11
+  font_size_pt: 10.5
   # 列表符号或数字颜色
   marker_color: "primary_red"
   # 是否让列表符号加粗
@@ -164,7 +173,7 @@ lists:
   # 段前距离
   space_before_pt: 0
   # 段后距离
-  space_after_pt: 3
+  space_after_pt: 0
 
 # “参考资料”专属样式
 reference_section:
@@ -197,8 +206,8 @@ blockquote:
     space_before_pt: 8
     # 最后一段后距
     space_after_pt: 8
-    # 左侧竖线粗细，单位为 docx 原始值
-    left_border_size: 20
+    # 左侧竖线粗细，单位为 docx 原始值（0 = 不画竖线，只留底色）
+    left_border_size: 0
     # 左侧竖线与文字距离
     left_border_space: 10
   default:
@@ -216,9 +225,15 @@ table:
   # 表头文字颜色
   header_text_color: "text_black"
   # 表头是否加粗
-  header_bold: true
-  # 单元格字号
-  body_font_size_pt: 10
+  header_bold: false
+  # 单元格字号（五号）
+  body_font_size_pt: 10.5
+  # 单元格行距，倍数
+  cell_line_spacing: 1.5
+  # 单元格段前距离，单位 pt
+  cell_space_before_pt: 0
+  # 单元格段后距离，单位 pt
+  cell_space_after_pt: 0
 
 # 图片样式
 image:
@@ -245,8 +260,8 @@ code_block:
   background_color: "soft_fill"
   # 左边线颜色
   left_border_color: "primary_red"
-  # 左边线粗细，单位为 docx 原始值
-  left_border_size: 16
+  # 左边线粗细，单位为 docx 原始值（0 = 不画边线，只留底色）
+  left_border_size: 0
   # 左边线与内容距离
   left_border_space: 10
   # 字号，单位 pt

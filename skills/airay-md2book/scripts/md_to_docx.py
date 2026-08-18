@@ -475,25 +475,62 @@ def clean_chapter_title(text):
 
 
 def extract_toc_items(md_text):
+    """目录只收「真目录」：# 章节(H1) + ## N. 编号问题(H2)。
+
+    排除项：
+    - 围栏代码块(``` / ~~~)里的 # 语法示例，不当标题；
+    - 问题下的子板块(这是什么/我的判断/下一步…)写成 ## 但无编号，不当目录项；
+    - ### 正文子标题，不进目录。
+    """
     toc_items = []
+    in_code = False
     for line in md_text.splitlines():
-        m = re.match(r"^(#{1,3})\s+(.+)$", line.strip())
+        stripped = line.strip()
+        # 进入/离开围栏代码块，块内整段跳过
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        m = re.match(r"^(#{1,3})\s+(.+)$", stripped)
         if not m:
             continue
         level = len(m.group(1))
         text = m.group(2).strip()
         if level == 1:
             text = clean_chapter_title(text)
-        toc_items.append({
-            "level": level,
-            "title": text,
-        })
+            toc_items.append({"level": level, "title": text})
+        elif level == 2:
+            # 只收带编号的问题(## N. …)，排除无编号子板块
+            if re.match(r"^\d+[\.、]", text):
+                toc_items.append({"level": level, "title": text})
+        # level == 3 及非编号 H2 不进目录(属正文)
     return toc_items
 
 
 # ============================================================
 # docx 渲染
 # ============================================================
+def apply_builtin_heading_style(doc, p, level):
+    """挂内置 Heading 样式与大纲级别，供 Word 导航窗格与自动目录识别。
+    由 headings.use_builtin_styles 开关控制；直接格式化仍覆盖样式，视觉不变。"""
+    if not theme_get("headings.use_builtin_styles", False):
+        return
+    style_name = {1: "Heading 1", 2: "Heading 2", 3: "Heading 3"}.get(level)
+    if not style_name:
+        return
+    try:
+        p.style = doc.styles[style_name]
+    except KeyError:
+        return
+    pPr = p._p.get_or_add_pPr()
+    for e in pPr.findall(qn("w:outlineLvl")):
+        pPr.remove(e)
+    ol = OxmlElement("w:outlineLvl")
+    ol.set(qn("w:val"), str(level - 1))
+    pPr.append(ol)
+
+
 def add_heading(doc, level, text):
     if level == 1:
         p = doc.add_paragraph()
@@ -506,7 +543,11 @@ def add_heading(doc, level, text):
             color=theme_color("headings.h1.color"),
             font_cn=font_cn_heading(),
         )
+        p.paragraph_format.space_before = Pt(theme_get("headings.h1.space_before_pt", 0))
         p.paragraph_format.space_after = Pt(theme_get("headings.h1.space_after_pt", 14))
+        ls = theme_get("headings.h1.line_spacing")
+        if ls:
+            p.paragraph_format.line_spacing = ls
         pPr = p._p.get_or_add_pPr()
         pBdr = OxmlElement("w:pBdr")
         bottom = OxmlElement("w:bottom")
@@ -516,6 +557,7 @@ def add_heading(doc, level, text):
         bottom.set(qn("w:color"), theme_color_hex("headings.h1.border_bottom_color", "#C2410C"))
         pBdr.append(bottom)
         pPr.append(pBdr)
+        apply_builtin_heading_style(doc, p, 1)
 
     elif level == 2:
         p = doc.add_paragraph()
@@ -529,6 +571,10 @@ def add_heading(doc, level, text):
         )
         p.paragraph_format.space_before = Pt(theme_get("headings.h2.space_before_pt", 20))
         p.paragraph_format.space_after = Pt(theme_get("headings.h2.space_after_pt", 8))
+        ls = theme_get("headings.h2.line_spacing")
+        if ls:
+            p.paragraph_format.line_spacing = ls
+        apply_builtin_heading_style(doc, p, 2)
 
     elif level == 3:
         p = doc.add_paragraph()
@@ -542,6 +588,10 @@ def add_heading(doc, level, text):
         )
         p.paragraph_format.space_before = Pt(theme_get("headings.h3.space_before_pt", 12))
         p.paragraph_format.space_after = Pt(theme_get("headings.h3.space_after_pt", 4))
+        ls = theme_get("headings.h3.line_spacing")
+        if ls:
+            p.paragraph_format.line_spacing = ls
+        apply_builtin_heading_style(doc, p, 3)
 
     else:
         p = doc.add_paragraph()
@@ -625,14 +675,16 @@ def add_code_block(doc, code_lines):
     shd.set(qn("w:val"), "clear")
     shd.set(qn("w:fill"), theme_color_hex("code_block.background_color", "#F5F5F0"))
     pPr.append(shd)
-    pBdr = OxmlElement("w:pBdr")
-    left = OxmlElement("w:left")
-    left.set(qn("w:val"), "single")
-    left.set(qn("w:sz"), str(theme_get("code_block.left_border_size", 16)))
-    left.set(qn("w:space"), str(theme_get("code_block.left_border_space", 10)))
-    left.set(qn("w:color"), theme_color_hex("code_block.left_border_color", "#C2410C"))
-    pBdr.append(left)
-    pPr.append(pBdr)
+    border_size = theme_get("code_block.left_border_size", 16)
+    if border_size and border_size > 0:
+        pBdr = OxmlElement("w:pBdr")
+        left = OxmlElement("w:left")
+        left.set(qn("w:val"), "single")
+        left.set(qn("w:sz"), str(border_size))
+        left.set(qn("w:space"), str(theme_get("code_block.left_border_space", 10)))
+        left.set(qn("w:color"), theme_color_hex("code_block.left_border_color", "#C2410C"))
+        pBdr.append(left)
+        pPr.append(pBdr)
 
     p.paragraph_format.space_before = Pt(theme_get("code_block.space_before_pt", 8))
     p.paragraph_format.space_after = Pt(theme_get("code_block.space_after_pt", 8))
@@ -661,14 +713,16 @@ def add_quote_block(doc, lines):
         shd.set(qn("w:val"), "clear")
         shd.set(qn("w:fill"), fill)
         pPr.append(shd)
-        pBdr = OxmlElement("w:pBdr")
-        left = OxmlElement("w:left")
-        left.set(qn("w:val"), "single")
-        left.set(qn("w:sz"), str(theme_get("blockquote.common.left_border_size", 20)))
-        left.set(qn("w:space"), str(theme_get("blockquote.common.left_border_space", 10)))
-        left.set(qn("w:color"), border)
-        pBdr.append(left)
-        pPr.append(pBdr)
+        border_size = theme_get("blockquote.common.left_border_size", 20)
+        if border_size and border_size > 0:
+            pBdr = OxmlElement("w:pBdr")
+            left = OxmlElement("w:left")
+            left.set(qn("w:val"), "single")
+            left.set(qn("w:sz"), str(border_size))
+            left.set(qn("w:space"), str(theme_get("blockquote.common.left_border_space", 10)))
+            left.set(qn("w:color"), border)
+            pBdr.append(left)
+            pPr.append(pBdr)
 
         if idx == 0:
             p.paragraph_format.space_before = Pt(theme_get("blockquote.common.space_before_pt", 8))
@@ -719,6 +773,15 @@ def add_table_block(doc, table_lines):
             cell = table.rows[row_idx].cells[col_idx]
             cell.text = ""
             p = cell.paragraphs[0]
+            cell_ls = theme_get("table.cell_line_spacing")
+            if cell_ls is not None:
+                p.paragraph_format.line_spacing = cell_ls
+            cell_sb = theme_get("table.cell_space_before_pt")
+            if cell_sb is not None:
+                p.paragraph_format.space_before = Pt(cell_sb)
+            cell_sa = theme_get("table.cell_space_after_pt")
+            if cell_sa is not None:
+                p.paragraph_format.space_after = Pt(cell_sa)
             cell_text = cell_text.replace("<br>", "\n").replace("\\|", "|")
             for j, segment in enumerate(cell_text.split("\n")):
                 if j > 0:
@@ -1045,7 +1108,7 @@ def build_docx(md_files, output, images_dir=None, book_mode=False,
         toc_section = doc.add_section(WD_SECTION.NEW_PAGE)
         configure_section_page(toc_section, full_bleed=False)
 
-        # 目录：严格收 H1/H2/H3，不包含正文
+        # 目录：只收 # 章节(H1) + ## N. 编号问题(H2)；跳过代码块、排除无编号子板块与 ### 正文
         toc_items = []
         for md in md_files:
             text = Path(md).read_text(encoding="utf-8")

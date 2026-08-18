@@ -107,9 +107,9 @@ python3 "$SKILL_DIR/scripts/md_to_docx.py" ch*.md postscript.md appendix.md --bo
 
 ### 全局样式
 
-- 全文中文字体统一为宋体风格
-- 全文英文字体统一为 `Consolas`
+- 全文中文字体统一为微软雅黑（正文英文同字体），代码块/行内代码用 `Consolas`
 - 章节标题、问题标题、引用资料文字统一使用书内红色
+- H1-H3 默认挂内置 Heading 样式与大纲级别（`docx-theme.yaml` 的 `headings.use_builtin_styles` 可关），供 Word 导航窗格与自动目录识别
 - `参考资料` 部分是硬规则：标题与条目统一 1 倍行距、段前段后均为 0
 
 ### 图片
