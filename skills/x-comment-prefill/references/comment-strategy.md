@@ -15,6 +15,22 @@ Drop pure promotion, pure reposts, empty reactions, jokes without a useful
 angle, and posts where the topic appears only in quoted text, a tag, a URL, or
 the username. Do not force a candidate count.
 
+The metric gate exists to find a golden window: real traffic (views) times low
+competition (few replies) times a rising curve. Rank passing candidates
+further by these soft signals — they reorder priority and never disqualify:
+
+- **Freshness**: prefer posts under 24h. The post timestamp sits on the same
+  permalink anchor collected during scanning, so record it without extra
+  navigation. Older posts decay and bury late replies.
+- **Mutual-follow author**: when the author relationship is determinable, a
+  mutual follow makes the candidate top priority — platforms weight
+  mutual-follow interaction far above anonymous replies (directional signal;
+  do not cite numbers).
+- **Author size**: prefer small/mid-size authors who plausibly reply back —
+  an author reply is a high-value interaction shown to their audience. Very
+  large accounts only when the reply count is low enough for the comment to
+  stay visible.
+
 ## Three questions before drafting (mandatory)
 
 Before writing any draft, answer these three questions against the chosen
@@ -174,6 +190,12 @@ among strong matches; it never selects `book_mention_plus_link` automatically.
 The final level depends on `allow_links`, a language-matched entry point, and
 whether the link naturally continues the material point.
 
+Link positioning: opening an off-platform link contributes almost nothing to
+the reply's distribution and pulls engaged readers out of the thread. Under
+`goal: followers` or `engagement`, resolve to `no_link` or `book_mention` by
+default; treat `book_mention_plus_link` as a traffic-only tool that requires
+an explicit user request, not just a strong match.
+
 Use the local topic map only when the material has a genuine topic or context
 match with the post. The material remains the sole substantive source of the
 comment. Choose one of three levels only after that match is recorded:
@@ -188,21 +210,24 @@ entry. Keep the whole reply in the post's language.
 ### Experience-led promotion
 
 When the promotion level is `book_mention_plus_link`, the book title may appear
-at any beat of the narrative — opening, middle, or closing — but it must be a
-**natural part of that beat**, not an inserted tag or hook. The book name is a
-source label for a concrete point from the book; it is never the substance
-itself. What matters is not where the book name sits, but that the sentence
-around it carries a concrete method, case, or judgment from the book, and that
-removing the book name does not collapse the sentence into a generic opinion or
-a dangling reference.
+at the opening or middle beats of the narrative — but **never in the final
+sentence**. A book title placed at the end almost always degrades into a
+restate-and-mount tail: the writer compresses what the comment already said
+into a summary phrase, then hangs the book name on it (“这套……的方法，我在
+《……》里拆过”). That reads as an ad tag, and real people do not talk that way.
+The book name is a source label for a concrete point from the book; it is never
+the substance itself. What matters is that the sentence around it carries a
+concrete method, case, or judgment **from the book** that the rest of the
+comment has not already delivered, and that removing the book name does not
+collapse the sentence into a generic opinion or a dangling reference.
 
 Do not pick a book-title "shape" or "mode" and fill it in — that turns the
 mention into a template, which is exactly what makes a comment read as
 machine-written. Write the experience first, then let the book name land
-wherever the narrative beat naturally needs a source anchor. If a colon
-follows the book name, it must introduce a concrete point from the book, not a
-bare back-reference. The link is an optional continuation for readers who want
-the full context.
+wherever the narrative beat naturally needs a source anchor (before the final
+sentence). If a colon follows the book name, it must introduce a concrete point
+from the book, not a bare back-reference. The link is an optional continuation
+for readers who want the full context.
 
 #### Delete-book-title mechanical test (mandatory)
 
@@ -218,23 +243,28 @@ Before accepting any draft that names a book or carries a link, run this test:
      point.**
    - If the remainder is a concrete method, case, or judgment traceable to the
      book → **passes.**
+4. **Sentence-increment check**: delete the entire sentence that contains the
+   book title. If the comment's substantive content is unchanged — the
+   sentence merely restated or summarized what the comment had already said —
+   then the book-title sentence is a redundant mount → **violates.** The
+   book-title sentence must carry material from the book that the rest of the
+   comment did not already deliver.
 
 This test guarantees the book name labels an already-substantive point, rather
 than acting as a hook for an empty opinion. The banned “complete opinion + thin
-book tag + bare link” shape fails this test because deleting the book title
-leaves only a generic opinion that could sit under any post.
+book tag + bare link” shape fails steps 1–3, and the “concrete method first,
+then restate-and-mount book tail” shape fails step 4.
 
 The book/source mention and the hyperlink are allowed to be separate: the
 mention belongs in the natural experience-sharing sentence, while the hyperlink
 may be placed on its own following line. The body must make sense without
-opening the link. The wording is open — the book name may lead, sit
-mid-sentence, or close the thought. The three lines below illustrate different
-landing points; they are **not modes to choose from**, just reminders that the
-mention can live at any beat as long as a concrete point follows it:
+opening the link. The wording is open — the book name may lead or sit
+mid-sentence (never in the final sentence). The lines below illustrate landing
+points; they are **not modes to choose from**, just reminders that the mention
+can live at different beats as long as a concrete point follows it:
 
 - “我在《……》里整理过一个经验：[书里的具体做法]”（书名领起）
 - “[现场判断]，我在《……》里把这条拆过：[具体步骤]”（书名落在中段）
-- “[一段洞察]，这条《……》里讲得比较透：[书里的一句收束]”（书名收束）
 
 Use the user's preferred first-person ownership only when the matched material
 belongs to the user's local book corpus. Do not write “我在书中总结了” if the
@@ -246,27 +276,52 @@ Do not use abrupt promotion transitions such as:
 这类问题我整理进了《……》：
 我最近也在整理……欢迎看看
 相关内容见下方
+这套“……”的方法，我在《……》里拆过
+这个思路我在《……》里整理过
 ```
 
-These phrases make the comment sound like an advertisement inserted after the
+The last two are the restate-and-mount tail: a final sentence that compresses
+what the comment already said and hangs the book name on it. It passes the
+naive "delete the title" check only because the substance sits earlier in the
+comment; the sentence-increment check (step 4 above) is what catches it. These
+phrases make the comment sound like an advertisement inserted after the
 conversation. Replace them with a concrete experience sentence that naturally
 reveals why the book is relevant, or omit the link entirely.
 
 For a FDE post about translating technical ability into customer-acceptable
-business outcomes, a valid shape (book name landing mid-narrative) is:
+business outcomes, a valid shape (book name leading, field note closing) is:
 
 ```text
-这段时间和珠三角不少企业聊 FDE，反复碰到的一件事是：大家最后要的都不是一个能跑的 demo，而是一套能在真实场景里跑通、拿业务结果验收的东西。我在《关于 FDE 的 100 个问题》里把这条落地路径拆过：先找对真正的需求方，再把目标拆成能验证的小结果，最后用前后数据说话。
+我在《关于 FDE 的 100 个问题》里拆过一条落地路径：先找对真正的需求方，再把目标拆成能验证的小结果，最后用前后数据说话。这段时间和珠三角不少企业聊 FDE，反复碰到的就是这个：大家最后要的都不是一个能跑的 demo，而是一套能在真实场景里跑通、拿业务结果验收的东西。
 
 https://my.feishu.cn/wiki/FC6ZwnwWWi0dWpke56act61gnUd
 ```
 
-Here the body shares a material-backed FDE judgment first, the book title
-explains the source naturally, and the URL is only a separate continuation.
-The exact entry-point URLs (Chinese and English) are defined in `topic-map.md`;
+Here the book-title sentence opens and carries the book's concrete three-step
+path; the final sentence is a field observation that grounds it, not a
+restatement mount; the URL stands alone as a continuation. The exact
+entry-point URLs (Chinese and English) are defined in `topic-map.md`;
 use those rather than hardcoding them elsewhere. If the link would feel forced,
 use the same book-mention structure without the link. Never add the book title
 or link when the local match is weak or absent.
+
+## Engagement structure
+
+Write the reply for the behaviors that actually compound (directional order —
+platform weights vary, do not cite numbers): a concrete method, case, or
+judgment worth copying and sharing beats a reply-provoking positioned
+judgment, which beats a profile-visit signal; likes are the weakest signal and
+never worth optimizing for.
+
+- The body should be copyable: one concrete practice the reader can take away
+  and reuse.
+- The closing may leave a real opening others can join — a positioned judgment
+  others will want to extend or push back on, or a real question that carries
+  its own context. The divide from banned hollow rhetoric is information: an
+  opening with no specific content ("what do you think?") stays banned.
+- Under `goal: followers`, a book mention is a memory signal — "this person
+  has a systematic take" — not a funnel hook. See the link positioning in the
+  source decision below.
 
 ## Voice and rejection checks
 
@@ -303,3 +358,6 @@ Reject and rewrite if the draft:
 - fails the delete-book-title test: after removing the book title and bare
   back-references, what remains is empty, a dangling reference, or a generic
   opinion that could sit under any post.
+- ends with a book-title sentence that adds no new material — it restates the
+  comment's own point as a mount for the book name (e.g. “这套……的方法，我在
+  《……》里拆过”) or otherwise places the book name in the final sentence.

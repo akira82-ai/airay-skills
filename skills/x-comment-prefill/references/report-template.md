@@ -13,7 +13,7 @@ minimum shape:
   "mode": "content-only|text-handoff|browser-prefill",
   "current_stage": "preflight|collect|freeze|detail|handoff|complete|blocked",
   "browser": "chrome|edge",
-  "goal": "engagement|traffic|discussion|custom",
+  "goal": "followers|engagement|traffic|discussion|custom",
   "topics": ["topic"],
   "allow_links": "never|natural-match-only|custom",
   "scan_count": 50,

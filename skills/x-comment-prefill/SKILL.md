@@ -35,7 +35,7 @@ the skill:
 run_id: generated unique identifier
 mode: content-only | text-handoff | browser-prefill   # default text-handoff
 browser: chrome | edge | unspecified
-goal: engagement | traffic | discussion | user supplied
+goal: followers | engagement | traffic | discussion | user supplied
 topics: all | user supplied topic set
 allow_links: never | natural-match-only | user supplied
 promotion_level: no_link | book_mention | book_mention_plus_link
@@ -52,6 +52,15 @@ Even when the run sets `book_mention_plus_link`, a candidate may resolve to
 `book_mention` or `no_link` if the natural-match test fails or the
 delete-book-title test in `comment-strategy.md` would be violated. Re-evaluate
 the actual level for each candidate after its draft exists.
+
+The run's `goal` sets the default promotion ceiling: when the goal is
+`followers` or `engagement`, cap `promotion_level` at `book_mention` unless the
+user explicitly asks for links; only `goal: traffic` justifies
+`book_mention_plus_link` by default. Rationale: opening an off-platform link
+contributes almost nothing to the reply's distribution and pulls engaged
+readers out of the thread — links trade away the in-thread interaction that
+drives follower growth. A book mention alone keeps the memory signal that
+leads readers to visit the profile.
 
 Route the request before any browser action:
 
@@ -186,7 +195,13 @@ This stage applies to `browser-prefill` and `text-handoff`.
 
 Apply the current run parameters and the thresholds in `comment-strategy.md`.
 Select only concrete, discussable, topic-matched posts with confirmed metrics.
-Prefer quality over quota. Once this stage succeeds, freeze the candidate list:
+Prefer quality over quota. Rank passing candidates by the golden-window
+signals in `comment-strategy.md`: post freshness (prefer under 24h; the
+timestamp sits on the permalink anchor already collected in stage 2),
+mutual-follow authors (top priority when determinable), and small/mid-size
+authors whose reply the comment can realistically earn. These are ranking
+signals, not hard gates — an unknown timestamp or relationship must not drop
+an otherwise passing candidate. Once this stage succeeds, freeze the candidate list:
 later “continue” actions cannot silently add substitutes to the same run.
 
 Contract: input is the deduplicated scan; allowed actions are metric/topic
@@ -274,6 +289,9 @@ that a stale handle was handed off.
   unexplained promotional tail.
 - Never call `finalize` more than once, and never do browser work after it.
 - Never present `opened` or `filled` as `submitted` or `published`.
+- Never bait engagement with hollow rhetorical questions or manufactured
+  controversy. A reply earns replies through a specific, positioned judgment
+  others can join — not through bait.
 
 ## Final response
 
