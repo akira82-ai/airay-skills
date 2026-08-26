@@ -16,6 +16,8 @@ material set.
 | FDE | `zh/100-questions-of-fde/` |
 | GitHub | `zh/100-questions-of-github/` |
 | Obsidian | `zh/100-questions-of-obsidian/` |
+| Harness Engineering | `zh/100-questions-of-harness-engineering/` |
+| Prompt Engineering / 提示词工程 | `zh/100-questions-of-prompt-engineering/` |
 
 ## Book-title mapping
 
@@ -34,6 +36,8 @@ book title. Do not invent a shorter or more promotional title.
 | FDE | 《关于 FDE 的 100 个问题》 |
 | GitHub | 《关于 GitHub 的 100 个问题》 |
 | Obsidian | 《关于 Obsidian 的 100 个问题》 |
+| Harness Engineering | 《关于 Harness Engineering 的 100 个问题》 |
+| Prompt Engineering / 提示词工程 | 《关于提示词工程的 100 个问题》 |
 
 The base path is supplied by the user or discovered from the active project;
 do not assume this repository contains those materials. Read only relevant

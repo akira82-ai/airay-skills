@@ -95,12 +95,60 @@ div[role="dialog"] div[role="textbox"]
 
 A null first probe is usually **lazy-load, not absence**. On a status detail
 page the inline composer (`tweetTextarea_0`) may not be in the DOM until the
-tweet region finishes rendering — the first `querySelector` returns null even
-though the box exists. If the first probe is null, **scroll the page (or the
-reply area) into view and wait 2–4s, then re-probe**; do not immediately fall
-back to the reply dialog or skip the candidate. Verified in run
-`xcp-20260813-1350-lfvj`: the first probe was null on two of three tabs, and a
-re-probe after a short wait succeeded.
+tweet region finishes rendering. Long posts can also place it below the
+viewport. Therefore, a missing first probe is never enough to skip a candidate.
+
+### Dynamic composer discovery loop
+
+Before filling, run this bounded loop on the already verified detail tab. These
+are defaults for one candidate and may be tightened when the browser session is
+near its lifetime limit:
+
+```text
+max_discovery_ms: 45,000
+max_scrolls: 12
+scroll_step_px: 500–700
+wait_after_scroll_ms: 1,500–2,500
+max_consecutive_no_progress: 3
+```
+
+For every iteration:
+
+1. Probe the inline selector and any visible, unique reply-dialog textbox.
+   Require exactly one visible usable textbox. If found, stop discovery and
+   proceed to the fill gate.
+2. If none is found, scroll the detail page downward by one bounded step. Do
+   not use a guessed coordinate to fill the box. The scroll is only to expose
+   X's lazily rendered composer.
+3. Wait for the dynamic render, then probe the DOM again. Record the scroll
+   position, document height, probe count, and scroll count.
+4. Stop with a concrete failure only when one of these gates fires:
+   `textbox_discovery_timeout`, `textbox_discovery_scroll_limit`,
+   `textbox_discovery_no_progress`, or `textbox_not_found_at_bottom`.
+
+`no_progress` means the scroll position and document height do not advance for
+three consecutive attempts, or the page is already at its bottom boundary.
+Do not label the first null result, a single unchanged scroll, or a still
+rendering page as `textbox_not_found`. If the loop stops, retain the tab and
+persist:
+
+```text
+textbox_discovery:
+  probe_count: number
+  scroll_count: number
+  elapsed_ms: number
+  stop_reason: success | textbox_discovery_timeout |
+    textbox_discovery_scroll_limit | textbox_discovery_no_progress |
+    textbox_not_found_at_bottom
+```
+
+Only after the loop has found a unique visible textbox may the agent fill it.
+Do not open a replacement tab merely because discovery hit its limit. A later
+manual retry is a new action and must re-check the live tab first.
+
+Verified behavior: the first probe can be null on multiple tabs, while a
+scroll followed by a short wait exposes the composer. The wait is part of the
+discovery operation, not an optional delay.
 
 Ambiguous or hidden controls are a skip, not an invitation to use coordinates
 or positional guesses. Fill only after the complete main post is verified.

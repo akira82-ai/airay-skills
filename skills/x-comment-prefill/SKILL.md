@@ -229,9 +229,14 @@ one at a time:
    `comment-strategy.md`. If no accurate local match exists, record
    `skipped: no_accurate_local_match`, do not draft, and do not fill that
    tab.
-4. Read back the visible text and require exact equality with the draft.
-5. Persist `opened`, `filled`, `submitted=false`, the material anchor, and any
-   failure or skip reason before
+4. Before filling, run the bounded dynamic composer discovery loop in
+   `browser-workflow.md`. A first null probe is not a failure; scroll downward,
+   wait for rendering, and re-probe until the loop succeeds or a timeout,
+   scroll, no-progress, or bottom-boundary limit fires. Persist the discovery
+   counters and stop reason.
+5. Read back the visible text and require exact equality with the draft.
+6. Persist `opened`, `filled`, `submitted=false`, the material anchor, the
+   textbox discovery record, and any failure or skip reason before
    moving to the next candidate.
 
 In `text-handoff`, do not open a target tab, do not fill, and do not read back

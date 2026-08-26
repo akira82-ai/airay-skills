@@ -37,8 +37,10 @@ local match exists, return `skipped: no_accurate_local_match` without a draft.
 For `browser-prefill`, each candidate result should include `status_url`,
 `status`, `opened`, `filled`, `handed_off`, `submitted`, `material_file`,
 `material_anchor`, `material_point`, `trigger`, `ownership`,
-`promotion_level`, `failure_reason`, and, when filled, the exact draft or a
-safe hash plus the exact-readback result. When no accurate local match exists,
+`promotion_level`, `textbox_discovery`, `failure_reason`, and, when filled, the
+exact draft or a safe hash plus the exact-readback result. For browser-prefill,
+`textbox_discovery` records `probe_count`, `scroll_count`, `elapsed_ms`, and
+`stop_reason`; use `stop_reason: success` before filling. When no accurate local match exists,
 set `status: skipped`, `reason: no_accurate_local_match`, and `filled=false`.
 
 For `text-handoff`, use `status: drafted`, set `delivered_as: text`, include
@@ -74,6 +76,8 @@ Do not store cookies, tokens, or unnecessary private page content.
    - point: `{material_point}`
    - ownership: `{user-provided|source-derived}`
    - promotion: `{no_link|book_mention|book_mention_plus_link}`
+   - textbox discovery: `{probe_count}` probes, `{scroll_count}` scrolls,
+     `{elapsed_ms}` ms, stop=`{stop_reason}`
 
 ### 原创灵感（最多两条）
 
