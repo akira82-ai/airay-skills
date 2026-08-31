@@ -1,25 +1,20 @@
 /*
  * fill-draft.js — reusable Draft.js fill + verify for x-comment-prefill.
  *
- * X's reply box is a Draft.js contenteditable. `bsk fill` (value) and
+ * X's reply box is a Draft.js contenteditable. Value-only filling and
  * `document.execCommand('insertText')` both desync it (gray button / duplicate
  * text / uneditable box). The only reliable path is a synthetic `textInput`
  * event with a capture-phase preventDefault guard so React/Draft.js applies the
  * edit while the native DOM insertion is cancelled.
  *
- * Usage (inline, because `bsk evaluate` may lack `--file`):
- *   bsk evaluate "$(cat references/fill-draft.js; echo '; xcpFill("DRAFT")')" \
- *       --session <sid> --tab-id <tab>
- *   bsk wait-ms 2000
- *   bsk evaluate "$(cat references/fill-draft.js; echo '; xcpVerify()')" \
- *       --session <sid> --tab-id <tab>
+ * Usage: load this file into the selected browser adapter's page context,
+ * focus the verified editor, call xcpFill("DRAFT"), send a real Backspace
+ * through the adapter, then wait for React to re-render and call xcpVerify().
  *
  * Clear step needs a REAL key (Draft.js ignores synthetic deletion), so:
- *   bsk evaluate "$(cat references/fill-draft.js; echo '; xcpSelectAll()')" ...
- *   bsk press 'Backspace' --session <sid> --tab-id <tab>
- *   bsk evaluate "$(cat references/fill-draft.js; echo '; xcpInsert("DRAFT")')" ...
+ *   xcpSelectAll(); adapter.press("Backspace"); xcpInsert("DRAFT");
  *
- * All functions return JSON strings so they print cleanly from `bsk evaluate`.
+ * All functions return JSON strings so the adapter can record their results.
  */
 
 var XCP_SEL = 'div[data-testid="tweetTextarea_0"]';

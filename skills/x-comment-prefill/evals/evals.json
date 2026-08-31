@@ -7,12 +7,42 @@
       "name": "new-run-state-and-gates",
       "description": "新一轮扫描请求应先建立临时参数和状态机，不把长期规则与本轮目标混在一起",
       "prompt": "用 Chrome 扫描当前 X 内容流前 50 条，目标是引流优先，主题全部，自然匹配时允许放链接。筛选后串行打开详情页、填好评论但不要提交。请把本轮状态和每一步的验收结果记录清楚。",
-      "expected_output": "先记录 run_id、浏览器、目标、主题、链接策略和阶段；按预检、去重、筛选冻结、详情核验、精确回读、live tabs 交接执行，并明确 submitted=false。",
+      "expected_output": "先展示默认参数并等待确认：run_intent=new_scan、mode=browser-prefill、allow_links=natural-match-only；确认前不操作浏览器。确认后记录 run_id、浏览器、目标、主题和阶段，按预检、去重、筛选冻结、详情核验、精确回读、tab 标记和持久性核验执行，并明确 submitted=false。",
       "files": [],
       "expectations": [
+        "默认使用新扫描、browser-prefill 和 natural-match-only",
+        "确认前不检查 tabs、不打开页面、不滚动、不填充、不标记 tab",
         "建立包含 run_id、current_stage、browser 和 goal 的本轮状态",
         "在详情页填充前先冻结去重后的候选清单",
-        "最终报告区分 opened、filled、handed_off 和 submitted=false"
+        "最终报告区分 opened、filled、tab_mark、persistence_verified 和 submitted=false"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "default-parameters-wait-for-confirmation",
+      "description": "没有显式参数时使用新扫描、prefill 和自然匹配链接，并在浏览器动作前等待用户确认",
+      "prompt": "开始处理 X 上值得回复的内容。",
+      "expected_output": "展示 run_intent=new_scan、mode=browser-prefill、allow_links=natural-match-only，并说明确认前不会检查或操作浏览器；等待用户明确确认后再进入预检。",
+      "files": [],
+      "expectations": [
+        "新请求默认创建新扫描而不是恢复旧 run",
+        "默认模式是 browser-prefill",
+        "默认链接策略是 natural-match-only",
+        "确认前不发生浏览器动作"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "new-scan-does-not-resume-active-run",
+      "description": "新扫描请求不应继承已有 run 的候选清单或当前阶段",
+      "prompt": "已有一个未完成的 X 评论 run。现在重新开始扫描一批新的内容。",
+      "expected_output": "创建新的 run_id，run_intent=new_scan，排除历史 status URL；不恢复旧阶段、不沿用旧冻结候选，并先展示参数等待确认。",
+      "files": [],
+      "expectations": [
+        "明确区分新扫描与继续",
+        "新扫描使用新的 run_id",
+        "新扫描不继承旧冻结候选",
+        "浏览器动作前等待确认"
       ]
     },
     {
@@ -113,7 +143,7 @@
       "name": "content-only-no-browser",
       "description": "只优化评论或明确不打开链接时，只处理原帖文本和本地资料",
       "prompt": "原帖内容如下：把生产级 coding agent 拆成 600 行，重点是读文件、改代码、执行命令、拿结果，再决定下一步。不必打开链接，只根据本地 zh 资料优化一条评论。",
-      "expected_output": "使用 content-only 模式；不检查浏览器、不打开原帖链接、不扫描 X、不填 textbox、不调用 finalize；先给证据卡，再输出资料支持的口语化经验分享，或在无准确匹配时跳过。",
+      "expected_output": "使用 content-only 模式；不检查浏览器、不打开原帖链接、不扫描 X、不填 textbox、不进行浏览器 tab 标记；先给证据卡，再输出资料支持的口语化经验分享，或在无准确匹配时跳过。",
       "files": [],
       "expectations": [
         "明确 mode=content-only",
@@ -254,6 +284,45 @@
         "滚动后等待动态渲染并重新检测 DOM",
         "设置总超时、滚动次数和连续无进展上限",
         "记录 probe_count、scroll_count、elapsed_ms 和 stop_reason"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "completed-target-tab-is-deliverable",
+      "description": "成功填充并回读的 Agent-created target tab 必须被标记为 deliverable，避免轮次结束时自动清理",
+      "prompt": "详情页已核验，回复框已成功填充，innerText 与草稿完全一致。请结束本轮，但不要发送评论，并保证用户下一轮还能看到这个 tab。",
+      "expected_output": "在结束本轮前将该 target tab 标记为 deliverable，重新核验 tab 仍存在，报告 persistence_verified=true；不调用关闭或清理，也不提交评论。",
+      "files": [],
+      "expectations": [
+        "成功回读后使用 deliverable 标记",
+        "结束本轮前核验 tab 仍然存在",
+        "submitted=false，且不关闭、不清理 tab"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "unfinished-target-tab-is-handoff",
+      "description": "已打开但尚未完成的目标 tab 必须使用 handoff 标记，不能因失败而自动关闭或创建替代 tab",
+      "prompt": "目标详情 tab 已打开，但回复框动态加载在超时前没有出现。请结束本轮并保留这个 tab，下一轮继续排查。",
+      "expected_output": "记录具体回复框发现失败原因，将仍然存在的目标 tab 标记为 handoff，报告 persistence_verified 的实际结果；不关闭 tab，不为同一 URL 创建替代 tab。",
+      "files": [],
+      "expectations": [
+        "未完成目标使用 handoff 标记",
+        "失败时记录实际原因并保留 live tab",
+        "不关闭 tab，不创建同 URL 替代 tab"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "delivery-is-not-manual-control-transfer",
+      "description": "保留 tab 与请求用户接管是不同动作，不能用 manual handoff 替代 deliverable 标记",
+      "prompt": "回复已经填充并精确回读成功。用户只要求 tab 打开着供自己稍后检查，不要求现在接管浏览器。请说明结束本轮前应做什么。",
+      "expected_output": "使用 deliverable 标记并核验 tab 持久存在；不调用 requestManualHandoff，因为用户没有要求立即接管，而且该动作不是 tab 保留机制。",
+      "files": [],
+      "expectations": [
+        "区分 deliverable 标记与 manual handoff",
+        "不把 requestManualHandoff 当作保留 tab 的方法",
+        "不发送、不关闭 tab"
       ]
     }
   ]

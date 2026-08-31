@@ -21,25 +21,43 @@ temporary campaign choices or local browser implementation. Load only the
 reference needed for the current stage:
 
 - `references/browser-workflow.md` for browser discovery, DOM checks, tab
-  lifecycle, and final handoff.
+  lifecycle, tab marking, and final delivery.
 - `references/comment-strategy.md` before drafting or revising any reply.
 - `references/topic-map.md` when matching an X post to local `zh` material.
 - `references/report-template.md` when reporting results or writing run state.
 
 ## Run parameters
 
-At the start of a new run, capture the temporary parameters without changing
-the skill:
+When the user starts an X comment workflow without overriding parameters,
+prepare this default parameter set:
+
+```text
+run_intent: new_scan
+mode: browser-prefill
+allow_links: natural-match-only
+```
+
+The default means a fresh scan and reply-box prefill. `natural-match-only`
+allows a link only when the matched local material and the reply make the link
+a natural continuation; it does not force every reply to contain a link.
+`promotion_level` remains per-candidate and may resolve to `no_link`,
+`book_mention`, or `book_mention_plus_link` after the evidence and delete-book-
+title gates pass.
+
+At the start of a run, capture the temporary parameters without changing the
+skill:
 
 ```text
 run_id: generated unique identifier
-mode: content-only | text-handoff | browser-prefill   # default text-handoff
+run_intent: new_scan | resume
+mode: content-only | text-handoff | browser-prefill   # default browser-prefill
 browser: chrome | edge | unspecified
 goal: followers | engagement | traffic | discussion | user supplied
 topics: all | user supplied topic set
-allow_links: never | natural-match-only | user supplied
+allow_links: never | natural-match-only | user supplied   # default natural-match-only
 promotion_level: no_link | book_mention | book_mention_plus_link
 scan_count: default 50
+confirmation: pending | confirmed
 ```
 
 Capture `promotion_level` and `allow_links` at run start, not after drafts
@@ -62,13 +80,25 @@ readers out of the thread — links trade away the in-thread interaction that
 drives follower growth. A book mention alone keeps the memory signal that
 leads readers to visit the profile.
 
-Route the request before any browser action:
+Before any browser action, show the resolved parameters and wait for explicit
+user confirmation. The initial state is `confirmation: pending`; do not list
+tabs, create or open a source/target tab, scroll, inspect the DOM, fill a reply
+box, mark a tab, or publish while confirmation is pending. A reply such as
+“确认”“开始”“可以” confirms the displayed parameters. If the user changes a
+parameter, update the pending set and ask for confirmation again. This gate
+applies to a new scan and to a resumed run when the user changes its parameters.
+
+Route the request after confirmation:
 
 - Use `content-only` when the user provides the post text or asks to optimize,
   compare, or draft a comment without opening the post/link or touching X.
   Read only the supplied post and the relevant local `zh` material. Do not
-  inspect tabs, scan, open URLs, fill textboxes, or call `finalize`.
-- Use `text-handoff` (the DEFAULT) when the user asks to scan X, find posts
+  inspect tabs, scan, open URLs, fill textboxes, or mark browser tabs for
+  handoff.
+- Use `text-handoff` when the user explicitly chooses text-only delivery or
+  asks not to touch reply boxes. Use `browser-prefill` as the default for a
+  scan workflow.
+- Use `text-handoff` when the user asks to scan X, find posts
   worth replying to, or wants ready-to-post comments. Open the browser only to
   read the timeline and verify posts; then draft from local material and hand
   off copy-ready text plus the post link. Do NOT fill any reply box. This avoids
@@ -81,9 +111,10 @@ Route the request before any browser action:
   context. A link may still be included in the draft only when the separate
   link policy permits it.
 
-If the mode is ambiguous, default to `text-handoff` and ask one consolidated
-question at run start: confirm `mode` (text-handoff vs browser-prefill),
-`promotion_level`, and `allow_links` together so drafts are not reworked later.
+If the mode is ambiguous, use the default `browser-prefill` and ask the
+confirmation question with the resolved `run_intent`, `mode`, `allow_links`,
+`goal`, `topics`, and `scan_count`. Do not silently fall back to
+`text-handoff`.
 
 In `content-only`, the state record is optional and must not contain browser
 claims. The output is a draft plus its evidence card and promotion decision;
@@ -104,7 +135,7 @@ Maintain one state record for the active run. By default write it to
 location is not writable, use the task workspace and report the fallback path.
 Create the directory only when the workflow actually starts. Do not hide state
 only in conversation memory. Use the schema in `references/report-template.md`. Candidate status values are:
-`discovered | drafted | opened | filled | handed_off | skipped | failed`.
+`discovered | drafted | opened | filled | delivered | skipped | failed`.
 Never collapse these into a single "done" field.
 
 For every drafted candidate, also persist the material evidence card and the
@@ -134,15 +165,17 @@ response; do not pretend that “continue” recovery is reliable.
 
 Interpret a follow-up against the active state before doing browser work:
 
-1. **“继续” / “再来”**: if an active run exists, resume its recorded stage and
-   reuse its exclusion set. Do not rescan or reinterpret completed candidates.
-   If the previous run is complete or the user clearly requests a new batch,
-   create a new `run_id` and exclude all historical status URLs.
-2. **“改一下评论”**: identify the requested candidate by exact status URL,
+1. **“继续”**: if an active run exists, resume its recorded stage and reuse
+   its exclusion set. Do not rescan or reinterpret completed candidates. If no
+   resumable run exists, report that fact and prepare a new run for confirmation.
+2. **“再来” / a new scan request**: create a new `run_id` with
+   `run_intent: new_scan`, excluding all historical status URLs. Do not inherit
+   the previous run's frozen candidate list.
+3. **“改一下评论”**: identify the requested candidate by exact status URL,
    stable candidate record, or uniquely visible target tab. Modify only that
    draft, then re-run the comment and exact-readback gates for that tab. Do not
    rescan, open a replacement tab, or alter other candidates.
-3. **Conflicting new parameters**: apply them only to the not-yet-completed
+4. **Conflicting new parameters**: apply them only to the not-yet-completed
    stage. Do not rewrite completed facts. If a change would invalidate the
    frozen candidate list, say so and ask whether to start a new run.
 
@@ -220,7 +253,8 @@ one at a time:
 
 1. Reacquire an existing exact-URL target tab, or open one target tab only
    after selection. The first opened target tab is a deliverable, not a
-   temporary inspection page.
+   temporary inspection page. Immediately mark an Agent-created target tab as
+   `handoff` while it is unfinished, so turn cleanup cannot close it.
 2. Verify exact URL, target main article, author, and nonempty complete post
    text. Do not rely on the timeline excerpt.
 3. Use the post only as a topic or context clue to locate a specific
@@ -236,8 +270,8 @@ one at a time:
    counters and stop reason.
 5. Read back the visible text and require exact equality with the draft.
 6. Persist `opened`, `filled`, `submitted=false`, the material anchor, the
-   textbox discovery record, and any failure or skip reason before
-   moving to the next candidate.
+   textbox discovery record, tab-mark state, and any failure or skip reason
+   before moving to the next candidate.
 
 In `text-handoff`, do not open a target tab, do not fill, and do not read back
 in the browser. After drafting (step 3), record the candidate as `drafted`
@@ -249,37 +283,43 @@ reacquisition, detail verification, draft generation, textbox filling, and
 readback; forbidden actions are parallel candidate processing, replacement tabs,
 and submission or other engagement actions.
 If a target tab disappears, record `opened_but_not_filled` and do not open a
-replacement for that URL. A failed candidate does not authorize cleanup.
+replacement for that URL. A failed candidate does not authorize cleanup; if
+the tab is still live, keep it marked as `handoff` for diagnosis or a later
+turn.
 
-### 5. Live-tab handoff
+### 5. Live-tab delivery
 
 This stage applies to `browser-prefill` and `text-handoff`; in `text-handoff`
-it is a text delivery, not a browser `finalize`.
+it is text delivery only.
 
-After all candidates are processed, reacquire live tabs and verify every kept
-target by exact URL and exact readback. Merge live-tab sources and deduplicate
-by URL so stale handles cannot become evidence. Call `finalize({keep})` at most
-once, only with verified target tabs. Never use it as cleanup. Whether it
-succeeds or fails, stop browser actions immediately after this attempt.
+After all candidates are processed, reacquire live tabs and verify every target
+by exact URL and exact readback. Mark a successfully filled target as a
+deliverable and an unfinished or failed target that must survive the turn as a
+handoff. Verify that each marked target still exists. The browser adapter owns
+the concrete marking and handoff API; this skill does not prescribe a CLI or a
+browser-specific command.
 
 Contract: input is the completed candidate state and live-tab listings; allowed
-actions are final verification and one handoff call; forbidden actions are
-cleanup, a second finalize call, and any browser action after finalize.
+actions are final verification and tab marking; forbidden actions are closing,
+discarding, recycling, or cleaning up tabs.
 
-In `text-handoff`, do not call `finalize` and do not do browser work. Deliver
+In `text-handoff`, do not mark browser tabs and do not do browser work. Deliver
 one block per kept candidate: post link, copy-ready comment, promotion level,
 and evidence card. Mark `delivered_as: text` and `submitted: false`. Stop after
 delivery.
 
-Success means the report distinguishes `opened`, `filled`, `handed_off`, and
-`submitted=false`. Failure means report the actual live-tab state; never claim
-that a stale handle was handed off.
+Success means the report distinguishes `opened`, `filled`, `tab_mark`,
+`persistence_verified`, and `submitted=false`. Failure means report the actual
+live-tab state; never claim that a stale handle was delivered.
 
 ## Non-negotiable boundaries
 
 - Never click the final reply/send/publish button.
 - Never like, repost, quote-post, follow, DM, or publish.
 - Never close, discard, recycle, or clean up tabs, including failed target tabs.
+- Immediately mark every Agent-created target tab as `handoff` while it is
+  unfinished. After exact readback succeeds, mark it as `deliverable`. A tab
+  that must survive a later turn must be marked again in that turn.
 - Never guess a URL, metric, author, tab ID, selector, or readback.
 - Never use a keyword alone as evidence for a topic match or a link.
 - Never generate a comment from the original post alone. Without an accurate
@@ -292,7 +332,9 @@ that a stale handle was handed off.
   may be woven into the experience, and the hyperlink may stand on its own
   line; never use an abrupt “这类问题我整理进了……” transition or append an
   unexplained promotional tail.
-- Never call `finalize` more than once, and never do browser work after it.
+- Never use a cleanup or close operation as a substitute for tab delivery.
+- `requestManualHandoff` is not a tab-retention mechanism; use it only when the
+  user explicitly needs to take control and the selected browser supports it.
 - Never present `opened` or `filled` as `submitted` or `published`.
 - Never bait engagement with hollow rhetorical questions or manufactured
   controversy. A reply earns replies through a specific, positioned judgment
@@ -301,13 +343,13 @@ that a stale handle was handed off.
 ## Final response
 
 Use `references/report-template.md`. State the run ID, browser, scan count,
-frozen candidate count, per-candidate status, finalize result, and the explicit
-boundary `submitted: false`. If the user asked for original-post ideas, add at
-most two ideas grounded in posts actually read; do not open a composer for
-them. Do not claim a local state file, browser handoff, or publication unless
-the corresponding gate was verified.
+frozen candidate count, per-candidate status, tab-mark result, persistence
+verification, and the explicit boundary `submitted: false`. If the user asked
+for original-post ideas, add at most two ideas grounded in posts actually read;
+do not open a composer for them. Do not claim a local state file, tab delivery,
+or publication unless the corresponding gate was verified.
 
 For `text-handoff`, the deliverable is copy-ready text per candidate (post link
-+ comment + promotion note + evidence card), not a browser handoff. Never claim
-a reply box was filled or handed off; always state `delivered_as: text` and
-`submitted: false`.
++ comment + promotion note + evidence card), not a browser tab. Never claim a
+reply box was filled or a browser tab was delivered; always state
+`delivered_as: text` and `submitted: false`.

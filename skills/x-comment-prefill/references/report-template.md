@@ -11,8 +11,9 @@ minimum shape:
 {
   "run_id": "xcp-YYYYMMDD-HHMMSS-unique",
   "mode": "content-only|text-handoff|browser-prefill",
-  "current_stage": "preflight|collect|freeze|detail|handoff|complete|blocked",
+  "current_stage": "awaiting_confirmation|preflight|collect|freeze|detail|delivery|complete|blocked",
   "browser": "chrome|edge",
+  "run_intent": "new_scan|resume",
   "goal": "followers|engagement|traffic|discussion|custom",
   "topics": ["topic"],
   "allow_links": "never|natural-match-only|custom",
@@ -22,8 +23,9 @@ minimum shape:
   "historical_status_urls": [],
   "frozen_candidates": [],
   "candidate_results": [],
-  "finalize_attempted": false,
-  "finalize_result": null,
+  "tab_marking": "not_attempted|partial|complete",
+  "persistence_verified": false,
+  "confirmation": "pending|confirmed",
   "delivered_as": "text|browser",
   "submitted": false
 }
@@ -31,11 +33,11 @@ minimum shape:
 
 For `content-only`, do not create a browser run record. Return only the
 supplied post, the evidence card, the draft or skip reason, and the promotion
-level. Do not invent browser fields or a `finalize` result. When no accurate
+level. Do not invent browser fields or a tab-marking result. When no accurate
 local match exists, return `skipped: no_accurate_local_match` without a draft.
 
 For `browser-prefill`, each candidate result should include `status_url`,
-`status`, `opened`, `filled`, `handed_off`, `submitted`, `material_file`,
+  `status`, `opened`, `filled`, `tab_mark`, `persistence_verified`, `submitted`, `material_file`,
 `material_anchor`, `material_point`, `trigger`, `ownership`,
 `promotion_level`, `textbox_discovery`, `failure_reason`, and, when filled, the
 exact draft or a safe hash plus the exact-readback result. For browser-prefill,
@@ -44,7 +46,7 @@ exact draft or a safe hash plus the exact-readback result. For browser-prefill,
 set `status: skipped`, `reason: no_accurate_local_match`, and `filled=false`.
 
 For `text-handoff`, use `status: drafted`, set `delivered_as: text`, include
-the copy-ready `draft` and `post_link`, and omit `opened`/`filled`/`handed_off`
+  the copy-ready `draft` and `post_link`, and omit `opened`/`filled`/`tab_mark`
 (nothing was filled).
 
 Do not store cookies, tokens, or unnecessary private page content.
@@ -55,16 +57,19 @@ Do not store cookies, tokens, or unnecessary private page content.
 ## X 评论预填结果
 
 - run_id: `{run_id}`
+- run_intent: `{new_scan|resume}`
 - mode: `{content-only|text-handoff|browser-prefill}`
+- confirmation: `{pending|confirmed}`
 - delivered_as: `{text|browser}`
 - 浏览器: `{browser}`
 - 扫描: `{unique_count}/{scan_count}` 条去重 status URL
 - 冻结候选: `{candidate_count}`
-- finalize: `{success|failed|not attempted}`
+- tab marking: `{success|failed|not attempted}`
+- persistence verified: `{true|false}`
 - submitted: `false`
 
-| # | 作者 | status URL | 主题 | 阅读量 | 回复量 | opened | filled | handed_off | 失败原因 |
-|---|---|---|---|---:|---:|---|---|---|---|
+| # | 作者 | status URL | 主题 | 阅读量 | 回复量 | opened | filled | tab_mark | persistence_verified | 失败原因 |
+|---|---|---|---|---:|---:|---|---|---|---|---|
 | 1 | … | … | … | … | … | … | … | … | … |
 
 ### 评论草稿
@@ -85,12 +90,13 @@ Do not store cookies, tokens, or unnecessary private page content.
 |---|---|---|---|---|
 ```
 
-Never collapse `opened`, `filled`, `handed_off`, and `submitted` into one
-“完成” field. If a candidate vanished, say `opened_but_not_filled`; if no local
-material matched, say `skipped: no_accurate_local_match`; if a finalize call was
-not allowed because a gate failed, say so explicitly.
+Never collapse `opened`, `filled`, `tab_mark`, `persistence_verified`, and
+`submitted` into one “完成” field. If a candidate vanished, say
+`opened_but_not_filled`; if no local material matched, say
+`skipped: no_accurate_local_match`; if tab marking was not possible because a
+gate failed, say so explicitly.
 
-For `text-handoff`, the table columns `opened`/`filled`/`handed_off` do not
+For `text-handoff`, the table columns `opened`/`filled`/`tab_mark` do not
 apply — leave them blank and add a `delivered_as: text` line plus a copy-ready
 block (post link + comment + promotion note) per candidate. Never claim a box
-was filled or handed off; `submitted` stays `false`.
+was filled or a browser tab was delivered; `submitted` stays `false`.

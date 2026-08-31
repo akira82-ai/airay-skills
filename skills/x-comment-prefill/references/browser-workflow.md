@@ -12,13 +12,10 @@ For collection, require exactly one X source tab whose host is `x.com` or
 results. Do not open an X home tab when the preflight condition fails; report
 the actual tab count and stop.
 
-If no user X tab is open to borrow (e.g. the user's Chrome only shows
-`chrome://newtab`), the Agent Window shares the browser profile, so
-`bsk tab create --session <sid> --url https://x.com/home` opens a *logged-in*
-source tab for collection — same idea as the borrow-blocked fallback for
-target tabs. Verify the tab title shows the home feed (e.g. `(n) 主页 / X`)
-before collecting. This avoids the `tab borrow` auto-cancel that some
-harnesses trigger.
+If no usable X source tab is connected, use the selected browser adapter's
+documented way to create or connect one, or stop with the concrete blocker.
+Do not invent a browser-specific fallback. Verify the tab is on the X home or
+requested feed before collecting.
 
 ## URL normalization
 
@@ -75,8 +72,9 @@ one target tab. Check at most three times for all of the following:
 - the target author is visible;
 - the complete main-post text is nonempty.
 
-The target tab becomes a deliverable as soon as it is opened. If readiness
-fails, retain it, record the reason, and do not create a replacement.
+An Agent-created target tab must be marked as `handoff` as soon as it is opened
+and while it is unfinished. If readiness fails, retain the mark, record the
+reason, and do not create a replacement.
 
 ## Reply textbox and readback
 
@@ -159,13 +157,14 @@ successful fill.
 ### Filling X's Draft.js composer (verified method)
 
 `references/fill-draft.js` packages the select-all, insert, and verify steps
-below into reusable functions (`xcpSelectAll`, `xcpInsert`, `xcpFill`,
-`xcpVerify`). Prefer it when `bsk evaluate` can inline the file. The steps
-below explain the same logic inline for contexts where the file cannot be
-loaded.
+below into reusable page-context functions (`xcpSelectAll`, `xcpInsert`,
+`xcpFill`, `xcpVerify`). Use it through the selected browser adapter when it
+supports page evaluation. The steps below explain the same logic inline for
+contexts where the file cannot be loaded.
 
-`bsk fill` does **not** register on X's `contenteditable` reply box (the
-`value` is set but React/Draft.js ignores it, so readback comes back empty).
+Value-only filling does **not** register on X's `contenteditable` reply box (the
+value may be set while React/Draft.js ignores it, so readback comes back
+empty).
 
 **Never use `document.execCommand('insertText')` here.** It desyncs Draft.js:
 
@@ -174,15 +173,12 @@ loaded.
 | tab not focused | text lands in the DOM only, Draft.js `editorState` stays empty → placeholder renders **on top of** the text (looks like overlapping glyphs), the reply button stays **gray/disabled**, and the user cannot edit, select, or paste |
 | tab focused | the string is committed **twice** (native DOM insert + Draft.js state insert) |
 
-Working procedure — clear with real input, insert through Draft.js only:
+Working procedure — focus the editor through the browser adapter, clear with
+real input, and insert through Draft.js only. Do not rely on a value setter or
+an unverified coordinate.
 
-```bash
-bsk tab select <tab> --session <sid>
-bsk click --session <sid> --tab-id <tab> --selector 'div[data-testid="tweetTextarea_0"]'
-```
-
-1. **Select all via the Range API** (`Meta+a` / `Ctrl+a` through `bsk press`
-   does *not* select inside Draft.js):
+1. **Select all via the Range API** (generic keyboard select-all actions may
+   not select inside Draft.js):
 
 ```js
 var el = document.querySelector('div[data-testid="tweetTextarea_0"]');
@@ -191,7 +187,7 @@ var r = document.createRange(); r.selectNodeContents(el);
 var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
 ```
 
-2. **Delete with a real key** so Draft.js sees it: `bsk press 'Backspace'`.
+2. **Delete with a real key** through the browser adapter so Draft.js sees it.
 
 3. **Insert with a synthetic `textInput` event plus a capture-phase
    `preventDefault` guard**, so React/Draft.js applies the edit and the native
@@ -239,48 +235,46 @@ earlier runs.
 Never click the send/reply button. Leave the tab open for the user to review
 and publish manually.
 
-### Sandbox limits and session lifetime
+### Tab retention and handoff
 
-- `bsk evaluate` / `bsk click` only work on tabs **inside the Agent Window**.
-  User-window tabs need `bsk tab borrow`, which some harnesses auto-cancel
-  (`tab_borrow cancelled by user`). When borrow is blocked, open fresh Agent
-  Window tabs for the same URLs, fix them there, hand those off, and tell the
-  user to close the stale tabs — do not report the run as unfixable.
-- Sessions die after roughly five minutes idle. Chain
-  `session start` → `tab create` → fill → verify inside one command run, and
-  re-check `bsk session list` at the start of every user turn instead of
-  assuming a stored session id is alive.
-- `bsk session stop <sid>` promotes the Agent Window into a normal user window
-  and keeps its tabs; that is the handoff. There is no `--keep` flag.
-- **The Agent Window blocks human input while the session is live** (the
-  "agent is controlling" banner). The user cannot click, scroll, edit, or
-  publish until the session stops. So stop the session as soon as readback
-  passes — never leave a session open "just in case" — and if a turn ends
-  without a handoff, say explicitly that the browser is still locked and how
-  to release it. Verify release with `bsk browsers` (`SESSIONS` column) or
-  `bsk session list`.
+Agent-created tabs may be ephemeral and can be cleaned up when the current
+turn ends unless they are marked. The browser adapter must provide the
+following semantic operations, using its own supported API:
 
-## Handoff and stopping
+- `markHandoff`: mark an unfinished target tab that must remain available for
+  diagnosis or a later turn.
+- `markDeliverable`: mark a successfully filled and verified target tab for
+  the user to review and publish manually.
 
-Before handoff, merge the current live-tab listing with the user-visible tab
-listing and deduplicate by normalized URL. Keep only target tabs whose exact
-URL and draft readback were verified. Run one `finalize({keep})` at most once;
-do not include source, home, or inspection tabs. After the attempt, stop all
-browser interaction, even if the result is an error. Never close tabs as part
-of handoff.
+Mark every Agent-created target tab immediately after opening it as
+`handoff`. After exact readback succeeds, replace that mark with
+`deliverable`; the latest mark wins. Reapply the appropriate mark in every
+later turn in which the tab must survive. Do not mark source, search,
+inspection, duplicate, or blank tabs. A failed target tab remains marked as
+`handoff` when it must stay open for diagnosis or a later turn.
 
-**After content is written, do not close the filled reply tabs.** The handoff
-is `bsk session stop <sid>`, which promotes the Agent Window into a normal
-user window and **keeps** the filled tabs so the user can review and publish
-manually. A filled box that shows empty after promotion means re-fill that one
-tab — never treat it as a cleanup cue. Recycle/close only happens on the user's
-explicit request.
+`requestManualHandoff` is a separate control-transfer operation. It does not
+replace tab marking and should be used only when the user explicitly needs to
+take control and the selected browser supports it.
+
+Before ending the turn, re-list live tabs and verify every marked target by
+normalized URL. Record the mark result and persistence check. Never call a
+close, discard, recycle, cleanup, or keep-list operation as a substitute for
+marking. If the browser runtime has a separate control-release operation, use
+its documented handoff only after marking and verification; it must preserve
+the marked tabs.
+
+Runtime session expiry, user-control locks, and tab-handle lifetime are
+adapter-specific. Persist the URL and state before a possible expiry and
+reacquire the tab by exact URL in a later turn; do not infer that an expired
+handle means the tab was closed.
 
 The report must separate:
 
 ```text
 opened: true/false
 filled: true/false
-handed_off: true/false
+tab_mark: handoff|deliverable|none
+persistence_verified: true/false
 submitted: false
 ```
