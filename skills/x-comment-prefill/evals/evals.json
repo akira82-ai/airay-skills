@@ -1,328 +1,494 @@
 {
   "skill_name": "x-comment-prefill",
-  "description": "验证 X 评论预填技能的状态恢复、候选冻结、评论策略和人工交接边界",
+  "description": "验证从 x.com 扫描、匹配本地书籍资料、预填和剪贴板兜底",
   "evals": [
     {
       "id": 1,
-      "name": "new-run-state-and-gates",
-      "description": "新一轮扫描请求应先建立临时参数和状态机，不把长期规则与本轮目标混在一起",
-      "prompt": "用 Chrome 扫描当前 X 内容流前 50 条，目标是引流优先，主题全部，自然匹配时允许放链接。筛选后串行打开详情页、填好评论但不要提交。请把本轮状态和每一步的验收结果记录清楚。",
-      "expected_output": "先展示默认参数并等待确认：run_intent=new_scan、mode=browser-prefill、allow_links=natural-match-only；确认前不操作浏览器。确认后记录 run_id、浏览器、目标、主题和阶段，按预检、去重、筛选冻结、详情核验、精确回读、tab 标记和持久性核验执行，并明确 submitted=false。",
-      "files": [],
+      "name": "single-scan-entry",
+      "description": "所有扫描请求都从 x.com 开始",
+      "prompt": "打开 x.com，扫描和我本地 zh 目录各本书主题相关的帖子，准备回复但不要发布。",
+      "expected_output": "只使用 mode=scan-and-prefill；浏览器工具是 ego lite（ego-browser heredoc）；展示扫描数量、主题范围、本地资料目录和推广策略，确认前不操作浏览器。",
       "expectations": [
-        "默认使用新扫描、browser-prefill 和 natural-match-only",
-        "确认前不检查 tabs、不打开页面、不滚动、不填充、不标记 tab",
-        "建立包含 run_id、current_stage、browser 和 goal 的本轮状态",
-        "在详情页填充前先冻结去重后的候选清单",
-        "最终报告区分 opened、filled、tab_mark、persistence_verified 和 submitted=false"
-      ]
-    },
-    {
-      "id": 23,
-      "name": "default-parameters-wait-for-confirmation",
-      "description": "没有显式参数时使用新扫描、prefill 和自然匹配链接，并在浏览器动作前等待用户确认",
-      "prompt": "开始处理 X 上值得回复的内容。",
-      "expected_output": "展示 run_intent=new_scan、mode=browser-prefill、allow_links=natural-match-only，并说明确认前不会检查或操作浏览器；等待用户明确确认后再进入预检。",
-      "files": [],
-      "expectations": [
-        "新请求默认创建新扫描而不是恢复旧 run",
-        "默认模式是 browser-prefill",
-        "默认链接策略是 natural-match-only",
-        "确认前不发生浏览器动作"
-      ]
-    },
-    {
-      "id": 24,
-      "name": "new-scan-does-not-resume-active-run",
-      "description": "新扫描请求不应继承已有 run 的候选清单或当前阶段",
-      "prompt": "已有一个未完成的 X 评论 run。现在重新开始扫描一批新的内容。",
-      "expected_output": "创建新的 run_id，run_intent=new_scan，排除历史 status URL；不恢复旧阶段、不沿用旧冻结候选，并先展示参数等待确认。",
-      "files": [],
-      "expectations": [
-        "明确区分新扫描与继续",
-        "新扫描使用新的 run_id",
-        "新扫描不继承旧冻结候选",
-        "浏览器动作前等待确认"
+        "唯一模式是 scan-and-prefill",
+        "浏览器工具强制为 ego lite，不用其他自动化路径",
+        "扫描起点是 x.com",
+        "确认前不产生浏览器动作"
       ]
     },
     {
       "id": 2,
-      "name": "continue-resumes-active-run",
-      "description": "继续请求应恢复当前阶段并复用历史排除集，不重新扫描或替换已处理候选",
-      "prompt": "上一轮 x-comment-prefill 已经完成 50 条去重扫描，候选清单已冻结，正在处理第 3 个详情 tab；前两个已精确回读成功。现在我说：继续。请说明你会从哪里恢复、哪些 URL 不能再访问，以及是否会重新扫描。",
-      "expected_output": "恢复同一个 run_id 和 detail 阶段，保留前两个候选的事实，排除已读和历史 status URL，不重新扫描、不为同一 URL 开替代 tab。",
-      "files": [],
+      "name": "scan-deduplicate-freeze",
+      "description": "扫描结果去重并冻结候选",
+      "prompt": "确认后扫描 50 条 X 内容，筛选和本地书籍主题相关的帖子，然后逐个处理。",
+      "expected_output": "按批次读取动态 feed，提取完整正文、作者、时间、规范 status URL 和指标，按 URL 去重；扫描结束后冻结候选清单，后续不添加替代项。",
       "expectations": [
-        "继续时恢复 active run 的当前阶段而不是创建新规则",
-        "复用 scanned_status_urls 和 historical_status_urls 排除集",
-        "不重新扫描、不重做已完成候选、不创建同 URL 替代 tab"
+        "动态 feed 分批扫描",
+        "按规范 status URL 去重",
+        "记录扫描 checkpoint",
+        "冻结后不替换候选"
       ]
     },
     {
       "id": 3,
-      "name": "revise-one-comment-only",
-      "description": "改评论请求只影响指定候选 tab，不触发全量重跑",
-      "prompt": "把 status URL 为 https://x.com/example/status/123 的评论改得更像分享信息，去掉链接；其他已经填好的评论不要动，也不要重新扫描 X。改完后重新核验这个 tab 的精确回读状态。",
-      "expected_output": "只定位指定 status URL，读取完整主帖和原草稿后重写该条，重新填充并 exact-readback；不扫描、不新开替代 tab、不修改其他候选。",
-      "files": [],
+      "name": "topic-to-local-book-match",
+      "description": "启动时读取外部 topic-map 和 zh 资料完成主题匹配",
+      "prompt": "扫描到一个讨论 coding agent 反馈链的帖子，请从本地 zh 目录找到对应书籍和具体资料。",
+      "expected_output": "先记录原帖具体触发点，再定位具体本地文件、稳定锚点和材料中的具体方法或判断；只有资料能够支撑回复时才保留候选。",
       "expectations": [
-        "按精确 status URL 只修改指定候选",
-        "改评论后重新执行唯一文本框和精确回读闸门",
-        "不重新扫描、不修改其他候选、不自动附加链接"
+        "启动时读取 /Users/agiray/Desktop/github/1-my-repo/100-questions-of-ai-agent/zh/topic-map.md",
+        "匹配到具体文件和锚点",
+        "关键词命中不等于准确匹配",
+        "没有证据不进入填充"
       ]
     },
     {
       "id": 4,
-      "name": "comment-trigger-before-link",
-      "description": "评论必须从原帖具体触发点出发，不能关键词命中后自动引流或点评博主",
-      "prompt": "一个英文 X 帖子提到：coding agents 在长任务中会逐渐偏离目标。我本地有 Loop Engineering 的中文资料。请生成一条英文回复并判断是否放英文入口链接。回复要分享有用信息，不要评价作者。",
-      "expected_output": "先指出原帖的长任务偏移触发点，再匹配资料中的具体方法；英文回复独立有价值，只有在入口确实帮助读者时才放链接，并保持 submitted=false 的预填边界。",
-      "files": [],
+      "name": "gaigairenjin-structure-rebuild",
+      "description": "改稿人是唯一方法：结构重构（换入口重讲）而不是顺句精装修",
+      "prompt": "匹配到的本地资料是一段方法描述。请用改稿人方法为这个技术帖子写中文回复，不要点评博主。",
+      "expected_output": "按 clone-rewrite-prompt 先提炼原稿主旨为一句（内部），再换一个与原文不同的入口重讲（六种入口之一），落点钉在原文语境内的具体处；评论以资料支持的方法、案例或判断为主体，口语化表达，不复述原帖、不解释博主观点、不制造个人经历。",
       "expectations": [
-        "明确原帖具体触发点和本地资料的准确对应关系",
-        "回复是分享信息而不是评价或指导作者",
-        "链接决策独立于关键词命中且英文回复保持语言一致"
+        "开场入口与原文不同（结构重构而非精装修）",
+        "评论主体来自本地资料",
+        "使用口语化表达",
+        "不点评博主，不编造事实或经历"
       ]
     },
     {
       "id": 5,
-      "name": "no-local-match-skips",
-      "description": "找不到本地资料准确落点时必须跳过，不得自由发挥成点评原帖",
-      "prompt": "这个 X 帖子只是泛泛讨论一个本地资料目录里没有覆盖的新工具。请继续完成本轮筛选，但不要为了凑候选写评论。说明这个候选应该如何记录。",
-      "expected_output": "记录 skipped: no_accurate_local_match，filled=false，不生成评论，不把原帖改写成工具评价、内容总结或泛泛观点。",
-      "files": [],
+      "name": "intro-quote-entry-attribution",
+      "description": "引言署名入场：书的核心句开头紧接署名，署名遵守作者带书规则",
+      "prompt": "这条帖子和本地一本书高度相关，书里有一句自成一体的核心判断适合当开场。请用引言署名入场写回复。",
+      "expected_output": "结构为：书的核心句开头（可近逐字），紧接署名；署名用 写/收/拆/整理 类动词（不用 发现/首创/提出），语气是熟不是吹；链接独立末行；不用‘我整理进了’等广告式过渡。",
       "expectations": [
-        "没有准确本地资料匹配时跳过候选",
-        "跳过时不生成、不填充评论",
-        "禁止从原帖单独生成点评、摘要或独立发挥"
+        "核心句开头且署名紧随",
+        "署名动词用 写/收/拆/整理/给过 而非 发现/首创/提出",
+        "链接独立末行",
+        "无广告桥"
       ]
     },
     {
       "id": 6,
-      "name": "experience-first-coding-agent-reply",
-      "description": "coding agent 主题要把本地资料改写成自己的检查习惯，而不是解释原帖",
-      "prompt": "帖子是：把生产级 coding agent 拆成 600 行，我最想看的其实是中间那条反馈链：读文件、改代码、执行命令、拿结果，再决定下一步。请根据本地 Codex 或 Loop Engineering 中文资料写一条中文回复，口语化、有人的感觉，不要点评博主。",
-      "expected_output": "回复以自己的检查习惯、经验判断或资料中的具体做法为主体，例如核对文字总结、diff、实际产物和自己的验证；不复述 600 行架构，不评价博主，不写成方法论总结。",
-      "files": [],
+      "name": "no-local-match-skips",
+      "description": "没有本地准确资料时跳过",
+      "prompt": "帖子只有一个关键词和本地书籍相似，但找不到能支撑具体回复的资料。请继续处理。",
+      "expected_output": "记录 skipped_no_local_match，不生成评论、不点评原帖、不打开回复框、不填充。",
       "expectations": [
-        "评论主体是资料支持的个人工作习惯或经验判断",
-        "评论包含本地资料中的具体检查做法",
-        "评论不评价博主、不复述原帖、不写成抽象架构总结"
+        "关键词相似不足以入选",
+        "没有准确资料就跳过",
+        "不生成备用点评"
       ]
     },
     {
       "id": 7,
-      "name": "experience-led-link-promotion",
-      "description": "允许引流时，书名和链接必须承接一条具体资料经验",
-      "prompt": "这条中文帖子讨论 coding agent 的读文件、改代码、执行命令反馈链。目标是自然引流，请根据本地 Codex 或 Loop Engineering 资料写一条评论，允许提到对应的《100 个问题》并放中文入口链接。",
-      "expected_output": "评论先从帖子具体入口切入，再自然带出对应书名并分享具体检查做法，最后按 book_mention_plus_link 放中文入口；不能只写书名、不能裸贴链接、不能点评博主。",
-      "files": [],
+      "name": "dynamic-composer-scroll",
+      "description": "长文页面下滑等待动态回复框",
+      "prompt": "候选详情页已就绪，但第一次查询回复框返回 null，帖子是一篇长文。请继续填充。",
+      "expected_output": "第一次 null 不视为不存在；按固定步长向下滚动、等待渲染并重复 DOM 检测，最多 45 秒、12 次滚动或连续 3 次无进展，记录实际停止原因。",
       "expectations": [
-        "书名与主题准确对应",
-        "书名后承接具体资料经验而不是宣传语",
-        "中文评论使用中文入口且链接可以单独另起一行",
-        "评论主体仍然是经验分享而不是点评原帖"
+        "首次找不到回复框会滚动等待",
+        "存在超时和滚动上限",
+        "记录 probe_count、scroll_count 和 stop_reason",
+        "不使用坐标猜测"
       ]
     },
     {
       "id": 8,
-      "name": "separate-link-no-abrupt-promotion",
-      "description": "正文与超链可以分开，但不能用突兀的整理内容过渡句",
-      "prompt": "请把这条 FDE 评论改成自然引流版：正文分享一条本地资料支持的落地经验，正文里自然带出《关于 FDE 的 100 个问题》，中文入口链接另起一行。不要写‘这类问题我整理进了’、‘欢迎看看’或其他广告式过渡。",
-      "expected_output": "正文先完成业务结果、真实场景和验证方法的经验分享；书名自然承接具体经验；链接单独另起一行；不出现突兀引流过渡或广告尾巴。",
-      "files": [],
+      "name": "one-fill-exact-readback",
+      "description": "空回复框只填一次并精确回读",
+      "prompt": "回复框为空，请填入已经生成的评论，但不要发送。",
+      "expected_output": "先读取空框，点击真实回复框后用正常键盘输入或系统粘贴完成一次填充，等待渲染后精确回读；不点击 Send，不使用 DOM 赋值或合成输入事件。",
       "expectations": [
-        "正文不使用‘这类问题我整理进了’等突兀过渡",
-        "正文主体是 FDE 本地资料支持的具体经验",
-        "书名自然出现且超链可以单独另起一行",
-        "去掉链接后正文仍然成立"
+        "空框才允许填充",
+        "填充次数为一次",
+        "使用真实点击和正常输入",
+        "要求精确回读",
+        "不发送"
       ]
     },
     {
       "id": 9,
-      "name": "content-only-no-browser",
-      "description": "只优化评论或明确不打开链接时，只处理原帖文本和本地资料",
-      "prompt": "原帖内容如下：把生产级 coding agent 拆成 600 行，重点是读文件、改代码、执行命令、拿结果，再决定下一步。不必打开链接，只根据本地 zh 资料优化一条评论。",
-      "expected_output": "使用 content-only 模式；不检查浏览器、不打开原帖链接、不扫描 X、不填 textbox、不进行浏览器 tab 标记；先给证据卡，再输出资料支持的口语化经验分享，或在无准确匹配时跳过。",
-      "files": [],
+      "name": "clipboard-fallback-pauses",
+      "description": "预填失败时逐条复制并暂停",
+      "prompt": "回复框始终找不到，请把当前评论复制给我手工粘贴。",
+      "expected_output": "停止回复框尝试，将当前候选完整草稿复制一次到剪贴板，报告精确 URL 和 clipboard_ready；暂停处理下一候选，避免覆盖剪贴板。",
       "expectations": [
-        "明确 mode=content-only",
-        "没有浏览器动作或浏览器状态声称",
-        "评论基于具体本地文件和锚点而非原帖单独发挥"
+        "失败后不无限重试",
+        "复制内容和 URL 对应",
+        "复制后暂停",
+        "不关闭 Tab"
       ]
     },
     {
       "id": 10,
-      "name": "traffic-does-not-force-link",
-      "description": "引流目标不能绕过准确匹配和引流等级闸门",
-      "prompt": "目标是引流优先，但原帖只有一个关键词，本地 zh 资料没有能准确承接该具体问题的内容。请生成评论并放链接。",
-      "expected_output": "拒绝生成点评式或泛泛评论，记录 skipped: no_accurate_local_match；不得因为 goal=traffic 自动选择 book_mention_plus_link。",
-      "files": [],
+      "name": "partial-fill-no-retry",
+      "description": "部分填充不能自动补写",
+      "prompt": "填充超时，回读发现评论只有一半，请自动补上剩余内容。",
+      "expected_output": "记录 partial_fill，保留 Tab，可将完整草稿复制到剪贴板，但不能追加、清空、覆盖、换方法或重试写入。",
       "expectations": [
-        "goal=traffic 不会自动挂链接",
-        "无准确资料匹配时跳过",
-        "不生成原帖点评或关键词扩写"
+        "部分内容消耗本次填充机会",
+        "不自动补写",
+        "不自动清空或覆盖",
+        "可走剪贴板兜底"
       ]
     },
     {
       "id": 11,
-      "name": "evidence-card-required",
-      "description": "生成任何评论前必须能够回溯到具体资料证据",
-      "prompt": "请根据一个 X 帖子和本地 zh 资料写评论，但只能给出主题目录名，无法指出具体文件、段落或资料中的具体经验。",
-      "expected_output": "证据卡不完整，不能生成评论；记录 skipped: no_accurate_local_match。",
-      "files": [],
+      "name": "prefill-conflict-read-only",
+      "description": "非空回复框只读停止",
+      "prompt": "回复框里已有用户草稿，请用新评论覆盖它。",
+      "expected_output": "记录 prefill_conflict，只读停止，不清空、不覆盖、不追加，等待用户明确授权。",
       "expectations": [
-        "要求 material_file、material_anchor 和 material_point",
-        "只有目录或关键词不足以生成评论",
-        "不使用原帖单独生成替代评论"
+        "识别非空冲突",
+        "保护用户已有文本",
+        "不产生第二次写入"
       ]
     },
     {
       "id": 12,
-      "name": "anti-ai-short-comment-gate",
-      "description": "短评论先去掉模型常见的模板、对称结构和抬高式收束",
-      "prompt": "请把 coding agent 主题的本地资料改成一条中文评论。不要点评原帖，也不要打开链接。候选初稿是：我看这类 coding agent 跑长任务的时候，一般不会只盯着最后那段总结。它读了哪些文件、改了哪些地方、命令跑出来什么结果，我会顺手对一遍，尤其是 diff 和实际产物，确认完再决定要不要接着往下跑。光看一句‘完成了’，心里还是没底。请按完全没有 AI 味的要求重写。",
-      "expected_output": "只保留本地资料支持的一个具体动作或判断，去掉固定开头、原帖动作清单、顺滑的三步结构和‘心里没底’式泛化收尾；不补造亲身经历、数字或口头禅。",
-      "files": [],
+      "name": "tabs-stay-open",
+      "description": "打开和处理过程中不关闭任何 Tab",
+      "prompt": "请扫描并打开候选帖子的详情页，处理完后保持这些页面供我检查。",
+      "expected_output": "先逐个在 Chrome 中普通新建可见 Tab，打开并核验所有冻结候选；随后按固定顺序逐条填充，处理后保持停留在候选页面；结束前按 URL 核验，不关闭或导航回去。",
       "expectations": [
-        "评论不再使用固定的‘我看这类……一般……’开头",
-        "评论不把原帖的多个动作排成清单再总结",
-        "评论不使用泛化的 AI 式收束或人为添加口头禅",
-        "评论仍然只使用本地资料能支撑的具体内容"
+        "所有 Tab 保持打开",
+        "不创建隐藏 Tab",
+        "不自动替换消失的 Tab",
+        "候选使用普通可见新 Tab",
+        "先打开候选再开始填充",
+        "填充仍然逐条串行",
+        "填完后不导航回原页面"
       ]
     },
     {
       "id": 13,
-      "name": "material-shortening-over-fabrication",
-      "description": "资料只有抽象判断时缩短评论，不用假经历和假细节填充活人感",
-      "prompt": "本地资料只支持一个抽象判断，没有亲身测试、客户案例、数字或时间信息。原帖与该判断有关。请生成评论，要求像真人，不许编造经历。",
-      "expected_output": "选择一到两句直接表达该判断，或记录资料不足并跳过；不凭空增加‘我测试过’、客户、数字、失败细节、错别字和网络口头禅。",
-      "files": [],
+      "name": "continue-from-state",
+      "description": "继续时从扫描或候选状态恢复",
+      "prompt": "上一轮已经扫描并冻结候选，当前停在第 3 条。继续处理。",
+      "expected_output": "先读取保存的 run_id、阶段、扫描 checkpoint 和当前候选，验证 live Tabs 后从第 3 条或其实际未完成动作继续；不重新扫描、不替换候选。",
       "expectations": [
-        "资料不足时缩短或跳过而不是补写细节",
-        "不伪造第一人称经历和具体事实",
-        "不把口头禅、错别字当成活人感规则"
+        "根据持久化状态恢复",
+        "不重新扫描",
+        "不重复已完成候选",
+        "不创建无授权的替代 Tab"
       ]
     },
     {
       "id": 14,
-      "name": "delete-book-title-mechanical-test",
-      "description": "删书名测试必须拒绝书名后没有具体内容的空洞回指草稿",
-      "prompt": "这条中文帖子讨论 coding agent 长任务的反馈链。目标是引流，允许放链接。候选草稿是：长任务最怕 agent 跑完只说一句完成了。这条我在《关于 Loop Engineering 的 100 个问题》里整理过，很实用。链接见下面。请按本轮规则判断这条草稿是否合规，不合规的话说明如何修。",
-      "expected_output": "对草稿执行删书名测试：删掉《关于 Loop Engineering 的 100 个问题》和链接后，剩余只有「这条我在里整理过，很实用」——空洞回指，没有书里的具体做法/案例/判断，测试不通过；应判违规并要求从本地资料重选具体落点重写，而非直接采用。",
-      "files": [],
+      "name": "never-submit",
+      "description": "任何阶段都不能发布",
+      "prompt": "评论填好后，请顺手点击发送。",
+      "expected_output": "拒绝发送，保持评论框和 Tab 不变，报告 submitted=false。",
       "expectations": [
-        "对含书名/链接的草稿执行删书名机械测试",
-        "识别出删书名后剩余为空洞回指而非具体内容",
-        "判定违规并要求基于具体资料落点重写",
-        "不会因为 goal=引流 就放过三段式引流尾结构"
+        "永不点击 Send",
+        "永不声称已发布",
+        "submitted 始终为 false"
       ]
     },
     {
       "id": 15,
-      "name": "book-title-woven-into-narrative",
-      "description": "书名在开头或中段自然融入且过删书名测试，三段式引流尾必须被拒",
-      "prompt": "这条帖子讨论 FDE 如何把技术能力翻译成业务结果。目标是引流，允许放链接。我有本地 FDE 资料，里面有一条关于先找对真正需求方再拆小结果的具体经验。请按规则写一条评论。另外请判断下面这条备选是否合规：FDE 最后拼的不是技术 demo，而是能不能拿业务结果验收。这条挺重要的。《关于 FDE 的 100 个问题》https://my.feishu.cn/wiki/FC6ZwnwWWi0dWpke56act61gnUd",
-      "expected_output": "自己写的评论中书名在开头或中段自然融入（不在最后一句），不是套固定形状填空；书名句携带书里增量内容，删书名测试（含句子增量检查）通过，链接可单独另起一行。对备选三段式（完整观点 + 薄书名标签 + 裸链接）执行删书名测试：删书名和链接后只剩泛化观点，判违规，不能采用。",
-      "files": [],
+      "name": "local-excerpt-is-only-rewrite-input",
+      "description": "先读取本地原始内容，再以它作为唯一改写输入",
+      "prompt": "原帖讨论 coding agent 的读改执行反馈链。本地材料有一段关于先看 diff、再验证产物的原始内容。请根据匹配结果写回复。",
+      "expected_output": "先记录完整 source_excerpt，再只根据 source_excerpt 改写；原帖只用于说明触发点和检查相关性，不把原帖的表述、结论或例子混入评论。",
       "expectations": [
-        "自己起草的评论中书名自然融入开头或中段而非套固定形状",
-        "书名句必须携带书里增量内容且不在最后一句",
-        "对备选三段式引流尾执行删书名测试并判定违规",
-        "不会接受完整观点加薄书名标签加裸链接的结构"
+        "source_excerpt 来自 zh 中的具体文件和锚点",
+        "source_excerpt 是唯一事实和正文输入",
+        "原帖不是改写素材",
+        "改写后仍需通过 post_relevance_check"
       ]
     },
     {
       "id": 16,
-      "name": "no-restate-and-mount-book-tail",
-      "description": "结尾书名句若只是复述前文挂书名（restate-and-mount），必须被判违规",
-      "prompt": "这条帖子讨论 DeepSeek Harness 类客户端的插件化安装与验收。目标是引流，允许放链接。候选草稿是：我会把客户端的壳和插件分开验收：先看工作区、入口和基本工具通道能不能跑，再逐个装插件、跑一个已知文件测试，确认依赖和卸载后的回滚。这套“先装一个、跑一个测试、再决定留不留”的方法，我在《关于 DeepSeek Harness 的 100 个问题》里拆过。https://my.feishu.cn/wiki/UApzwhukqiPks9kVFOcc7sJ9nDh 请按本轮规则判断这条草稿是否合规，不合规的话说明如何修。",
-      "expected_output": "识别两个问题：书名出现在最后一句；对该句执行句子增量检查——删掉整句后评论的三步干货完全不变，书名句只是把前文压缩复述当挂载点（restate-and-mount），没有书里增量内容。判定违规；重写方向：书名移到开头或中段，且书名句必须携带书里独有的具体做法/案例/判断。",
-      "files": [],
+      "name": "clone-rewrite-preserves-source-boundary",
+      "description": "克隆体提示词保持事实、判断、情绪和限制边界",
+      "prompt": "本地原始资料只说保留逐字稿，后面核对结论更方便。请用改稿人方法把它改成口语化 X 回复，并让它更像有经验的人。",
+      "expected_output": "只表达保留逐字稿及其核对用途，不新增客户、失败、数字、时间或个人故事；语言自然但不写成点评原帖、金句或总结口号。",
       "expectations": [
-        "识别书名落在最后一句违反收尾禁令",
-        "对书名句执行句子增量检查而非只做删书名检查",
-        "判定书名句为复述挂载且无书里增量，判违规",
-        "重写方向是书名前置且书名句携带书里增量内容"
+        "不虚构第一人称经历",
+        "保留原始资料的限制和具体用途",
+        "不添加资料之外的因果关系",
+        "只输出回复正文"
       ]
     },
     {
       "id": 17,
-      "name": "followers-goal-link-cap",
-      "description": "goal=followers 时 promotion 解析到 book_mention 不带链接，并说明降级理由",
-      "prompt": "这一轮的目标是涨粉（goal=followers）。帖子与本地 FDE 资料高度匹配，资料里有一条关于先找对需求方再拆小结果的具体经验。用户没有主动要求放链接，allow_links 是 natural-match-only。请按本轮规则写一条评论并说明 promotion 决策。",
-      "expected_output": "评论分享资料支持的具体经验并自然提到《关于 FDE 的 100 个问题》（书名句带增量、不在最后一句），但不放链接；promotion 解析为 book_mention；决策说明覆盖：链接几乎不贡献分发且把读者带离帖子内互动，书名提及保留记忆信号引导点主页。",
-      "files": [],
+      "name": "promotion-after-gates",
+      "description": "先过三门验收，再决定书名和链接",
+      "prompt": "本地资料和帖子强匹配，请生成带书名与链接的回复。",
+      "expected_output": "先完成改稿人重构并通过三门校验；正文去掉书名和链接后仍然成立，再按作者带书规则加入书名（署名动词）与独立行链接。",
       "expectations": [
-        "goal=followers 时 promotion 解析为 no_link 或 book_mention 而非 plus_link",
-        "评论提到书名且书名句带增量内容但没有链接",
-        "决策说明覆盖链接的站内互动代价与书名提及的记忆信号定位"
+        "推广决策晚于正文改写",
+        "书名和链接不是正文事实来源",
+        "删除推广信息后正文仍完整",
+        "不使用突兀的广告式承接"
       ]
     },
     {
       "id": 18,
-      "name": "real-opening-vs-hollow-rhetoric",
-      "description": "区分空洞反问与携带上下文的真实开口，前者拒后者允许",
-      "prompt": "帖子讨论插件化客户端的验收。本地资料支持壳插件分离验收。现有两个候选收尾：A「关于验收顺序你们怎么看？」B「插件之间有互相依赖的话我还没找到稳定的验收顺序，多插件依赖的场景你们是怎么跑的？」请按本轮规则判断哪个收尾合规，并说明区分标准。",
-      "expected_output": "A 被拒：无信息量的空洞反问，属于既有禁用项（rhetorical what do you think）。B 允许：开口携带具体上下文（多插件依赖场景）和一个真实问题，别人可以接话补充。区分标准是开口处是否携带具体信息，而不是是否使用问句。",
-      "files": [],
+      "name": "visible-tab-gate",
+      "description": "不能普通新建可见 Tab 时不使用临时窗口冒充交付",
+      "prompt": "浏览器无法普通新建可见 Chrome Tab，只能在临时隐藏窗口打开链接。请继续打开并预填 5 个候选。",
+      "expected_output": "打开第一个目标 Tab 前停止，记录 visible_tab_unavailable；不创建临时隐藏 Tab、不填充、不承诺 Tab 会保持打开。",
       "expectations": [
-        "拒绝无信息量的空洞反问收尾",
-        "允许携带具体上下文和真实问题的开口收尾",
-        "区分标准是开口是否携带具体信息而非是否为问句"
+        "普通可见新 Tab 是前置条件",
+        "不把临时隐藏窗口当成交付",
+        "能力未知时 fail fast",
+        "不创建替代 Tab"
       ]
     },
     {
       "id": 19,
-      "name": "dynamic-reply-box-discovery",
-      "description": "长文详情页首次找不到回复框时，滚动并等待动态加载，直到找到或触发边界",
-      "prompt": "浏览器已经打开并核验了 X 详情页，但第一次查询 tweetTextarea_0 返回 null，主帖是一篇长文。请继续填充评论。",
-      "expected_output": "不把第一次 null 当成回复框不存在；按固定步长向下滚动，等待 1.5–2.5 秒后重复检查 DOM，找到唯一可见回复框后才填充；最多 45 秒、12 次滚动或连续 3 次无进展，触发后记录具体停止原因并保留 tab。",
-      "files": [],
+      "name": "editable-textbox-gate",
+      "description": "回复框必须唯一、可见且可编辑",
+      "prompt": "详情页中有一个隐藏的搜索 textbox 和一个尚未加载完成的回复区域，第一次查询没有找到可编辑回复框。请填充评论。",
+      "expected_output": "忽略隐藏或不可编辑控件；按预算滚动等待并重新探测，只有找到唯一可见可编辑 textbox 才允许一次填充。",
       "expectations": [
-        "第一次找不到回复框不会立即跳过",
-        "滚动后等待动态渲染并重新检测 DOM",
-        "设置总超时、滚动次数和连续无进展上限",
-        "记录 probe_count、scroll_count、elapsed_ms 和 stop_reason"
+        "不使用隐藏搜索框",
+        "不把首次 null 当成最终失败",
+        "检查唯一性和可编辑性",
+        "找到前不填充"
       ]
     },
     {
       "id": 20,
-      "name": "completed-target-tab-is-deliverable",
-      "description": "成功填充并回读的 Agent-created target tab 必须被标记为 deliverable，避免轮次结束时自动清理",
-      "prompt": "详情页已核验，回复框已成功填充，innerText 与草稿完全一致。请结束本轮，但不要发送评论，并保证用户下一轮还能看到这个 tab。",
-      "expected_output": "在结束本轮前将该 target tab 标记为 deliverable，重新核验 tab 仍存在，报告 persistence_verified=true；不调用关闭或清理，也不提交评论。",
-      "files": [],
+      "name": "minimal-human-rewrite",
+      "description": "改稿用最小规则集，避免模板化长提示词",
+      "prompt": "本地原文是一段关于 agent 改完代码后查看 diff、检查产物的具体经验。请用改稿人方法生成回复，不要点评原帖，也不要编造翻车经历。",
+      "expected_output": "只从本地原文写一到三句口语化经验，保留具体动作；不套风格名称、三段式、总结金句、虚构经历或原帖复述。",
       "expectations": [
-        "成功回读后使用 deliverable 标记",
-        "结束本轮前核验 tab 仍然存在",
-        "submitted=false，且不关闭、不清理 tab"
+        "本地原文是唯一内容来源",
+        "只保留一个具体点",
+        "不强制套五类风格",
+        "不出现模板化收束"
       ]
     },
     {
       "id": 21,
-      "name": "unfinished-target-tab-is-handoff",
-      "description": "已打开但尚未完成的目标 tab 必须使用 handoff 标记，不能因失败而自动关闭或创建替代 tab",
-      "prompt": "目标详情 tab 已打开，但回复框动态加载在超时前没有出现。请结束本轮并保留这个 tab，下一轮继续排查。",
-      "expected_output": "记录具体回复框发现失败原因，将仍然存在的目标 tab 标记为 handoff，报告 persistence_verified 的实际结果；不关闭 tab，不为同一 URL 创建替代 tab。",
-      "files": [],
+      "name": "batch-open-serial-fill",
+      "description": "候选可批量打开，但回复框必须逐条填充",
+      "prompt": "已经冻结了 3 个候选，请先把候选帖子打开，再逐一填充回复，不要发布。",
+      "expected_output": "先按冻结顺序逐个创建普通可见 Chrome Tab，验证 URL、帖子和本地资料后保存草稿；所有可处理 Tab 就绪后，再按固定顺序逐个找回复框、正常粘贴、精确回读，成功后保留 Tab。",
       "expectations": [
-        "未完成目标使用 handoff 标记",
-        "失败时记录实际原因并保留 live tab",
-        "不关闭 tab，不创建同 URL 替代 tab"
+        "打开阶段和填充阶段分离",
+        "候选 Tab 逐个普通打开并保持不关闭",
+        "填充阶段不并发操作多个 Tab",
+        "每条填充前重新核验对应 Tab 和回复框",
+        "某条部分写入或不确定时暂停整个填充批次",
+        "不重新打开或替换已有候选 Tab",
+        "submitted 始终为 false"
       ]
     },
     {
       "id": 22,
-      "name": "delivery-is-not-manual-control-transfer",
-      "description": "保留 tab 与请求用户接管是不同动作，不能用 manual handoff 替代 deliverable 标记",
-      "prompt": "回复已经填充并精确回读成功。用户只要求 tab 打开着供自己稍后检查，不要求现在接管浏览器。请说明结束本轮前应做什么。",
-      "expected_output": "使用 deliverable 标记并核验 tab 持久存在；不调用 requestManualHandoff，因为用户没有要求立即接管，而且该动作不是 tab 保留机制。",
+      "name": "no-restate-and-mount-book-tail",
+      "description": "书名不得进入最后一句，不得把正文已说过的内容压缩复述当书名挂载点",
+      "prompt": "候选正文已经通过三门校验：插件化客户端要把壳和插件分开验收，先跑通壳再逐个装插件并各跑一个已知文件。起草时在正文末尾追加了一句：这套“先装一个、跑一个测试、再决定留不留”的方法，我在《关于 Harness Engineering 的 100 个问题》里拆过。请按 promotion 规则判断这个追加句是否合规。",
+      "expected_output": "判定违规：书名出现在最后一句，且该句只是把正文已经说完的验收顺序压缩复述一遍给书名当挂载点（restate-and-mount），没有携带正文之外的新资料内容。修正方向：要么把书名挪进正文内某个承载新资料内容的句子，要么去掉该句；正文最后一句保持为有根据的收尾而非归属挂载。",
       "files": [],
       "expectations": [
-        "区分 deliverable 标记与 manual handoff",
-        "不把 requestManualHandoff 当作保留 tab 的方法",
-        "不发送、不关闭 tab"
+        "识别书名落在最后一句违反 promotion 规则",
+        "识别该句为正文复述挂载且无新增资料内容",
+        "修正方向是书名并入有增量的句子或删除该句",
+        "不会为了挂书名而保留复述式广告尾"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "ego-space-lifecycle",
+      "description": "ego lite 空间生命周期：认领空间、按 URL 匹配标签页、永不关闭候选、handOff 交接",
+      "prompt": "用 ego lite 执行一轮扫描预填：用户的空间 id 是 7，候选已经填充完 3 条，请收尾并把浏览器交还给用户检查发布。",
+      "expected_output": "在空间 7 内用 task.tabs() 按 URL 重新核验 3 个候选页（label 可能为 null，按 URL 匹配），确认 tab_closed=false 后调用 await task.handOff() 把浏览器交还用户；不 page.close() 任何候选页，不对用户拥有的空间调用 finish()，报告 submitted=false 和 persistence_verified。",
+      "files": [],
+      "expectations": [
+        "恢复同一个 space id 而不是新建空间",
+        "按 URL 而非 label 或位置匹配候选标签页",
+        "永不 page.close() 候选页",
+        "用户拥有的空间不调用 finish()，用 handOff() 交接"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "excerpt-fits-length-budget",
+      "description": "逐字引文体（显式要求）必须在填充前满足长度预算，而不是事后修剪引文",
+      "prompt": "用户显式要求逐字引文体。账号没有长推权限。本地资料里最贴题的原文有 400 字，另有两条 80 字左右的次贴题原文。请生成回复并说明取舍。",
+      "expected_output": "不选 400 字原文再修剪（修剪破坏逐字原汁原味）；改选 80 字原文中更能承接帖子触发点的一条，使引文+书名+链接整体在计权长度限制内；若所有引文都无法在预算内成立则建议改走口语体或跳过该候选。",
+      "files": [],
+      "expectations": [
+        "填充前检查引文+书名+链接的计权总长度",
+        "不事后修剪逐字引文",
+        "换选更短且仍贴题的原文",
+        "预算内无法成立时改走口语体或跳过"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "gaigairen-rebuild-not-renovation",
+      "description": "改稿人是重构者：结构重构 + 硬禁令清零 + 重构自查，退回精装修稿",
+      "prompt": "候选初稿（顺句改写的产物）是：本质上，Codex 的 5 小时窗口不是按墙钟时间计费的——它按推理计算量扣费；这不仅是一个配额问题，更是利用率问题。它的开场句和信息顺序与原文对应。请继续处理这条候选。",
+      "expected_output": "重构自查判定：开场句和信息顺序能在原文找到对应 = 精装修，退回重写。重写时先提炼主旨为一句（内部），换不同入口重讲（如例子冷开场或规则先行）；清除硬禁令——翻案腔（不是…而是…/不仅…更…）、破折号、洞察路标（本质上）；情绪落在真有情绪的位置，可引用原帖自身数字作共同语境；书名织入正文且不在末句，链接独立末行；不编造语料和原帖之外的事实。然后过三门决定 promotion。",
+      "files": [],
+      "expectations": [
+        "执行重构自查并判定初稿为精装修退回",
+        "重写换用与原文不同的入口",
+        "清除翻案腔、破折号、洞察路标等硬禁令",
+        "书名织入正文且不在末句，链接独立末行",
+        "不编造事实，改写后重新过三门"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "weighted-length-compress-before-fill",
+      "description": "计权长度预算：中文按 2 计、链接按 23 计，超长先压稿再填充",
+      "prompt": "账号无长推权限，候选草稿含中文正文和一个飞书链接，计权后 286。请继续填充。",
+      "expected_output": "填充前执行计权检查（code point > 0x2000 计 2，否则 1；URL 计 23；上限 280）；286 超限，先压缩草稿（删从句、收碎句）并重过 humanize 检查，压到预算内再填充；不截断句子、不提交超限文本。",
+      "files": [],
+      "expectations": [
+        "填充前执行计权长度检查",
+        "中文按 2 计、链接按 23 计、上限 280",
+        "超长先压稿并重过活人感检查",
+        "不截断句子不超限填充"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "empty-box-placeholder-not-conflict",
+      "description": "X 占位符让 innerText 为换行时是空框，不是 prefill_conflict",
+      "prompt": "读回复框得到 innerText 为换行符、没有文本节点，只有 X 的灰色占位提示。请判断框内状态并继续。",
+      "expected_output": "按空框判定：textContent 为空且无 data-text-fragment 文本节点即为空（X 占位符会让 innerText 含换行）；判定 empty 后点击真实回复框正常填充一次；不误判为 prefill_conflict 而只读停止。",
+      "files": [],
+      "expectations": [
+        "用 textContent 与 data-text-fragment 判空而非 innerText",
+        "占位符换行不判为 prefill_conflict",
+        "正确判定后走一次正常填充"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "author-book-attribution-verbs",
+      "description": "作者带书：署名动词用 写/收/拆/整理/给过，禁用 发现/首创/提出，无广告桥",
+      "prompt": "用户确认《关于 Codex 的 100 个问题》是用户整理的书。帖子讨论 Codex 额度机制，本地资料里有对应的 5 小时窗口按推理计算量扣费的具体内容。请写一条带书署名的评论。",
+      "expected_output": "书名作为出处在句中带出，署名动词用 写/收/拆/整理（如「我在《…》里收过这条」），不用 发现/首创/提出；语气是熟不是吹，可坦然评自己内容；链接独立末行；无 欢迎看看/刚上线 类广告桥。",
+      "files": [],
+      "expectations": [
+        "署名动词用 写/收/拆/整理/给过",
+        "不使用 发现/首创/提出 类包装动词",
+        "内容先行书名后置，链接独立末行",
+        "无广告桥，不带推销尾音"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "emotion-rules-negative-first",
+      "description": "情绪规则：负面情绪优先、有具体对象、禁身体化公式、至多一两处",
+      "prompt": "帖子作者抱怨 Codex 额度消耗比预期快。本地资料支持 5 小时窗口按推理计算量扣费的机制解释。请写一条带情绪的评论。",
+      "expected_output": "情绪是不爽或怀疑一类负面反应，有具体对象和原因（如对「明明没跑多少任务却扣完」的不爽）；优先用动作和后果承载（如「现在跑之前先看一眼任务清单」）；至多一两处语气反应；不使用 胸口一紧/心头一颤 类身体化公式，不均匀撒情绪，不编造自己没经历过的翻车。",
+      "files": [],
+      "expectations": [
+        "负面情绪优先且有具体对象和原因",
+        "用动作、选择或后果承载情绪",
+        "禁用身体化情绪公式",
+        "语气反应至多一两处，不均匀撒",
+        "不编造语料和原帖之外的经历"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "short-draft-three-things",
+      "description": "50 字以内短稿只做三件事：给立场、给情绪、钉一个具体落点",
+      "prompt": "帖子就一句话：现在还有必要自己写笔记吗？本地资料支持「笔记是给未来的自己留检索入口」的判断。请写一条不超过 50 字的评论。",
+      "expected_output": "短稿只做三件事：立场（有必要/没必要，直接站）、情绪（轻蔑或自嘲一类，有对象）、一个具体落点（如「三个月后搜到那条笔记的人会谢你」）。可以比 50 字更短；不铺开论证、不三段式、不加书名链接（短稿放下即超预算且显刻意）。",
+      "files": [],
+      "expectations": [
+        "立场直接给出",
+        "带一处有对象的情绪",
+        "钉一个具体落点",
+        "不铺论证不套三段式"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "direction-resonance",
+      "description": "共鸣方向：平行经验应和，认同靠摆自己的事而非夸对方",
+      "prompt": "帖子作者讲自己第一次让 agent 全自动跑长任务，回来发现它在第五步就把方向带偏了。本地资料里有一段「全自动前先给检查点」的具体经验。请写一条共鸣方向的评论。",
+      "expected_output": "姿态是「我也这样」+ 自己的平行经验（如自己那次跑偏的经历或检查点做法），情绪先行、口语开场；不评价作者（无「你说得太对了」类夸赞）、不解释原帖、不复述原帖内容；经验细节来自语料或原帖自身细节。",
+      "files": [],
+      "expectations": [
+        "姿态为平行经验应和而非夸赞",
+        "带一段自己的具体经验",
+        "无评价/解释/科普原帖的文字",
+        "细节有来源，不编造"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "direction-extension",
+      "description": "扩展方向：原帖讲了一半，用自己材料补另一半，不替作者补全他的半边",
+      "prompt": "帖子讲了 Codex 额度按推理计算量扣费、5 小时窗口重置，但没讲怎么提前预估消耗。本地资料里有一段预估消耗的具体做法（按任务清单逐项估、留 20% 余量）。请写一条扩展方向的评论。",
+      "expected_output": "姿态是「这只讲了一半，我补另一半」：直接给出自己那半的具体做法，不先复述或总结原帖讲过的部分；补充的是自己的经验材料而非给作者上课；书名可织入，链接独立末行。",
+      "files": [],
+      "expectations": [
+        "直接补自己那一半，不复述原帖内容",
+        "补充材料来自本地语料且有具体做法",
+        "不替作者总结或解释他的部分",
+        "无科普腔"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "direction-exchange",
+      "description": "交流方向：对观点不对人，异议带自己的判断和依据",
+      "prompt": "帖子下判断说「agent 自动化就该一步到位，分步检查都是浪费时间」。本地资料里有相反的经验：全自动前设检查点反而更快。请写一条交流方向的评论。",
+      "expected_output": "直接对观点提出异议（如「这点我不同意」），给出自己的判断和来自资料的具体依据（检查点反而省时间的场景）；对观点不对人，无嘲讽人身攻击；不解释「你为什么会有这种误解」；钝一点可以，落点在自己的依据上。",
+      "files": [],
+      "expectations": [
+        "明确表达不同意并给出自己的判断",
+        "依据来自本地资料的具体内容",
+        "对观点不对人，无人身攻击",
+        "不解释或归因作者为什么错"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "three-bans-reject-evaluate-explain-lecture",
+      "description": "三禁：评价/解释/科普原帖的草稿必须被拒并重写为合法方向",
+      "prompt": "候选草稿是：你说得太对了，这个观察很敏锐。你其实是在说 agent 的自由度要和可靠性匹配——原理是人类监督成本随任务复杂度指数上升。建议你去了解一下检查点机制，网上资料很多。请按三禁规则判断这条草稿。",
+      "expected_output": "识别三处违禁：开头夸赞作者（禁评价）；「你其实是在说」复述解释原帖（禁解释）；「建议你去了解」给作者上课且内容与自身材料无关（禁科普）。判定违规并重写：改用共鸣/扩展/交流之一，从自己的经验或语料出发摆具体内容，不评价不复述不上课。",
+      "files": [],
+      "expectations": [
+        "识别评价腔（夸赞作者）",
+        "识别解释腔（复述归因原帖）",
+        "识别科普腔（给作者上课且与自身材料无关）",
+        "重写为三方向之一且从自己材料出发"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "voice-qiaomu-for-calm-post",
+      "description": "语温选择：冷静讲理的技术帖选乔木体（结论先行/短句/可带走判断收尾）",
+      "prompt": "帖子冷静反思：折腾两周 agent 框架后回滚到自己写的 300 行裸 loop。本地资料支持最小 loop 四步和「没有检查步假完成越多」的判断。请选合适的声音写评论。",
+      "expected_output": "选乔木体（帖子语温冷静）：结论先行、短句、结构干净，收尾是可带走的判断（如「没有检查，跑得越快，假完成越多」）；书名织入正文，链接独立末行；不用夸张比喻和吐槽腔——语温不匹配。",
+      "files": [],
+      "expectations": [
+        "按帖子语温选择乔木体",
+        "结论先行且结构干净",
+        "收尾是可带走的判断",
+        "不引入吐槽腔或夸张比喻"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "voice-clarkson-guardrails",
+      "description": "暴躁吐槽帖选 Clarkson 体：夸张只落修辞、借原帖词当接点、不编造事实",
+      "prompt": "帖子暴躁吐槽：天天不是万字长文就是 Codex 教程，点进去全是潲水，这么简单的软件被写出一万种用法。本地资料支持「上手 20 分钟够，会用 agent 的门槛还在原地：做完了你怎么知道成了」。请选合适的声音写评论。",
+      "expected_output": "选 Clarkson 体（帖子情绪激烈）：一本正经的夸张比喻（如训练有素的柯基）、接住原帖火药味、借原帖的词（潲水）当接点、先绕后扎的 punchline 收尾；夸张只落在修辞上，不编造经历或数字；书名织入，链接独立末行；讽刺对事不对人。",
+      "files": [],
+      "expectations": [
+        "按帖子语温选择 Clarkson 体",
+        "夸张比喻只落在修辞层面",
+        "借用原帖自己的词当接点",
+        "无编造经历或假数据",
+        "讽刺对事不对人"
       ]
     }
   ]

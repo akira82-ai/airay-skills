@@ -1,280 +1,159 @@
-# Browser workflow
+# Browser workflow (ego lite)
 
-## Browser choice and preflight
+Read the `ego-browser` skill for the full API. Every browser action runs in an
+`ego-browser nodejs` heredoc. Keep actions serial and observable. The workflow
+has two phases: open all frozen candidates first, then fill them one at a
+time.
 
-Use the user's already connected Chrome or Edge session. “Chrome/Edge
-compatible” means the procedure is browser-neutral; it does not authorize
-switching browsers during a run. Reacquire live tabs from the browser's tab
-listing by complete URL after every user turn because tab handles can expire.
-
-For collection, require exactly one X source tab whose host is `x.com` or
-`twitter.com`. A source tab may be home, a recommendation feed, or search
-results. Do not open an X home tab when the preflight condition fails; report
-the actual tab count and stop.
-
-If no usable X source tab is connected, use the selected browser adapter's
-documented way to create or connect one, or stop with the concrete blocker.
-Do not invent a browser-specific fallback. Verify the tab is on the X home or
-requested feed before collecting.
-
-## URL normalization
-
-Normalize only URLs that can be proven to identify the main post:
-
-1. Keep the `x.com` or `twitter.com` host and the FULL path `/{username}/status/<id>`. The `/{username}/` segment is part of the canonical URL and MUST be preserved — a URL without it (`x.com/status/<id>`) returns "该页面不存在" (404). Only strip `/analytics` and query/tracking parameters.
-2. Remove `/analytics` and tracking/query parameters.
-3. Treat the normalized status URL as the identity for deduplication,
-   historical exclusions, candidate records, and handoff verification.
-
-Do not merge URLs merely because their visible text looks similar.
-
-## Collection DOM rules
-
-Use bounded extraction from visible `article[data-testid="tweet"]` elements.
-For each article, find the canonical status link and normalize it. Extract the
-article's full visible text, author, and metrics. A visible card is not a post
-until it has a unique normalized status URL. Ads, quoted-post cards, and
-duplicate renders do not increase the count.
-
-Scroll in bounded increments only until the requested unique count is reached
-or the feed is exhausted. If metrics are absent, record `unknown`; do not infer
-them from likes, reposts, account size, or neighboring cards.
-
-### Collection pitfalls (verified)
-
-- **Metrics are not in the article `aria-label`.** Live X DOM does not expose
-  reply/like/view counts on the `article` element's accessible name. Extract
-  them from the interactive buttons inside the article
-  (`[data-testid^="reply"]`, `[data-testid^="like"]`,
-  `[data-testid^="retweet"]`) by reading each button's own accessible name /
-  `aria-label`; if a count is missing, record `unknown`.
-- **The timeline is DOM-virtualized.** After scrolling, only ~8 cards stay in
-  the DOM. To collect a stable set, scroll to top (`scrollTo(0,0)`), then scroll
-  in small increments, reading on each step and **merging by normalized status
-  id** (dedupe), rather than assuming all cards persist. Stop when the requested
-  unique count is reached or the feed is exhausted.
-
-- **Quoted/embedded tweets swap the permalink.** The first `a[href*="/status/"]`
-  inside an article may be the QUOTED (inner) post's permalink, not the outer
-  tweet's. Capturing it makes the frozen status ID and the visible author
-  disagree (e.g. the candidate ends up pointing at the wrong post). Capture the
-  outer tweet's own permalink — the `<a>` wrapping the timestamp (`time`
-  element) — and verify the resolved author matches the article's visible
-  author before freezing.
-
-## Detail-page readiness
-
-For each selected URL, serially use an existing exact-URL target tab or create
-one target tab. Check at most three times for all of the following:
-
-- the current URL exactly equals the normalized target URL;
-- the target main `article[data-testid="tweet"]` is present;
-- the target author is visible;
-- the complete main-post text is nonempty.
-
-An Agent-created target tab must be marked as `handoff` as soon as it is opened
-and while it is unfinished. If readiness fails, retain the mark, record the
-reason, and do not create a replacement.
-
-## Reply textbox and readback
-
-Prefer the visible unique inline textbox:
-
-```css
-div[data-testid="tweetTextarea_0"][role="textbox"]
-```
-
-If it is unavailable, scope a newly opened reply dialog to a visible unique
-textbox:
-
-```css
-div[role="dialog"] div[role="textbox"]
-```
-
-A null first probe is usually **lazy-load, not absence**. On a status detail
-page the inline composer (`tweetTextarea_0`) may not be in the DOM until the
-tweet region finishes rendering. Long posts can also place it below the
-viewport. Therefore, a missing first probe is never enough to skip a candidate.
-
-### Dynamic composer discovery loop
-
-Before filling, run this bounded loop on the already verified detail tab. These
-are defaults for one candidate and may be tightened when the browser session is
-near its lifetime limit:
+## Budgets
 
 ```text
-max_discovery_ms: 45,000
-max_scrolls: 12
-scroll_step_px: 500–700
-wait_after_scroll_ms: 1,500–2,500
-max_consecutive_no_progress: 3
+scan_batch_size: 5-10 unique posts
+scan_count: 50 unique posts by default
+detail_ready_timeout_ms: 30,000
+composer_timeout_ms: 45,000
+composer_max_scrolls: 12
+composer_scroll_step_px: 500-700
+composer_wait_after_scroll_ms: 1,500-2,500
+composer_max_consecutive_no_progress: 3
+fill_render_wait_ms: about 2,000
 ```
 
-For every iteration:
+Every loop has a limit. A timeout ends that action and never authorizes a
+second write or a replacement Page.
 
-1. Probe the inline selector and any visible, unique reply-dialog textbox.
-   Require exactly one visible usable textbox. If found, stop discovery and
-   proceed to the fill gate.
-2. If none is found, scroll the detail page downward by one bounded step. Do
-   not use a guessed coordinate to fill the box. The scroll is only to expose
-   X's lazily rendered composer.
-3. Wait for the dynamic render, then probe the DOM again. Record the scroll
-   position, document height, probe count, and scroll count.
-4. Stop with a concrete failure only when one of these gates fires:
-   `textbox_discovery_timeout`, `textbox_discovery_scroll_limit`,
-   `textbox_discovery_no_progress`, or `textbox_not_found_at_bottom`.
+## Space lifecycle
 
-`no_progress` means the scroll position and document height do not advance for
-three consecutive attempts, or the page is already at its bottom boundary.
-Do not label the first null result, a single unchanged scroll, or a still
-rendering page as `textbox_not_found`. If the loop stops, retain the tab and
-persist:
+- Resume the user's named space: `const task = await claimTaskSpace(7);`
+  (use the id the user gives; find ids via `listTaskSpaces()`).
+- When creating a new space, use a UNIQUE name per run (e.g.
+  `taskSpace("x-comment-prefill-" + run_id)`). A generic name like
+  `taskSpace("x-comment-prefill")` can resolve to a user-taken-over old space,
+  which makes ego hard-stop with "do not retry" — it cannot be retried or
+  reclaimed. If a space resolves wrong, create a fresh uniquely-named space;
+  never retry the same call.
+- After `handOff()`, ego hard-stops agent commands until the user acts. When
+  the user explicitly says 继续, reclaim with
+  `const task = await takeOverTaskSpace(id);` — `claimTaskSpace` may not work
+  for a space the user has taken over.
+- One TaskSpace per goal. Every heredoc starts a new Node.js process: variables
+  do not persist — persist run state to the state file with
+  `await import("node:fs/promises")`. State-file paths must be ABSOLUTE
+  (heredoc cwd varies; relative paths fail with ENOENT).
+- Page labels (`p1`, `p2`, …) persist across heredocs. After a space has ended
+  or been released, `task.tabs()` may return tabs with `label: null` — match
+  tabs by URL, never by label or list position.
+- An unmanaged tab must be adopted before operating:
+  `const page = await task.adopt(tab.page);`
+- Never `page.close()` a candidate Page. Never `finish()` a user-owned claimed
+  space. If this run created its own space, the only allowed finish is
+  `await task.finish({ keep: [filled labels] })` after every candidate
+  succeeded; otherwise end with `await task.handOff()` and let the user act.
 
-```text
-textbox_discovery:
-  probe_count: number
-  scroll_count: number
-  elapsed_ms: number
-  stop_reason: success | textbox_discovery_timeout |
-    textbox_discovery_scroll_limit | textbox_discovery_no_progress |
-    textbox_not_found_at_bottom
-```
+## Source tab and scan
 
-Only after the loop has found a unique visible textbox may the agent fill it.
-Do not open a replacement tab merely because discovery hit its limit. A later
-manual retry is a new action and must re-check the live tab first.
-
-Verified behavior: the first probe can be null on multiple tabs, while a
-scroll followed by a short wait exposes the composer. The wait is part of the
-discovery operation, not an optional delay.
-
-Ambiguous or hidden controls are a skip, not an invitation to use coordinates
-or positional guesses. Fill only after the complete main post is verified.
-Read back `innerText` or equivalent visible DOM text and require exact equality
-with the draft. A Draft.js `value` or an enabled submit button is not proof of
-successful fill.
-
-### Filling X's Draft.js composer (verified method)
-
-`references/fill-draft.js` packages the select-all, insert, and verify steps
-below into reusable page-context functions (`xcpSelectAll`, `xcpInsert`,
-`xcpFill`, `xcpVerify`). Use it through the selected browser adapter when it
-supports page evaluation. The steps below explain the same logic inline for
-contexts where the file cannot be loaded.
-
-Value-only filling does **not** register on X's `contenteditable` reply box (the
-value may be set while React/Draft.js ignores it, so readback comes back
-empty).
-
-**Never use `document.execCommand('insertText')` here.** It desyncs Draft.js:
-
-| tab state | result |
-| --- | --- |
-| tab not focused | text lands in the DOM only, Draft.js `editorState` stays empty → placeholder renders **on top of** the text (looks like overlapping glyphs), the reply button stays **gray/disabled**, and the user cannot edit, select, or paste |
-| tab focused | the string is committed **twice** (native DOM insert + Draft.js state insert) |
-
-Working procedure — focus the editor through the browser adapter, clear with
-real input, and insert through Draft.js only. Do not rely on a value setter or
-an unverified coordinate.
-
-1. **Select all via the Range API** (generic keyboard select-all actions may
-   not select inside Draft.js):
+Locate the user's existing X tab — matched by host and URL, never by position:
 
 ```js
-var el = document.querySelector('div[data-testid="tweetTextarea_0"]');
-el.focus();
-var r = document.createRange(); r.selectNodeContents(el);
-var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+const task = await claimTaskSpace(7);
+const tab = (await task.tabs()).find(t =>
+  /^https?:\/\/(x|twitter)\.com\/(home|profile|search|[A-Za-z0-9_]{1,15})/.test(t.url));
+const source = tab.label ? task.page(tab.label) : await task.adopt(tab.page);
 ```
 
-2. **Delete with a real key** through the browser adapter so Draft.js sees it.
+Extract feed cards in bounded batches with `page.evaluate()`. Capture the
+OUTER post's permalink — the `<a>` wrapping the `<time>` element — not a
+quoted inner post's link. Normalize every URL to
+`https://{x.com|twitter.com}/{username}/status/{id}` (drop `/analytics` and
+query params; keep the `/{username}/` segment). Per card record complete
+visible text, author handle, timestamp, and metrics from the action buttons
+when visible (missing → `unknown`). Pure-image posts whose text cannot be read
+are recorded as undecidable, never force-matched.
 
-3. **Insert with a synthetic `textInput` event plus a capture-phase
-   `preventDefault` guard**, so React/Draft.js applies the edit and the native
-   DOM insertion is cancelled (this is what prevents the double insert):
+Persist each batch (observed URLs + facts) to the state file before scrolling.
+Merge by normalized URL — the feed is virtualized and cards disappear. Stop at
+`scan_count` or a concrete boundary; never pad the candidate count.
+
+## Opening phase (batch open + draft, no typing)
+
+For each frozen candidate, one at a time:
 
 ```js
-var el = document.querySelector('div[data-testid="tweetTextarea_0"]');
-var guard = function(e){ e.preventDefault(); };
-el.addEventListener('textInput', guard, true);
-var ev = document.createEvent('TextEvent');
-ev.initTextEvent('textInput', true, true, window, DRAFT, 0, 'en-US');
-el.dispatchEvent(ev);
-el.removeEventListener('textInput', guard, true);
+const page = await task.newPage();          // normal visible tab
+await page.goto(url);                        // exact candidate URL
+await page.waitForSelector('article[data-testid="tweet"]', { timeout: 30_000 });
 ```
 
-Dispatching a synthetic `ClipboardEvent('paste')` with a `DataTransfer` does
-**not** work on X — Draft.js ignores it.
+Verify via `page.url()` plus one `page.evaluate()` reading the main article,
+author handle, and complete post text; reject login/error/interstitial states
+(`detail_not_ready`). Then match the local corpus: grep/sed from the corpus
+root to locate the exact file and anchor, and read the verbatim
+`source_excerpt`. No accurate match → record `skipped_no_local_match`, do not
+open the composer, next candidate.
 
-Verification (wait ~2s for the React re-render, then read once):
-- `innerText.rstrip('\n')` exactly equals the draft;
-- `document.querySelectorAll('.public-DraftEditorPlaceholder-root').length === 0`;
-- `button[data-testid="tweetButtonInline"].disabled === false`.
+Draft per `references/comment-strategy.md` (quote-led default, clone-rewrite
+fallback, gates, promotion). Store the draft in the state file. Leave the Page
+on its post and persist its label, URL, and readiness before opening the next
+candidate. A missing or not-ready page is recorded and never replaced; if
+`task.newPage()` itself cannot produce a visible tab, stop the phase with
+`visible_tab_unavailable`.
 
-An enabled button alone is not proof; require all three. Reading `innerText`
-immediately after dispatch is misleading — the double-insert only shows up
-after the re-render.
+## Filling phase (serial, one at a time)
 
-#### Idempotent fill guard
+Process prepared candidates in frozen order:
 
-A filled box must never be refilled blindly — re-dispatching into an already
-populated Draft.js editor is what produced the duplicated/overlapping text in
-earlier runs.
+1. **Reacquire by URL**: `const tab = (await task.tabs()).find(t => t.url ===
+   url);` If gone → `target_missing`, no replacement, advance the cursor. If
+   the live-tab listing itself fails, pause the batch and report the blocker.
+2. **Composer discovery** — the first miss is not failure (X renders the box
+   lazily; long posts place it below the viewport):
 
-- **Before any fill**, read back the box. If `innerText` (trimmed) already
-  equals the draft, `placeholderCount === 0`, and the reply button is enabled,
-  **skip the fill** — the candidate is already correct.
-- **During handoff re-verification, READ ONLY.** Never re-run the fill against a
-  candidate that was already processed. If readback mismatches the draft, do not
-  silently refill; record `filled=false` with the mismatch and surface it to the
-  user (ask whether to clear and refill) instead of looping.
-- **One fill per candidate per run.** The frozen-candidate gate forbids changing
-  the list after screening; extend the same discipline to the textbox: a
-  candidate's textbox is written once, then only ever read.
-
-Never click the send/reply button. Leave the tab open for the user to review
-and publish manually.
-
-### Tab retention and handoff
-
-Agent-created tabs may be ephemeral and can be cleaned up when the current
-turn ends unless they are marked. The browser adapter must provide the
-following semantic operations, using its own supported API:
-
-- `markHandoff`: mark an unfinished target tab that must remain available for
-  diagnosis or a later turn.
-- `markDeliverable`: mark a successfully filled and verified target tab for
-  the user to review and publish manually.
-
-Mark every Agent-created target tab immediately after opening it as
-`handoff`. After exact readback succeeds, replace that mark with
-`deliverable`; the latest mark wins. Reapply the appropriate mark in every
-later turn in which the tab must survive. Do not mark source, search,
-inspection, duplicate, or blank tabs. A failed target tab remains marked as
-`handoff` when it must stay open for diagnosis or a later turn.
-
-`requestManualHandoff` is a separate control-transfer operation. It does not
-replace tab marking and should be used only when the user explicitly needs to
-take control and the selected browser supports it.
-
-Before ending the turn, re-list live tabs and verify every marked target by
-normalized URL. Record the mark result and persistence check. Never call a
-close, discard, recycle, cleanup, or keep-list operation as a substitute for
-marking. If the browser runtime has a separate control-release operation, use
-its documented handoff only after marking and verification; it must preserve
-the marked tabs.
-
-Runtime session expiry, user-control locks, and tab-handle lifetime are
-adapter-specific. Persist the URL and state before a possible expiry and
-reacquire the tab by exact URL in a later turn; do not infer that an expired
-handle means the tab was closed.
-
-The report must separate:
-
-```text
-opened: true/false
-filled: true/false
-tab_mark: handoff|deliverable|none
-persistence_verified: true/false
-submitted: false
+```js
+const found = await page.evaluate(() => { /* fill-draft.js xcpReadState() */ });
+if (!found.ok) {
+  await page.mouse.move(400, 400, { label: "hover feed area" }); // wheel needs the pointer over a scrollable area
+  await page.mouse.wheel(0, 600, { label: "scroll to composer" });
+  await page.waitForTimeout(2000);
+  // re-probe; stop at 45s / 12 scrolls / 3 consecutive no-progress
+}
 ```
+
+   Record probes, scrolls, elapsed ms, and the concrete stop reason
+   (`textbox_discovery_timeout` | `..._scroll_limit` | `..._no_progress` |
+   `textbox_not_found_at_bottom`). Never use coordinates or stale refs.
+
+3. **Read once, write once.** Before any write, run the length budget from
+   `comment-strategy.md` (weighted chars, URL = 23, limit 280); an over-budget
+   draft is compressed and re-approved BEFORE touching the box. On a revision
+   round, first verify the box still contains the previous approved version —
+   if the user has edited or published it, skip. `xcpPrepare(draft)`
+   classifies: `empty` → click the real box
+   (`page.click('loc=css:div[data-testid="tweetTextarea_0"]')` or a snapshot
+   ref), then exactly one `await page.keyboard.paste(draft)` (macOS native
+   paste; restores the user's clipboard) or `page.keyboard.insertText(draft)`;
+   existing different text → `prefill_conflict`, read-only stop; identical →
+   `already_correct`.
+4. **Readback.** `await page.waitForTimeout(2000);` then `xcpVerify(draft)` —
+   require exact equality after normalizing `\r\n` → `\n`. Never click Send.
+   Persist the result before the next candidate.
+
+### Clipboard fallback
+
+On failure, partial, or uncertain fill: set the system clipboard once
+(macOS: `await import("node:child_process")` → `spawn('pbcopy')` with the
+complete draft), record `clipboard_ready` with the exact URL, and pause the
+whole fill phase — a second copy would overwrite the clipboard. On explicit
+continuation, verify live tabs and resume with the next unfilled candidate.
+Never append, clear, overwrite, switch method, or retry the box.
+
+## Final retention check
+
+Before ending the turn: `await task.tabs()` again, verify every candidate by
+normalized URL, and record `tab_closed=false` and `persistence_verified`. Do
+not close, discard, navigate, or recycle candidate Pages; a disappeared
+candidate is reported as observed, never auto-replaced. Then
+`await task.handOff()` so the user reviews and publishes manually.
+
+On "继续": load the state file first, resume the same space by id, verify live
+candidate tabs, and continue the saved cursor — no rescan, no reopening filled
+candidates, no substitutes.

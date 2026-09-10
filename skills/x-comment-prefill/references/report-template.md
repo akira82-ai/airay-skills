@@ -1,102 +1,108 @@
 # State and report template
 
-## Run state (browser-prefill and text-handoff)
+Persist one lightweight JSON record per scan. It exists for continuation and
+does not imply that any post was submitted.
 
-Persist one JSON or Markdown record for the active run. By default use
-`.x-comment-prefill/runs/{run_id}.json` under the current project; if that path
-is unavailable, use the task workspace and report the fallback path. Use this
-minimum shape:
-
-```json
+~~~json
 {
+  "schema_version": 8,
   "run_id": "xcp-YYYYMMDD-HHMMSS-unique",
-  "mode": "content-only|text-handoff|browser-prefill",
-  "current_stage": "awaiting_confirmation|preflight|collect|freeze|detail|delivery|complete|blocked",
-  "browser": "chrome|edge",
-  "run_intent": "new_scan|resume",
-  "goal": "followers|engagement|traffic|discussion|custom",
-  "topics": ["topic"],
-  "allow_links": "never|natural-match-only|custom",
+  "mode": "scan-and-prefill",
+  "confirmation": "pending|confirmed",
+  "browser": "ego-lite",
+  "space_id": 7,
+  "local_corpus": "/Users/agiray/Desktop/github/1-my-repo/100-questions-of-ai-agent/zh",
+  "topics": ["all"],
   "scan_count": 50,
-  "source_tab_url": "https://x.com/...",
-  "scanned_status_urls": [],
+  "stage": "awaiting_confirmation|preflight|collect|freeze|open_targets|fill_targets|paused|complete|blocked",
+  "scan_cursor": null,
+  "observed_status_urls": [],
   "historical_status_urls": [],
   "frozen_candidates": [],
-  "candidate_results": [],
-  "tab_marking": "not_attempted|partial|complete",
-  "persistence_verified": false,
-  "confirmation": "pending|confirmed",
-  "delivered_as": "text|browser",
+  "open_cursor": 0,
+  "fill_cursor": 0,
+  "stop_reason": null,
+  "items": [],
   "submitted": false
 }
-```
+~~~
 
-For `content-only`, do not create a browser run record. Return only the
-supplied post, the evidence card, the draft or skip reason, and the promotion
-level. Do not invent browser fields or a tab-marking result. When no accurate
-local match exists, return `skipped: no_accurate_local_match` without a draft.
+Each frozen candidate and result should contain only the facts needed to resume
+or verify it:
 
-For `browser-prefill`, each candidate result should include `status_url`,
-  `status`, `opened`, `filled`, `tab_mark`, `persistence_verified`, `submitted`, `material_file`,
-`material_anchor`, `material_point`, `trigger`, `ownership`,
-`promotion_level`, `textbox_discovery`, `failure_reason`, and, when filled, the
-exact draft or a safe hash plus the exact-readback result. For browser-prefill,
-`textbox_discovery` records `probe_count`, `scroll_count`, `elapsed_ms`, and
-`stop_reason`; use `stop_reason: success` before filling. When no accurate local match exists,
-set `status: skipped`, `reason: no_accurate_local_match`, and `filled=false`.
+~~~text
+candidate_id
+status_url
+author
+screening_facts
+open_status
+tab_instance_id
+opened
+page_ready
+material_file
+material_anchor
+material_point
+source_excerpt
+rewrite_basis
+fidelity_check
+post_relevance_check
+draft
+fill_status
+fill_method
+readback_text
+clipboard_status
+tab_open_method
+tab_closed
+persistence_verified
+failure_reason
+~~~
 
-For `text-handoff`, use `status: drafted`, set `delivered_as: text`, include
-  the copy-ready `draft` and `post_link`, and omit `opened`/`filled`/`tab_mark`
-(nothing was filled).
+Use `open_status` values: `not_attempted`, `opened`, `page_not_ready`,
+`target_missing`, `visible_tab_unavailable`, or `skipped_no_local_match`.
+Use `fill_status` values: `not_attempted`, `filled`, `already_correct`,
+`prefill_conflict`, `reply_box_not_found`, `partial_fill`,
+`exact_readback_failed`, `skipped_no_local_match`, `target_missing`, or
+`detail_not_ready`. Candidate records must use `tab_open_method`=
+`new-visible-tab` or `unverified` (an ego lite `newPage()` visible tab); the
+source Tab is not a candidate record. Record the ego `page_label` (p1, p2, …)
+per candidate.
+`tab_closed` is `false`, `true`, or `unknown`. `fill_method` is
+`keyboard-paste`, `insert-text`, `not_attempted`, or `unverified`.
+`clipboard_status` is `not_attempted`, `copied`, `unsupported`, or
+`unverified`.
 
-Do not store cookies, tokens, or unnecessary private page content.
+## User-facing report
 
-## User-facing report (`browser-prefill`)
-
-```markdown
+~~~markdown
 ## X 评论预填结果
 
-- run_id: `{run_id}`
-- run_intent: `{new_scan|resume}`
-- mode: `{content-only|text-handoff|browser-prefill}`
-- confirmation: `{pending|confirmed}`
-- delivered_as: `{text|browser}`
-- 浏览器: `{browser}`
-- 扫描: `{unique_count}/{scan_count}` 条去重 status URL
-- 冻结候选: `{candidate_count}`
-- tab marking: `{success|failed|not attempted}`
-- persistence verified: `{true|false}`
-- submitted: `false`
+- run_id: {run_id}
+- mode: scan-and-prefill
+- 浏览器: {browser}
+- 扫描: observed={observed_unique_count}, committed={committed_scan_count} / requested={scan_count}
+- 冻结候选: {candidate_count}
+- 当前状态: {stage} / {stop_reason_or_complete}
+- 打开阶段: {opened_count} / {frozen_candidate_count}; 填充游标: {fill_cursor}
+- submitted: false
 
-| # | 作者 | status URL | 主题 | 阅读量 | 回复量 | opened | filled | tab_mark | persistence_verified | 失败原因 |
-|---|---|---|---|---:|---:|---|---|---|---|---|
-| 1 | … | … | … | … | … | … | … | … | … |
+| # | status URL | 主题/资料 | Tab 保留 | 填充 | 剪贴板 | 失败原因 |
+|---|---|---|---|---|---|---|
+| 1 | ... | ... | new-visible-tab / open / verified | filled / ... | copied / ... | ... |
 
-### 评论草稿
+Do not expose an internal style label in the public X reply. The report's Tab
+field must reflect a confirmed visible new Tab and final live-tab check, not an
+assumed browser action.
 
-1. `{status_url}`
-   > {draft}
+### 当前需要手工粘贴
 
-   - material: `{material_file}` — `{material_anchor}`
-   - point: `{material_point}`
-   - ownership: `{user-provided|source-derived}`
-   - promotion: `{no_link|book_mention|book_mention_plus_link}`
-   - textbox discovery: `{probe_count}` probes, `{scroll_count}` scrolls,
-     `{elapsed_ms}` ms, stop=`{stop_reason}`
+{only the current clipboard-ready item, with its exact URL and complete draft}
+~~~
 
-### 原创灵感（最多两条）
+When a clipboard fallback is copied, pause before copying another draft. On an
+explicit continuation, verify the previous URL and resume with the next
+unfilled prepared candidate. If clipboard copying is unavailable, show the
+exact copy-ready text but do not claim it was copied.
 
-| # | 标题 | 来自的具体问题 | 读者可拿走什么 | 建议如何验证 |
-|---|---|---|---|---|
-```
-
-Never collapse `opened`, `filled`, `tab_mark`, `persistence_verified`, and
-`submitted` into one “完成” field. If a candidate vanished, say
-`opened_but_not_filled`; if no local material matched, say
-`skipped: no_accurate_local_match`; if tab marking was not possible because a
-gate failed, say so explicitly.
-
-For `text-handoff`, the table columns `opened`/`filled`/`tab_mark` do not
-apply — leave them blank and add a `delivered_as: text` line plus a copy-ready
-block (post link + comment + promotion note) per candidate. Never claim a box
-was filled or a browser tab was delivered; `submitted` stays `false`.
+Never report `submitted=true`. Never report Tab persistence unless the adapter
+confirmed the visible Tab remained open and the final live-tab check found the
+same URL.

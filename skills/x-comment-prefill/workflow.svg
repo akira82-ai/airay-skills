@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 800" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <style>
+    .bg { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
+    .box { fill: #fff; stroke: #cbd5e1; stroke-width: 1.5; }
+    .blue { fill: #eff6ff; stroke: #3b82f6; }
+    .green { fill: #f0fdf4; stroke: #22c55e; }
+    .red { fill: #fef2f2; stroke: #ef4444; }
+    .title { font-size: 28px; font-weight: 700; fill: #0f172a; }
+    .head { font-size: 16px; font-weight: 700; fill: #0f172a; }
+    .text { font-size: 13px; fill: #334155; }
+    .small { font-size: 11px; fill: #64748b; }
+    .flow { stroke: #475569; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+  </style>
+
+  <rect x="25" y="25" width="1050" height="750" rx="18" class="bg"/>
+  <text x="550" y="65" text-anchor="middle" class="title">x-comment-prefill 扫描流程</text>
+  <text x="550" y="89" text-anchor="middle" class="small">唯一模式：ego lite 扫描 x.com · 匹配本地 zh · 预填但不发布</text>
+
+  <rect x="75" y="135" width="220" height="105" rx="12" class="box blue"/>
+  <text x="185" y="166" text-anchor="middle" class="head">① 确认参数</text>
+  <text x="185" y="190" text-anchor="middle" class="text">主题、数量、推广策略</text>
+  <text x="185" y="213" text-anchor="middle" class="small">确认前不操作浏览器</text>
+
+  <rect x="330" y="135" width="220" height="105" rx="12" class="box"/>
+  <text x="440" y="166" text-anchor="middle" class="head">② 打开 x.com</text>
+  <text x="440" y="190" text-anchor="middle" class="text">定位现有源 Tab</text>
+  <text x="440" y="213" text-anchor="middle" class="small">不创建隐藏 Tab</text>
+
+  <rect x="585" y="135" width="220" height="105" rx="12" class="box"/>
+  <text x="695" y="166" text-anchor="middle" class="head">③ 扫描去重</text>
+  <text x="695" y="190" text-anchor="middle" class="text">读取动态 feed，规范化 URL</text>
+  <text x="695" y="213" text-anchor="middle" class="small">批次 checkpoint · 50 条默认</text>
+
+  <rect x="840" y="135" width="185" height="105" rx="12" class="box"/>
+  <text x="932" y="166" text-anchor="middle" class="head">④ 冻结候选</text>
+  <text x="932" y="190" text-anchor="middle" class="text">按书籍主题筛选</text>
+  <text x="932" y="213" text-anchor="middle" class="small">不临时换人</text>
+
+  <path d="M 295 187 L 330 187" class="flow"/>
+  <path d="M 550 187 L 585 187" class="flow"/>
+  <path d="M 805 187 L 840 187" class="flow"/>
+
+  <rect x="170" y="335" width="250" height="120" rx="12" class="box green"/>
+  <text x="295" y="368" text-anchor="middle" class="head">⑤ ego lite 新建标签页</text>
+  <text x="295" y="393" text-anchor="middle" class="text">newPage() 打开候选并保持停留</text>
+  <text x="295" y="418" text-anchor="middle" class="small">按 URL 认领 · 不可见即停止</text>
+
+  <rect x="455" y="335" width="250" height="120" rx="12" class="box"/>
+  <text x="580" y="368" text-anchor="middle" class="head">⑥ 定方向+声音,改稿人重构</text>
+  <text x="580" y="393" text-anchor="middle" class="text">共鸣/扩展/交流 · 乔木体/Clarkson体</text>
+  <text x="580" y="418" text-anchor="middle" class="small">禁评价/解释/科普原帖</text>
+
+  <rect x="740" y="335" width="250" height="120" rx="12" class="box green"/>
+  <text x="865" y="368" text-anchor="middle" class="head">⑦ 尝试预填</text>
+  <text x="865" y="393" text-anchor="middle" class="text">回复框动态加载就 wheel 下滑等待</text>
+  <text x="865" y="418" text-anchor="middle" class="small">点击真实框 · keyboard 粘贴一次 · 精确回读</text>
+
+  <path d="M 932 240 L 932 285 L 295 285 L 295 335" class="flow"/>
+  <path d="M 420 395 L 455 395" class="flow"/>
+  <path d="M 705 395 L 740 395" class="flow"/>
+
+  <rect x="270" y="550" width="560" height="135" rx="12" class="box red"/>
+  <text x="550" y="584" text-anchor="middle" class="head">⑧ 填充失败：复制当前一条草稿</text>
+  <text x="550" y="610" text-anchor="middle" class="text">pbcopy 复制到系统剪贴板，报告精确 URL 和 clipboard_ready</text>
+  <text x="550" y="635" text-anchor="middle" class="text">暂停并 handOff()，等用户手工粘贴后明确说“继续”</text>
+  <text x="550" y="660" text-anchor="middle" class="small">保持候选页打开并按 URL 核验 · submitted=false</text>
+
+  <path d="M 865 455 L 865 510 L 550 510 L 550 550" class="flow"/>
+</svg>
