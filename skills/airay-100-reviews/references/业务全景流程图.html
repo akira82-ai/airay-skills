@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>「100 字评测」业务全景流程 · v5</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8; color: #1f2329; padding: 40px 16px; line-height: 1.7;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 25px; text-align: center; margin-bottom: 6px; }
+  .sub { text-align: center; color: #646a73; font-size: 14px; margin-bottom: 22px; }
+  .law {
+    background: #fff1e8; border: 1px solid #f5c8a8; border-left: 5px solid #e8632c;
+    border-radius: 8px; padding: 12px 16px; font-size: 14px; margin-bottom: 12px;
+  }
+  .law b { color: #c24b1a; }
+  .north {
+    background: #eef4ff; border: 1px solid #b9cff5; border-left: 5px solid #2b6de8;
+    border-radius: 8px; padding: 12px 16px; font-size: 14px; margin-bottom: 28px;
+  }
+  .north b { color: #1a4fbf; }
+  h3.section {
+    font-size: 15px; color: #646a73; margin: 30px 0 14px; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h3.section::after { content: ""; flex: 1; height: 1px; background: #d5d9e0; }
+  .legend { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .legend span { font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+  .lg-user { background: #e8f0fe; color: #1a56db; }
+  .lg-ai { background: #e6f6ec; color: #16794c; }
+  .lg-both { background: #fdf3d8; color: #9a6b00; }
+  .step {
+    background: #fff; border-radius: 12px; padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(31,35,41,.08); border-top: 4px solid #ccc;
+  }
+  .step.user { border-top-color: #3b82f6; }
+  .step.ai { border-top-color: #22a55e; }
+  .step.both { border-top-color: #e6a817; }
+  .step h2 { font-size: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .num {
+    width: 25px; height: 25px; border-radius: 50%; color: #fff; font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .user .num { background: #3b82f6; } .ai .num { background: #22a55e; } .both .num { background: #e6a817; }
+  .badge { font-size: 11px; padding: 2px 9px; border-radius: 12px; font-weight: normal; }
+  .step ul { margin: 9px 0 0 4px; padding-left: 18px; font-size: 13.5px; color: #3f444b; }
+  .step li { margin-bottom: 3px; }
+  .loop {
+    margin-top: 9px; font-size: 12.5px; color: #c0392b;
+    background: #fdf0ef; border: 1px dashed #e5a19b; border-radius: 6px; padding: 5px 10px;
+  }
+  .arrow { text-align: center; font-size: 20px; color: #8a9099; margin: 5px 0; line-height: 1; }
+  .out { margin-top: 8px; font-size: 12.5px; color: #16794c; background: #e6f6ec; border-radius: 6px; padding: 5px 10px; }
+  .loops-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .loops-grid { grid-template-columns: 1fr; } }
+  .loopcard {
+    background: #fff; border-radius: 12px; padding: 16px; font-size: 13px;
+    box-shadow: 0 1px 4px rgba(31,35,41,.08); border-top: 4px solid #8b5cf6;
+  }
+  .loopcard b { display: block; margin-bottom: 6px; font-size: 14px; }
+  .loopcard .flow { color: #555; line-height: 1.8; }
+  .cycle {
+    margin-top: 22px; text-align: center; font-size: 13px; color: #6b3fd4;
+    background: #f1ebfd; border: 1px dashed #b9a3f0; border-radius: 8px; padding: 10px;
+  }
+  .brandline {
+    margin-top: 26px; text-align: center; font-size: 15px; font-weight: 600; color: #1f2329;
+    background: linear-gradient(90deg,#fdefd8,#f3e5ff); border-radius: 10px; padding: 14px;
+  }
+  .brandline small { display: block; font-weight: normal; color: #646a73; margin-top: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>「100 字评测」业务全景流程</h1>
+  <div class="sub">v5 · 2026-09-25 · 单期生产流 × 三条业务回路</div>
+
+  <div class="law">⚠️ <b>铁律：实测一票否决。</b>犀利是结论的自由，扎实是证据的纪律——狠话随便说，每句必须钉着实测细节；没实测的事实点一律不进稿。</div>
+  <div class="north">🎯 <b>北极星指标：time-to-decision。</b>对外只有一句话——"30 秒帮你省 30 分钟"。判定结构固定：<b>人群 × 场景 × 能接受的代价</b>。</div>
+
+  <div class="legend">
+    <span class="lg-user">■ 磊叔</span>
+    <span class="lg-ai">■ 我（ZCode）</span>
+    <span class="lg-both">■ 交接 / 共同</span>
+  </div>
+
+  <h3 class="section">A · 单期生产流（每 Vol.n 跑一遍）</h3>
+
+  <div class="step user">
+    <h2><span class="num">1</span>选品 <span class="badge lg-user">磊叔</span></h2>
+    <ul>
+      <li>来源：GitHub 热榜 / X 时间线 / <b>群友点题</b> / 上期评论区</li>
+      <li>动作：丢我 <b>产品名 + GitHub 地址</b></li>
+    </ul>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step ai">
+    <h2><span class="num">2</span>评测前指引 <span class="badge lg-ai">我 · 模式 B</span></h2>
+    <ul>
+      <li>全网 + X 搜集：大家<b>吹</b>哪几点 / <b>骂</b>哪几点 / 竞品锚</li>
+      <li>产出《试用指引》：5~8 个实测动作 + <b>"别人没测过的角度"提示</b>（给 20 年经验留发挥空间）</li>
+      <li>可选：改成预告帖先发 X</li>
+    </ul>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step user">
+    <h2><span class="num">3</span>真实实测 <span class="badge lg-user">磊叔 · 不可替代</span></h2>
+    <ul>
+      <li>按指引试：掐表、复现骂点、验证吹点</li>
+      <li><b>独有视角</b>：凭 20 年经验找别人看不见的坑和用法</li>
+      <li>记口语笔记 + 截图（1 主图素材 + 3~4 明细图）</li>
+    </ul>
+    <div class="out">📤 回传：笔记 + 截图（细节就是指纹：版本号、报错原文、第几个文件翻车）</div>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step ai">
+    <h2><span class="num">4</span>初稿生成 <span class="badge lg-ai">我 · 模式 A</span></h2>
+    <ul>
+      <li>三方对照（宣传/别人说/你实测）找落差，<b>放大你的独有观察</b></li>
+      <li>按《磊叔语言风格卡》出稿：标题行 → "磊叔说"5 档 → 自然段落约 200 字</li>
+      <li>每句必须能改变读者一个动作，否则删</li>
+    </ul>
+    <div class="loop">↩ 缺截图 → 我列清单问你要，绝不用网图</div>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step user">
+    <h2><span class="num">5</span>润色 + 事实核对 <span class="badge lg-user">磊叔 · 发布闸门</span></h2>
+    <ul>
+      <li>按自己的腔调做文字优化（真实感的最后兜底）</li>
+      <li>逐句核对事实 + 确认"磊叔说"档位</li>
+    </ul>
+    <div class="loop">↩ 有不符 → 打回 ④ 重写，过不了闸不发</div>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step both">
+    <h2><span class="num">6</span>四处分发 <span class="badge lg-both">一次生产 · 多平台复用</span></h2>
+    <ul>
+      <li>X：主帖（自包含）+ 证据跟帖 + 互动钩子</li>
+      <li>小红书：图 + 文 ／ 公众号：短内容</li>
+      <li>抖音：同稿改口播脚本，配图当视频素材</li>
+      <li>转群："XX 好不好用？看磊叔 100 字评测第 n 期"</li>
+    </ul>
+  </div>
+  <div class="arrow">▼</div>
+
+  <div class="step both">
+    <h2><span class="num">7</span>复盘收题 <span class="badge lg-both">我整理 · 磊叔回评</span></h2>
+    <ul>
+      <li>发帖后 1 小时高频回评；群友反馈整理（他们踩的坑可复现进下期）</li>
+      <li>收下一期点题 + 数据复盘（哪档话术/哪类产品互动高）</li>
+    </ul>
+  </div>
+
+  <div class="cycle">🔁 第 7 步收到的点题 → 回到 ①，开启 Vol.n+1</div>
+
+  <h3 class="section">B · 三条业务回路（让这件事越做越值钱）</h3>
+  <div class="loops-grid">
+    <div class="loopcard">
+      <b>👥 社群回路</b>
+      <div class="flow">内容转群 → 群有点题权 + 补坑素材 → 下期选题更准 → 群有固定节目不掉活跃 → 内容</div>
+    </div>
+    <div class="loopcard">
+      <b>📚 判定库回路</b>
+      <div class="flow">每期入同尺度判定库 → 第 1 期是观点，第 100 期是标准 → "装前先查磊叔说" → 影响力反哺选题与话语权</div>
+    </div>
+    <div class="loopcard">
+      <b>🏷️ 品牌回路</b>
+      <div class="flow">100 问 + 100 字双品牌 → 现有粉丝盘互导（X 1k / 公众号 2w+ / 抖音 1w+）→ X Premium 一年为窗口期冲 X 涨粉</div>
+    </div>
+  </div>
+
+  <div class="brandline">「100 字评测：你读的是 100 字，我押的是 20 年。」
+    <small>后期变现走信任变现（佣金 / 选型咨询），商单慎接——档位可信度就是全部资产</small>
+  </div>
+</div>
+</body>
+</html>
