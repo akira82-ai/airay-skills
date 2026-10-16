@@ -1,6 +1,6 @@
 # Echo（echo-app）· 自我评审预演清单（模式 B 特殊变体）
 
-> airay-100-reviews · 2026-09-27 · 对象是磊叔自己的产品（github.com/akira82-ai/echo-app，5 星，新项目）
+> airay-product-review · 2026-09-27 · 对象是磊叔自己的产品（github.com/akira82-ai/echo-app，5 星，新项目）
 > 变体说明：自家产品无"大家吹/骂"可搜集，模式 B 转为**外部毒舌评审攻击面预演**——外部评审会怎么拆，作者先备好答案和截图。
 
 ## 产品事实（README 实抓）
