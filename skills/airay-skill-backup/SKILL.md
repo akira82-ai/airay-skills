@@ -1,10 +1,14 @@
 ---
 name: airay-skill-backup
 version: 1.0.0
-description: |
+description: >
   Backup and restore installed Claude Code global skills (~/.claude/skills/).
+
   TRIGGER when: user says "备份技能", "backup skills", "恢复技能", "restore skills",
-  "列出备份", "list backup", "/skill-backup", or mentions exporting/importing/syncing skills.
+
+  "列出备份", "list backup", "/skill-backup", or mentions
+  exporting/importing/syncing skills.
+disable: true
 ---
 
 ## Script Directory

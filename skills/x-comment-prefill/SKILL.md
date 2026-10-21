@@ -49,6 +49,9 @@ Read references progressively:
   synthetic events, or `page.fill()` on the composer.
 - Never generate a reply from the X post alone. Require a concrete local file,
   anchor, and verbatim `source_excerpt` from the zh corpus.
+- Never source material from finished book chapter `.md` files — only from the
+  book's `资料/` raw materials. External-collected material speaks in
+  整理者口吻, never as the user's lived experience.
 - If no accurate local match exists, skip the post. Never turn it into a
   review, summary, agreement, rebuttal, advice, or keyword opinion.
 - Read the box before filling. Never clear, append, overwrite, or retry a
@@ -99,10 +102,16 @@ After confirmation, follow `references/browser-workflow.md`:
    (a normal visible tab), verify exact URL, main article, author, complete
    post text, and no login/error interstitial. Keep the Page on its post. Do
    not type anything in this phase.
-5. **Drafting phase.** Per candidate, locate the exact local file and anchor
-   and read a verbatim `source_excerpt`. Decide the reply direction (共鸣 /
-   扩展 / 交流) and the voice profile (乔木体 / Clarkson 体, by the post's
-   temperature) per the three-stance and voice models in
+5. **Drafting phase.** Per candidate, run the raw-material retrieval in
+   `references/comment-strategy.md`: extract 主题 + 主旨 from the post → route
+   via `zh/topic-map.md` into that book's `资料/` directory (**never** the
+   finished chapter `.md` files; books without `资料/` → skip) → search with
+   2–4 discriminative keywords (CN + EN, synonym-expanded) → top-3 files by
+   hit density × keyword coverage → rank the 3 against the post's full text →
+   the winner becomes the verbatim `source_excerpt`, tagged `ownership`:
+   `own-draft` (亲历口吻 allowed) or `external-collect` (整理者口吻 only).
+   Then decide the reply direction (共鸣 / 扩展 / 交流) and the voice profile
+   (乔木体 / Clarkson 体, by the post's temperature) per the models in
    `references/comment-strategy.md` — never rotation; no direction supported →
    skip. Rewrite the excerpt with the 改稿人
    prompt (`references/clone-rewrite-prompt.md`) in the chosen voice:

@@ -7,7 +7,9 @@ allowed-tools: Bash, AskUserQuestion
 author: 磊叔
 metadata:
   requires:
-    bins: ["lark-cli"]
+    bins:
+      - lark-cli
+disable: true
 ---
 
 ## Script Directory

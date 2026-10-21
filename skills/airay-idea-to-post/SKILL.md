@@ -3,6 +3,7 @@ name: airay-idea-to-post
 description: 将零散灵感扩展为深度文章。当用户需要"扩展灵感"、"生成文章"、"头脑风暴内容"、"写作辅助"、"丰富思路"、"深化思考"或提供需要系统表达的零散想法时使用此技能。
 version: 1.9.1
 allowed-tools: AskUserQuestion, WebSearch, mcp__web_reader__webReader
+disable: true
 ---
 
 # Idea-to-Post 灵感扩展技能

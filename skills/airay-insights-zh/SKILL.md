@@ -19,6 +19,7 @@ description: |
   - 生成 report-zh.html 并在浏览器中打开
 disable-model-invocation: false
 allowed-tools: Bash, Read, Write, Task, Skill
+disable: true
 ---
 
 ## Script Directory

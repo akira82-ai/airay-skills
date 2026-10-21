@@ -5,8 +5,8 @@ description: |
   对话导出工具。完整保存 Claude Code 对话 session 记录到本地 JSON 文件。
   支持日期范围筛选（今天、昨天、近 3 天、近 7 天、自定义）和项目路径筛选。
   当用户说"导出对话"、"export chat"、"对话导出"、"/chat-export"、"保存对话记录"时触发。
-
 author: 磊叔
+disable: true
 ---
 
 # 对话导出工具

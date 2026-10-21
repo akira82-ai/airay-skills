@@ -490,6 +490,35 @@
         "无编造经历或假数据",
         "讽刺对事不对人"
       ]
+    },
+    {
+      "id": 37,
+      "name": "raw-material-retrieval-flow",
+      "description": "五步检索：主题主旨→路由资料目录→关键词扩展→top-3→对照全文选一；不用成书章节",
+      "prompt": "帖子说：agent 跑长任务跑着跑着就偏了，回来一看第五步就错了。对应书本是 Loop Engineering？不对——假设对应书有资料目录，资料里的文件用的是「任务漂移」和英文「goal drift」，而成稿章节里写的是抽象的「保持目标一致性」。请说明你会怎么找到 source_excerpt，以及在成稿章节和资料之间如何取舍。",
+      "expected_output": "五步流程：①从帖子提取主题（对应书）和主旨（长任务偏离）；②经 topic-map 路由进该书资料/子目录；③关键词扩展覆盖同义表达（跑偏/漂移/goal drift），在资料目录内搜索，按命中密度×关键词覆盖取前 3 个文件；④对照帖子全文排序选出最合适的 1 条作为逐字 source_excerpt；⑤标注 ownership。明确不使用成稿章节文件作为内容来源（成稿已 AI 提炼，细节密度低）；资料无命中则 skipped_no_local_match。",
+      "files": [],
+      "expectations": [
+        "从资料目录检索而非成稿章节",
+        "关键词做中英同义扩展后再搜索",
+        "top-3 候选对照帖子全文排序选一",
+        "选中的作为逐字 source_excerpt 并标注 ownership",
+        "无命中时跳过而非硬凑"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "external-collect-curator-voice",
+      "description": "外部收集资料用整理者口吻，不许伪装成用户亲历",
+      "prompt": "候选胜出的 source_excerpt 来自资料的「视频字幕」子目录，是一段海外 FDE 面试分享的字幕，内容是对方描述自己如何在客户现场交付。请基于它写评论，注意口吻。",
+      "expected_output": "识别 source 类型为 external-collect：内容是他人的经历，评论必须用整理者口吻（「我整理 FDE 资料时看到一个案例」「有位 FDE 分享过」），不得写成「我在客户现场交付时」等亲历口吻；事实细节忠实于字幕原文，不添油加醋；书名和链接按 promotion 规则处理。",
+      "files": [],
+      "expectations": [
+        "识别资料来源类型为 external-collect",
+        "使用整理者口吻而非亲历口吻",
+        "事实细节忠实于原资料",
+        "不把他人经历伪装成用户亲历"
+      ]
     }
   ]
 }

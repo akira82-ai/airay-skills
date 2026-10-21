@@ -19,6 +19,7 @@ description: |
 version: 1.0.0
 allowed-tools: Bash, AskUserQuestion, Task
 author: Claude Code
+disable: true
 ---
 
 # File Organizer Skill

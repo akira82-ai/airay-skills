@@ -6,6 +6,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 model: haiku
+disable: true
 ---
 
 ## Script Directory

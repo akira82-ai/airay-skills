@@ -1,7 +1,9 @@
 ---
 name: airay-style-rewrite
-description: |
-  个人语气风格迁移工作流。用于把任意文章或内容改成 AIRay 的语气、语言和情绪表达方式，并显著降低 AI 味。适用于用户说“按我的风格改写”“转成我的语气”“去 AI 味”“语气风格迁移”“airay-style-rewrite”等场景。
+description: >
+  个人语气风格迁移工作流。用于把任意文章或内容改成 AIRay 的语气、语言和情绪表达方式，并显著降低 AI
+  味。适用于用户说“按我的风格改写”“转成我的语气”“去 AI 味”“语气风格迁移”“airay-style-rewrite”等场景。
+disable: true
 ---
 
 # 个人语气风格迁移

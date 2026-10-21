@@ -1,24 +1,54 @@
 # Comment strategy
 
-## Source gate
+## Source gate: raw-material retrieval (资料 first, never 成书)
 
-The X post only supplies a concrete trigger and a relevance check. Before
-writing, record one exact local source:
+The X post only supplies a concrete trigger and a relevance check. Material is
+sourced from each book's raw `资料/` subdirectory — **never from the finished
+book chapter `.md` files**: 成稿已经过提炼和润色，细节密度低，改出来的回复
+干瘪。The only book-side file exempt from this ban is `zh/topic-map.md` — it
+is a directory routing table, not book content.
+
+Retrieval, per candidate:
+
+1. **主题 + 主旨**: from the post, extract which book it belongs to (主题)
+   and what it is really about in one line (主旨).
+2. **Routing**: use `zh/topic-map.md` to enter that book's `资料/` directory.
+   Books without a `资料/` directory (currently codex, loop-engineering) have
+   no eligible source → record `skipped_no_local_match`.
+3. **Top-3 candidates**: derive 2–4 discriminative keywords from the 主旨
+   (Chinese + English + synonym expansions, e.g. 跑偏 → 漂移 / goal drift),
+   then search the book's `资料/` with them. Subdirectory names are semantic
+   waypoints (`视频字幕`, `中国本土FDE`, `FDEOps`…) — narrow scope through
+   them first. Rank files by hit density × keyword coverage (a file hitting
+   two different keywords outranks one hitting the same keyword twice); keep
+   the top 3.
+4. **Rank and pick**: read the 3 candidates and rank them against the post's
+   FULL text (not just the keywords — this fixes grep's lexical misses). The
+   winner becomes the verbatim `source_excerpt`. Record its source type:
+   - `own-draft` — the user's own notes/drafts → 亲历口吻 allowed;
+   - `external-collect` — collected articles, video subtitles, interviews →
+     **整理者口吻 only**（“我整理书的时候看到过一个说法”“有人这么干过”）;
+     never dress external material as the user's own lived experience.
+5. **Miss = skip**: if keyword expansion finds nothing, or no candidate
+   actually answers the trigger, record `skipped_no_local_match`. 宁缺毋滥 —
+   a weak hit is worse than no hit.
+
+Evidence card (persist with the candidate):
 
 ```text
 trigger: exact post detail that made the material relevant
-material_file: file under the local zh corpus
+material_file: file under the book's 资料/ directory
 material_anchor: heading or stable paragraph anchor
 source_excerpt: sufficiently complete verbatim passage
 material_point: one method, experience, case, judgment, or lesson
+ownership: own-draft | external-collect
 ```
 
-`source_excerpt` is the only substantive writing input. A topic name, keyword,
-memory, or the X post itself is not a substitute. Respect negative topic
-boundaries: when the topic map explicitly excludes a meaning (e.g. the Graph
-book is not about knowledge graphs), a keyword hit on the excluded meaning does
-not match. If the local passage cannot answer the trigger naturally, skip the
-candidate.
+A topic name, keyword, memory, or the X post itself is not a substitute.
+Respect negative topic boundaries: when the topic map explicitly excludes a
+meaning (e.g. the Graph book is not about knowledge graphs), a keyword hit on
+the excluded meaning does not match. If the local passage cannot answer the
+trigger naturally, skip the candidate.
 
 ## Reply direction: exactly three stances
 
