@@ -4,8 +4,8 @@ AI 磊叔 开发或二创的技能仓库。
 
 ## 项目状态
 
-- 技能数量：16
-- 最近更新：2026-08-13
+- 技能数量：17
+- 最近更新：2026-10-27
 
 ## 安装
 
@@ -33,6 +33,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 |------|------|
 | airay-100-questions | 围绕技术与产品主题生成六章式 100 问问题清单 |
 | airay-agent-review | 基于本地对话与工具记录生成每日工作复盘 |
+| airay-book-pipeline | 100 问系列书十阶段成书调度器（阶段门禁 + 验收单 + 0-进度.md 断点续传） |
 | airay-chat-export | 导出 Claude Code 对话 session 到本地 JSON |
 | airay-file-organizer | 基于语义分析进行文件分类整理（Johnny Decimal） |
 | airay-github-smart-commit | 分析变更并生成规范化提交信息 |
@@ -42,6 +43,7 @@ ln -sfn ~/.claude/skills/airay-skills/skills/airay-html-ppt-skill ~/.claude/skil
 | airay-viral-forge | 基于开环驱动模型+5段结构+9模板钩子的高传播短视频脚本锻造（v4.0） |
 | airay-lark-wiki-agent | 飞书知识库 Wiki 节点 CRUD 与批量操作 |
 | airay-md2book | 将一份或多份 Markdown 加工成书籍级 docx |
+| airay-product-review | 「100 字评测」判定层内容生产：评测 SOP → 实测反馈 → X 帖 + 公众号图文双版式 |
 | airay-prompt-optimizer | 诊断并优化提示词，输出可直接复制的改写版本 |
 | airay-skill-backup | 备份和恢复已安装的 Claude Code 全局技能 |
 | airay-skill-usage | 统计指定时间段内的技能使用情况 |
